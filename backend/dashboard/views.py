@@ -1,12 +1,4 @@
-# dashboard/views.py
-from django.shortcuts import render
-from .models import Lecture
-
+from django.http import HttpResponse
 
 def dashboard_home(request):
-    lectures = Lecture.objects.all().order_by("-id")
-    return render(
-        request,
-        "home.html",
-        {"lectures": lectures}
-    )
+    return HttpResponse("Dashboard Home")
