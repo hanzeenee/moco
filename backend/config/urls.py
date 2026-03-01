@@ -1,15 +1,14 @@
+# root/backend/config/urls.py
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # 대시보드 홈 (허브)
-    path("dashboard/", include("dashboard.urls")),
+    # API가 있다면 아래처럼 "캐치올보다 위"에 먼저 등록
+    # path("api/", include("api.urls")),
 
-    # 강의 도메인
-    path("lectures/", include("lectures.urls")),
-
-    # 상단바 단순 링크 redirect (home / youtube / cafe / EA / PT)
-    path("", include("nav.urls")),
+    # SPA 캐치올: api/ 로 시작하는 경로만 제외하고 전부 home.html로 보냄
+    re_path(r"^(?!api/).*", TemplateView.as_view(template_name="home.html")),
 ]
