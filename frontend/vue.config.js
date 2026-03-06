@@ -3,7 +3,8 @@ const { defineConfig } = require("@vue/cli-service");
 const path = require("path");
 
 module.exports = defineConfig({
-  transpileDependencies: true,
+  // ✅ 반드시 배열이어야 함 (vuetify 트랜스파일)
+  transpileDependencies: ["vuetify"],
 
   // ✅ Django 연동: build 산출물 자동 배치
   // - home.html  => root/backend/templates/home.html
@@ -16,7 +17,7 @@ module.exports = defineConfig({
 
   pluginOptions: {
     vuetify: {
-      // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vuetify-loader
+      // vuetify-loader 옵션 자리
     },
   },
 });

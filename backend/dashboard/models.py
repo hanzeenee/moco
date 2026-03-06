@@ -1,6 +1,6 @@
 from django.db import models
 
-
+#
 class NavLink(models.Model):
     """
     상단바 단순 링크용 (home/youtube/cafe/ea/pt)
@@ -24,7 +24,8 @@ class NavLink(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.key})"
-
+    
+# 추후 삭제해도됨
 
 class Lecture(models.Model):
     """
