@@ -1,7 +1,7 @@
 <template>
   <header class="topbar">
     <!-- 좌측 로고 -->
-    <div class="brand" @click="goLink('https://www.naver.com')">
+    <div class="brand" @click="goHome">
       MOCO
     </div>
 
@@ -11,7 +11,7 @@
         v-for="btn in buttons"
         :key="btn.name"
         class="nav-btn"
-        @click="goLink(btn.url)"
+        @click="handleMenuClick(btn)"
       >
         {{ btn.name }}
       </button>
@@ -37,20 +37,32 @@ export default {
   data() {
     return {
       buttons: [
-        { name: "홈", url: "https://www.naver.com" },
-        { name: "강의", url: "https://news.naver.com/" },
-        { name: "유튜브", url: "https://www.youtube.com" },
-        { name: "카페", url: "https://cafe.naver.com" },
-        { name: "EA의뢰", url: "https://cafe.naver.com" },
-        { name: "PT", url: "https://cafe.naver.com" },
-        { name: "이벤트", url: "https://www.naver.com" }
+        { name: "홈", type: "route", value: "/" },
+        { name: "강의", type: "route", value: "/lecture" },
+        { name: "유튜브", type: "link", value: "https://www.youtube.com" },
+        { name: "카페", type: "link", value: "https://cafe.naver.com" },
+        { name: "EA의뢰", type: "link", value: "https://cafe.naver.com" },
+        { name: "PT", type: "link", value: "https://cafe.naver.com" },
+        { name: "이벤트", type: "route", value: "/event" }
       ]
     };
   },
 
   methods: {
+    goHome() {
+      this.$router.push('/');
+    },
+
     goLink(url) {
       window.open(url, "_blank", "noopener,noreferrer");
+    },
+
+    handleMenuClick(btn) {
+      if (btn.type === 'route') {
+        this.$router.push(btn.value);
+      } else {
+        this.goLink(btn.value);
+      }
     }
   }
 };
