@@ -1,11 +1,9 @@
 <template>
   <header class="topbar">
-    <!-- 좌측 로고 -->
     <div class="brand" @click="goHome">
       MOCO
     </div>
 
-    <!-- 중앙 메뉴 -->
     <nav class="nav">
       <button
         v-for="btn in buttons"
@@ -17,15 +15,38 @@
       </button>
     </nav>
 
-    <!-- 우측 메뉴 -->
     <div class="right-menu">
-      <button class="right-btn" @click="goLink('https://www.naver.com')">
-        로그인
-      </button>
+      <template v-if="!isLoggedIn">
+        <button class="right-btn" @click="$emit('open-login')">
+          로그인
+        </button>
 
-      <button class="right-btn" @click="goLink('https://www.naver.com')">
-        회원가입
-      </button>
+        <button class="right-btn" @click="$emit('open-signup')">
+          회원가입
+        </button>
+      </template>
+
+      <template v-else>
+        <button class="nav-btn" @click="$router.push('/classroom')">
+          강의실
+        </button>
+
+        <button class="nav-btn" @click="$router.push('/event')">
+          이벤트 실적
+        </button>
+
+        <div class="user-dropdown">
+          <button class="nav-btn user-btn">
+            {{ userName }}
+          </button>
+
+          <div class="dropdown-menu">
+            <button class="dropdown-btn" @click="$emit('logout')">
+              로그아웃
+            </button>
+          </div>
+        </div>
+      </template>
     </div>
   </header>
 </template>
@@ -33,6 +54,19 @@
 <script>
 export default {
   name: "TopBar",
+
+  emits: ["open-login", "open-signup", "logout"],
+
+  props: {
+    isLoggedIn: {
+      type: Boolean,
+      default: false
+    },
+    userName: {
+      type: String,
+      default: ''
+    }
+  },
 
   data() {
     return {
@@ -50,7 +84,7 @@ export default {
 
   methods: {
     goHome() {
-      this.$router.push('/');
+      this.$router.push("/");
     },
 
     goLink(url) {
@@ -58,7 +92,7 @@ export default {
     },
 
     handleMenuClick(btn) {
-      if (btn.type === 'route') {
+      if (btn.type === "route") {
         this.$router.push(btn.value);
       } else {
         this.goLink(btn.value);
@@ -77,12 +111,14 @@ export default {
   padding: 0 20px;
   border-bottom: 1px solid #333;
   background: #000000;
+  box-sizing: border-box;
 }
 
 .brand {
   font-weight: 700;
   color: #ffffff;
   cursor: pointer;
+  z-index: 2;
 }
 
 .nav {
@@ -91,12 +127,16 @@ export default {
   transform: translateX(-50%);
   display: flex;
   gap: 14px;
+  z-index: 1;
 }
 
 .right-menu {
   margin-left: auto;
+  margin-right: 20px;
   display: flex;
   gap: 10px;
+  z-index: 2;
+  align-items: center;
 }
 
 .nav-btn {
@@ -107,6 +147,7 @@ export default {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
@@ -120,9 +161,57 @@ export default {
   color: #ffffff;
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .right-btn:hover {
   text-decoration: underline;
+}
+
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.user-btn {
+  width: 100%;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  box-sizing: border-box;
+  z-index: 10;
+  overflow: hidden;
+  display: none;
+}
+
+.user-dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-btn {
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  text-align: center;
+  border-radius: 0;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropdown-btn:hover {
+  background: #222222;
 }
 </style>
