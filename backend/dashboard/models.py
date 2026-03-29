@@ -84,3 +84,15 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.get_key_display()}"
+
+class Comment(models.Model):
+    lecture_id = models.IntegerField()
+    author_name = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.author_name} - lecture {self.lecture_id}"
