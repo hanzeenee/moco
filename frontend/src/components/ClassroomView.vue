@@ -1,9 +1,7 @@
 <template>
   <div class="classroom-page">
-    <!-- 상단 영역 -->
     <div class="top-section">
       <div class="classroom-layout">
-        <!-- 좌측: 영상 -->
         <div class="video-panel">
           <div class="video-title">
             {{ currentLecture.title }}
@@ -24,7 +22,6 @@
           </div>
         </div>
 
-        <!-- 우측: 강의 목록 -->
         <div class="list-panel">
           <div class="list-title">강의 목록</div>
 
@@ -42,7 +39,6 @@
       </div>
     </div>
 
-    <!-- 하단 영역 -->
     <div class="bottom-section">
       <div class="bottom-tabs">
         <button
@@ -64,14 +60,13 @@
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'comment' }"
-          @click="activeTab = 'comment'"
+          @click="changeToCommentTab"
         >
           댓글
         </button>
       </div>
 
       <div class="tab-content">
-        <!-- 강의자료 -->
         <div v-if="activeTab === 'material'" class="content-box">
           <div class="content-title">강의자료</div>
           <div class="content-text">
@@ -79,7 +74,6 @@
           </div>
         </div>
 
-        <!-- 퀴즈 -->
         <div v-else-if="activeTab === 'quiz'" class="content-box">
           <div class="content-title">퀴즈</div>
           <div class="content-text">
@@ -87,20 +81,18 @@
           </div>
         </div>
 
-        <!-- 댓글 -->
         <div v-else-if="activeTab === 'comment'" class="comment-box">
           <div class="content-title">댓글</div>
 
-          <!-- 댓글 목록 -->
           <div class="comment-list">
             <div
-              v-for="comment in currentLectureComments"
+              v-for="comment in comments"
               :key="comment.id"
               class="comment-item"
             >
               <div class="comment-header">
-                <span class="comment-author">{{ comment.author }}</span>
-                <span class="comment-date">{{ comment.createdAt }}</span>
+                <span class="comment-author">{{ comment.author_name }}</span>
+                <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
               </div>
 
               <div class="comment-body">
@@ -108,12 +100,11 @@
               </div>
             </div>
 
-            <div v-if="currentLectureComments.length === 0" class="empty-comment">
+            <div v-if="comments.length === 0" class="empty-comment">
               아직 댓글이 없습니다.
             </div>
           </div>
 
-          <!-- 댓글 작성창 -->
           <div class="comment-input-wrap">
             <textarea
               v-model="newComment"
@@ -134,6 +125,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'ClassroomView',
 
@@ -141,6 +134,7 @@ export default {
     return {
       activeTab: 'material',
       newComment: '',
+      comments: [],
 
       lectures: [
         {
@@ -179,70 +173,89 @@ export default {
         shortText: '입문 강의',
         description: '강의 설명 영역입니다. 추후 실제 설명으로 교체하면 됩니다.',
         videoUrl: 'https://www.youtube.com/embed/mbQomARqpfo'
-      },
-
-      commentsByLecture: {
-        1: [
-          {
-            id: 1,
-            author: '한진희님',
-            content: '첫 번째 강의 설명이 깔끔해서 보기 좋습니다.',
-            createdAt: '2026-03-29 21:10'
-          }
-        ],
-        2: [],
-        3: [],
-        4: []
       }
     }
   },
 
-  computed: {
-    currentLectureComments() {
-      return this.commentsByLecture[this.currentLecture.id] || []
-    }
+  mounted() {
+    this.loadComments()
   },
 
   methods: {
-    selectLecture(lecture) {
+    getCookie(name) {
+      const value = `; ${document.cookie}`
+      const parts = value.split(`; ${name}=`)
+      if (parts.length === 2) {
+        return parts.pop().split(';').shift()
+      }
+      return null
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return ''
+      return dateString.replace('T', ' ').slice(0, 16)
+    },
+
+    async loadComments() {
+      const url = `/api/comments/?lecture_id=${this.currentLecture.id}`
+      console.log('댓글 조회 URL:', url)
+
+      try {
+        const response = await axios.get(url)
+        console.log('댓글 조회 응답:', response.data)
+        this.comments = response.data
+      } catch (error) {
+        console.error('댓글 조회 실패:', error)
+      }
+    },
+
+    async selectLecture(lecture) {
       this.currentLecture = lecture
       this.activeTab = 'material'
       this.newComment = ''
+      await this.loadComments()
     },
 
-    submitComment() {
+    async changeToCommentTab() {
+      this.activeTab = 'comment'
+      await this.loadComments()
+    },
+
+    async submitComment() {
       const content = this.newComment.trim()
 
       if (!content) {
         return
       }
 
-      const lectureId = this.currentLecture.id
-
-      if (!this.commentsByLecture[lectureId]) {
-        this.commentsByLecture[lectureId] = []
+      const url = '/api/comments/'
+      const payload = {
+        lecture_id: this.currentLecture.id,
+        author_name: '한진희님',
+        content: content
       }
 
-      const now = new Date()
-      const formatted =
-        now.getFullYear() +
-        '-' +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(now.getDate()).padStart(2, '0') +
-        ' ' +
-        String(now.getHours()).padStart(2, '0') +
-        ':' +
-        String(now.getMinutes()).padStart(2, '0')
+      const csrfToken = this.getCookie('csrftoken')
 
-      this.commentsByLecture[lectureId].unshift({
-        id: Date.now(),
-        author: '한진희님',
-        content,
-        createdAt: formatted
-      })
+      console.log('댓글 작성 URL:', url)
+      console.log('댓글 작성 payload:', payload)
+      console.log('CSRF Token:', csrfToken)
 
-      this.newComment = ''
+      try {
+        const response = await axios.post(url, payload, {
+          headers: {
+            'X-CSRFToken': csrfToken
+          }
+        })
+
+        console.log('댓글 작성 응답:', response.data)
+
+        this.newComment = ''
+        this.activeTab = 'comment'
+        await this.loadComments()
+      } catch (error) {
+        console.error('댓글 작성 실패:', error)
+      }
     }
   }
 }
@@ -256,7 +269,6 @@ export default {
   box-sizing: border-box;
 }
 
-/* 상단 */
 .top-section {
   margin-bottom: 28px;
 }
@@ -350,7 +362,6 @@ export default {
   color: #aaaaaa;
 }
 
-/* 하단 */
 .bottom-section {
   background: #111111;
   border: 1px solid #333333;
@@ -404,7 +415,6 @@ export default {
   line-height: 1.7;
 }
 
-/* 댓글 */
 .comment-box {
   min-height: 260px;
 }
@@ -499,7 +509,6 @@ export default {
   color: #000000;
 }
 
-/* 반응형 */
 @media (max-width: 1100px) {
   .classroom-layout {
     flex-direction: column;

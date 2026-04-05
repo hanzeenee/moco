@@ -1,10 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import LectureView from '../views/LectureView.vue'
-import EventView from '../views/EventView.vue'
-import LoginView from '../views/LoginView.vue'
-import SignupView from '../views/SignupView.vue'
-import ClassroomView from '../views/ClassroomView.vue'
+import HomeView from '../components/HomeView.vue'
+import LectureView from '../components/LectureView.vue'
+import EventView from '../components/EventView.vue'
+import ClassroomView from '../components/ClassroomView.vue'
 
 const routes = [
   {
@@ -21,16 +19,6 @@ const routes = [
     path: '/event',
     name: 'event',
     component: EventView,
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: LoginView,
-  },
-  {
-    path: '/signup',
-    name: 'signup',
-    component: SignupView,
   },
   {
     path: '/classroom',

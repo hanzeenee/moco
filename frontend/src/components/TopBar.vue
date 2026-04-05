@@ -28,7 +28,7 @@
 
       <template v-else>
         <button class="nav-btn" @click="$router.push('/classroom')">
-          강의실
+          내 강의실
         </button>
 
         <button class="nav-btn" @click="$router.push('/event')">
