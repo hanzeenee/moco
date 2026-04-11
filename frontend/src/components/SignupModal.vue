@@ -57,13 +57,14 @@
 
       <div class="form-row">
         <div class="form-group half">
-          <label class="form-label">생년월일 6자리</label>
+          <label class="form-label">주민등록번호 앞 6자리</label>
           <input
             v-model="birth"
             type="text"
             maxlength="6"
+            inputmode="numeric"
             class="form-input"
-            placeholder="900101"
+            placeholder="예: 900101"
           />
         </div>
 
@@ -72,8 +73,10 @@
           <input
             v-model="phone"
             type="text"
+            maxlength="11"
+            inputmode="numeric"
             class="form-input"
-            placeholder="01012345678"
+            placeholder="예: 01012345678"
           />
         </div>
       </div>
@@ -81,13 +84,24 @@
       <button class="submit-btn" @click="handleSignup">
         회원가입
       </button>
+
+      <p v-if="errorMessage" class="error-text">
+        {{ errorMessage }}
+      </p>
+
+      <p v-if="successMessage" class="success-text">
+        {{ successMessage }}
+      </p>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'SignupModal',
+  emits: ['close', 'signup-success'],
 
   data() {
     return {
@@ -98,12 +112,80 @@ export default {
       name: '',
       birth: '',
       phone: '',
+      errorMessage: '',
+      successMessage: '',
     }
   },
 
   methods: {
-    handleSignup() {
-      alert('회원가입 화면 틀만 구성된 상태입니다.')
+    getCookie(name) {
+      const value = `; ${document.cookie}`
+      const parts = value.split(`; ${name}=`)
+      if (parts.length === 2) {
+        return parts.pop().split(';').shift()
+      }
+      return null
+    },
+
+    async handleSignup() {
+      this.errorMessage = ''
+      this.successMessage = ''
+
+      const payload = {
+        email: this.email.trim(),
+        username: this.username.trim(),
+        password: this.password,
+        password_confirm: this.passwordConfirm,
+        name: this.name.trim(),
+        birth: this.birth.trim(),
+        phone: this.phone.trim(),
+      }
+
+      const csrfToken = this.getCookie('csrftoken')
+
+      try {
+        const response = await axios.post('/api/accounts/signup/', payload, {
+          headers: {
+            'X-CSRFToken': csrfToken
+          }
+        })
+
+        this.successMessage = response.data.message || '회원가입이 완료되었습니다.'
+
+        const savedUsername = this.username
+        const savedPassword = this.password
+
+        this.email = ''
+        this.username = ''
+        this.password = ''
+        this.passwordConfirm = ''
+        this.name = ''
+        this.birth = ''
+        this.phone = ''
+
+        setTimeout(() => {
+          this.$emit('close')
+          this.$emit('signup-success', {
+            username: savedUsername,
+            password: savedPassword,
+          })
+        }, 500)
+      } catch (error) {
+        if (error.response && error.response.data) {
+          const data = error.response.data
+          if (typeof data === 'string') {
+            this.errorMessage = data
+          } else {
+            const firstKey = Object.keys(data)[0]
+            const firstValue = data[firstKey]
+            this.errorMessage = Array.isArray(firstValue)
+              ? firstValue[0]
+              : '회원가입에 실패했습니다.'
+          }
+        } else {
+          this.errorMessage = '회원가입에 실패했습니다.'
+        }
+      }
     }
   }
 }
@@ -203,5 +285,19 @@ export default {
 
 .submit-btn:hover {
   opacity: 0.9;
+}
+
+.error-text {
+  margin-top: 12px;
+  color: #ff6b6b;
+  font-size: 13px;
+  text-align: center;
+}
+
+.success-text {
+  margin-top: 12px;
+  color: #7CFC98;
+  font-size: 13px;
+  text-align: center;
 }
 </style>

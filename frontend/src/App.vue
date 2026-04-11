@@ -16,6 +16,8 @@
 
     <LoginModal
       v-if="isLoginOpen"
+      :initialUsername="loginForm.username"
+      :initialPassword="loginForm.password"
       @close="closeAllModals"
       @login-success="handleLoginSuccess"
     />
@@ -23,6 +25,7 @@
     <SignupModal
       v-if="isSignupOpen"
       @close="closeAllModals"
+      @signup-success="handleSignupSuccess"
     />
   </v-app>
 </template>
@@ -45,7 +48,11 @@ export default {
       isLoginOpen: false,
       isSignupOpen: false,
       isLoggedIn: false,
-      userName: ''
+      userName: '',
+      loginForm: {
+        username: '',
+        password: '',
+      }
     }
   },
 
@@ -55,7 +62,7 @@ export default {
 
     if (savedIsLoggedIn === 'true') {
       this.isLoggedIn = true
-      this.userName = savedUserName || '한진희님'
+      this.userName = savedUserName || ''
     }
   },
 
@@ -73,6 +80,15 @@ export default {
     closeAllModals() {
       this.isLoginOpen = false
       this.isSignupOpen = false
+      this.loginForm.username = ''
+      this.loginForm.password = ''
+    },
+
+    handleSignupSuccess(payload) {
+      this.isSignupOpen = false
+      this.loginForm.username = payload.username
+      this.loginForm.password = payload.password
+      this.isLoginOpen = true
     },
 
     handleLoginSuccess(user) {

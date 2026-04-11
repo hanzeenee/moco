@@ -22,32 +22,88 @@
           type="password"
           class="form-input"
           placeholder="비밀번호를 입력하세요"
+          @keyup.enter="handleLogin"
         />
       </div>
 
       <button class="submit-btn" @click="handleLogin">
         로그인
       </button>
+
+      <p v-if="errorMessage" class="error-text">
+        {{ errorMessage }}
+      </p>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'LoginModal',
+  emits: ['close', 'login-success'],
+
+  props: {
+    initialUsername: {
+      type: String,
+      default: ''
+    },
+    initialPassword: {
+      type: String,
+      default: ''
+    }
+  },
 
   data() {
     return {
-      username: '',
-      password: '',
+      username: this.initialUsername,
+      password: this.initialPassword,
+      errorMessage: '',
     }
   },
 
   methods: {
-    handleLogin() {
-      this.$emit('login-success', {
-        name: '한진희님'
-      })
+    getCookie(name) {
+      const value = `; ${document.cookie}`
+      const parts = value.split(`; ${name}=`)
+      if (parts.length === 2) {
+        return parts.pop().split(';').shift()
+      }
+      return null
+    },
+
+    async handleLogin() {
+      this.errorMessage = ''
+
+      const csrfToken = this.getCookie('csrftoken')
+
+      try {
+        const response = await axios.post(
+          '/api/accounts/login/',
+          {
+            username: this.username.trim(),
+            password: this.password,
+          },
+          {
+            headers: {
+              'X-CSRFToken': csrfToken
+            }
+          }
+        )
+
+        this.$emit('login-success', {
+          name: response.data.user.display_name,
+          username: response.data.user.username,
+          email: response.data.user.email,
+        })
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.detail) {
+          this.errorMessage = error.response.data.detail
+        } else {
+          this.errorMessage = '로그인에 실패했습니다.'
+        }
+      }
     }
   }
 }
@@ -130,5 +186,12 @@ export default {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.error-text {
+  margin-top: 12px;
+  color: #ff6b6b;
+  font-size: 13px;
+  text-align: center;
 }
 </style>

@@ -77,7 +77,8 @@ export default {
         { name: "카페", type: "link", value: "https://cafe.naver.com" },
         { name: "EA의뢰", type: "link", value: "https://cafe.naver.com" },
         { name: "PT", type: "link", value: "https://cafe.naver.com" },
-        { name: "이벤트", type: "route", value: "/event" }
+        { name: "이벤트", type: "route", value: "/event" },
+        { name: "Admin", type: "link", value: "http://127.0.0.1:8000/admin/" }
       ]
     };
   },
