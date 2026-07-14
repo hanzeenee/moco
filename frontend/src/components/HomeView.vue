@@ -2,12 +2,12 @@
   <div class="main-area">
     <div class="main-content">
       <div class="main-text">
-        모코 - 해외선물 자동매매 MT5 EA<br>
+        MOCO - 해외선물 자동매매 MT5 EA<br>
         Money Copier
       </div>
 
-      <button class="detail-btn" @click="goToLecture">
-        강의 자세히보기
+      <button class="detail-btn" type="button" @click="goToLecture">
+        강의 자세히 보기
       </button>
     </div>
   </div>

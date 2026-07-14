@@ -1,14 +1,13 @@
 <template>
   <header class="topbar">
-    <div class="brand" @click="goHome">
-      MOCO
-    </div>
+    <div class="brand" @click="goHome">MOCO</div>
 
     <nav class="nav">
       <button
         v-for="btn in buttons"
         :key="btn.name"
         class="nav-btn"
+        type="button"
         @click="handleMenuClick(btn)"
       >
         {{ btn.name }}
@@ -17,31 +16,29 @@
 
     <div class="right-menu">
       <template v-if="!isLoggedIn">
-        <button class="right-btn" @click="$emit('open-login')">
+        <button class="right-btn" type="button" @click="$emit('open-login')">
           로그인
         </button>
 
-        <button class="right-btn" @click="$emit('open-signup')">
+        <button class="right-btn" type="button" @click="$emit('open-signup')">
           회원가입
         </button>
       </template>
 
       <template v-else>
-        <button class="nav-btn" @click="$router.push('/classroom')">
+        <button class="nav-btn" type="button" @click="$router.push('/classroom')">
           내 강의실
         </button>
 
-        <button class="nav-btn" @click="$router.push('/event')">
-          이벤트 실적
+        <button class="nav-btn" type="button" @click="$router.push('/event')">
+          이벤트
         </button>
 
         <div class="user-dropdown">
-          <button class="nav-btn user-btn">
-            {{ userName }}
-          </button>
+          <button class="nav-btn user-btn" type="button">{{ userName }}</button>
 
           <div class="dropdown-menu">
-            <button class="dropdown-btn" @click="$emit('logout')">
+            <button class="dropdown-btn" type="button" @click="$emit('logout')">
               로그아웃
             </button>
           </div>
@@ -75,10 +72,10 @@ export default {
         { name: "강의", type: "route", value: "/lecture" },
         { name: "유튜브", type: "link", value: "https://www.youtube.com" },
         { name: "카페", type: "link", value: "https://cafe.naver.com" },
-        { name: "EA의뢰", type: "link", value: "https://cafe.naver.com" },
+        { name: "EA문의", type: "link", value: "https://cafe.naver.com" },
         { name: "PT", type: "link", value: "https://cafe.naver.com" },
         { name: "이벤트", type: "route", value: "/event" },
-        { name: "Admin", type: "link", value: "http://127.0.0.1:8000/admin/" }
+        { name: "Admin", type: "link", value: "/admin/" }
       ]
     };
   },

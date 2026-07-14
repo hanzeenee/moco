@@ -3,9 +3,7 @@
     <div class="top-section">
       <div class="classroom-layout">
         <div class="video-panel">
-          <div class="video-title">
-            {{ currentLecture.title }}
-          </div>
+          <div class="video-title">{{ currentLecture.title }}</div>
 
           <div class="video-wrapper">
             <iframe
@@ -17,9 +15,7 @@
             ></iframe>
           </div>
 
-          <div class="video-description">
-            {{ currentLecture.description }}
-          </div>
+          <div class="video-description">{{ currentLecture.description }}</div>
         </div>
 
         <div class="list-panel">
@@ -30,6 +26,7 @@
             :key="lecture.id"
             class="lecture-item"
             :class="{ active: currentLecture.id === lecture.id }"
+            type="button"
             @click="selectLecture(lecture)"
           >
             <div class="lecture-item-title">{{ lecture.title }}</div>
@@ -41,27 +38,13 @@
 
     <div class="bottom-section">
       <div class="bottom-tabs">
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'material' }"
-          @click="activeTab = 'material'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'material' }" type="button" @click="activeTab = 'material'">
           강의자료
         </button>
-
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'quiz' }"
-          @click="activeTab = 'quiz'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'quiz' }" type="button" @click="activeTab = 'quiz'">
           퀴즈
         </button>
-
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'comment' }"
-          @click="changeToCommentTab"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'comment' }" type="button" @click="changeToCommentTab">
           댓글
         </button>
       </div>
@@ -69,35 +52,24 @@
       <div class="tab-content">
         <div v-if="activeTab === 'material'" class="content-box">
           <div class="content-title">강의자료</div>
-          <div class="content-text">
-            추후 강의 PDF, 이미지, 설명 자료 등을 이 영역에 넣으면 됩니다.
-          </div>
+          <div class="content-text">추후 강의 PDF, 이미지, 설명 자료 등을 이 영역에 표시합니다.</div>
         </div>
 
         <div v-else-if="activeTab === 'quiz'" class="content-box">
           <div class="content-title">퀴즈</div>
-          <div class="content-text">
-            추후 문제, 정답 선택, 제출 버튼 등을 이 영역에 넣으면 됩니다.
-          </div>
+          <div class="content-text">추후 문제, 정답 선택, 제출 버튼 등을 이 영역에 표시합니다.</div>
         </div>
 
         <div v-else-if="activeTab === 'comment'" class="comment-box">
           <div class="content-title">댓글</div>
 
           <div class="comment-list">
-            <div
-              v-for="comment in comments"
-              :key="comment.id"
-              class="comment-item"
-            >
+            <div v-for="comment in comments" :key="comment.id" class="comment-item">
               <div class="comment-header">
                 <span class="comment-author">{{ comment.author_name }}</span>
                 <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
               </div>
-
-              <div class="comment-body">
-                {{ comment.content }}
-              </div>
+              <div class="comment-body">{{ comment.content }}</div>
             </div>
 
             <div v-if="comments.length === 0" class="empty-comment">
@@ -106,14 +78,10 @@
           </div>
 
           <div class="comment-input-wrap">
-            <textarea
-              v-model="newComment"
-              class="comment-textarea"
-              placeholder="댓글을 입력하세요."
-            ></textarea>
+            <textarea v-model="newComment" class="comment-textarea" placeholder="댓글을 입력하세요"></textarea>
 
             <div class="comment-action">
-              <button class="comment-submit-btn" @click="submitComment">
+              <button class="comment-submit-btn" type="button" @click="submitComment">
                 입력
               </button>
             </div>
@@ -135,41 +103,39 @@ export default {
       activeTab: 'material',
       newComment: '',
       comments: [],
-
       lectures: [
         {
           id: 1,
-          title: '1강. 모코 - 해외선물 자동매매 MT5 EA',
+          title: '1강 MOCO - 해외선물 자동매매 MT5 EA',
           shortText: '입문 강의',
           description: '강의 설명 영역입니다. 추후 실제 설명으로 교체하면 됩니다.',
           videoUrl: 'https://www.youtube.com/embed/mbQomARqpfo'
         },
         {
           id: 2,
-          title: '2강. Money Copier 기초',
+          title: '2강 Money Copier 기초',
           shortText: '기초 강의',
-          description: '추후 실제 강의 설명을 넣을 수 있습니다.',
+          description: '추후 실제 강의 설명을 입력할 수 있습니다.',
           videoUrl: 'https://www.youtube.com/embed/mbQomARqpfo'
         },
         {
           id: 3,
-          title: '3강. 실전 세팅 방법',
+          title: '3강 실전 세팅 방법',
           shortText: '실전 강의',
-          description: '현재는 임시 영상/임시 텍스트입니다.',
+          description: '현재는 임시 영상과 임시 텍스트입니다.',
           videoUrl: 'https://www.youtube.com/embed/mbQomARqpfo'
         },
         {
           id: 4,
-          title: '4강. 운용 팁',
-          shortText: '응용 강의',
+          title: '4강 적용 팁',
+          shortText: '적용 강의',
           description: '나중에 각 강의별 실제 영상 링크로 교체하면 됩니다.',
           videoUrl: 'https://www.youtube.com/embed/mbQomARqpfo'
         }
       ],
-
       currentLecture: {
         id: 1,
-        title: '1강. 모코 - 해외선물 자동매매 MT5 EA',
+        title: '1강 MOCO - 해외선물 자동매매 MT5 EA',
         shortText: '입문 강의',
         description: '강의 설명 영역입니다. 추후 실제 설명으로 교체하면 됩니다.',
         videoUrl: 'https://www.youtube.com/embed/mbQomARqpfo'
@@ -198,14 +164,12 @@ export default {
 
     async loadComments() {
       const url = `/api/comments/?lecture_id=${this.currentLecture.id}`
-      console.log('댓글 조회 URL:', url)
 
       try {
         const response = await axios.get(url)
-        console.log('댓글 조회 응답:', response.data)
         this.comments = response.data
       } catch (error) {
-        console.error('댓글 조회 실패:', error)
+        this.comments = []
       }
     },
 
@@ -223,38 +187,27 @@ export default {
 
     async submitComment() {
       const content = this.newComment.trim()
-
       if (!content) {
         return
       }
 
-      const url = '/api/comments/'
       const payload = {
         lecture_id: this.currentLecture.id,
-        author_name: '한진희님',
-        content: content
+        author_name: '수강생',
+        content
       }
 
-      const csrfToken = this.getCookie('csrftoken')
-
-      console.log('댓글 작성 URL:', url)
-      console.log('댓글 작성 payload:', payload)
-      console.log('CSRF Token:', csrfToken)
-
       try {
-        const response = await axios.post(url, payload, {
+        await axios.post('/api/comments/', payload, {
           headers: {
-            'X-CSRFToken': csrfToken
+            'X-CSRFToken': this.getCookie('csrftoken')
           }
         })
-
-        console.log('댓글 작성 응답:', response.data)
-
         this.newComment = ''
         this.activeTab = 'comment'
         await this.loadComments()
       } catch (error) {
-        console.error('댓글 작성 실패:', error)
+        // Keep the current input so the user can retry.
       }
     }
   }
@@ -289,7 +242,7 @@ export default {
   min-width: 280px;
   background: #111111;
   border: 1px solid #333333;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 18px;
   box-sizing: border-box;
 }
@@ -305,7 +258,7 @@ export default {
   width: 100%;
   background: #111111;
   border: 1px solid #333333;
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -337,7 +290,7 @@ export default {
   border: 1px solid #333333;
   background: #1a1a1a;
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   box-sizing: border-box;
 }
@@ -365,7 +318,7 @@ export default {
 .bottom-section {
   background: #111111;
   border: 1px solid #333333;
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -426,7 +379,7 @@ export default {
 .comment-item {
   background: #1a1a1a;
   border: 1px solid #333333;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px;
   margin-bottom: 12px;
 }
@@ -464,7 +417,7 @@ export default {
 
 .comment-input-wrap {
   border: 1px solid #333333;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #1a1a1a;
   padding: 14px;
   box-sizing: border-box;

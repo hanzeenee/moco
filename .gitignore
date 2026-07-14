@@ -1,43 +1,44 @@
-# =========================
 # Python
-# =========================
 __pycache__/
 *.py[cod]
 *.sqlite3
+*.sqlite3-journal
 
-# Virtual Environment
+# Virtual environments and local env files
 .env
 .env.*
+!.env.example
 .venv/
 venv/
+env/
+backend/.venv/
 
-# =========================
-# Django
-# =========================
+# Django generated/local files
 staticfiles/
 media/
+backend/db.sqlite3
+backend/staticfiles/
+backend/media/
 
-# Vue build output (Django 연동용)
+# Vue build output copied into Django
 backend/static/frontend/
 backend/templates/home.html
 
-# =========================
-# Node / Vue (frontend 전용)
-# =========================
+# Node / Vue
 frontend/node_modules/
 frontend/dist/
 
-# =========================
-# Logs
-# =========================
+# Logs and test output
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.coverage
+htmlcov/
+.pytest_cache/
 
-# =========================
-# OS / Editor
-# =========================
+# OS / editor
 .DS_Store
 Thumbs.db
 .idea/
@@ -47,3 +48,21 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets and local deployment keys
+*.pem
+*.key
+
+# Local backups and generated archives
+backend backup/
+backend_old/
+*_backup/
+*.zip
+*.tar
+*.tar.gz
+
+# Large uploaded or streaming media
+*.mp4
+*.mov
+*.m3u8
+*.ts

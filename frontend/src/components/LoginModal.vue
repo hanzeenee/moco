@@ -1,7 +1,7 @@
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-card">
-      <button class="close-btn" @click="$emit('close')">×</button>
+      <button class="close-btn" type="button" @click="$emit('close')">x</button>
 
       <h1 class="modal-title">로그인</h1>
 
@@ -26,7 +26,7 @@
         />
       </div>
 
-      <button class="submit-btn" @click="handleLogin">
+      <button class="submit-btn" type="button" @click="handleLogin">
         로그인
       </button>
 
@@ -48,17 +48,13 @@ export default {
     initialUsername: {
       type: String,
       default: ''
-    },
-    initialPassword: {
-      type: String,
-      default: ''
     }
   },
 
   data() {
     return {
       username: this.initialUsername,
-      password: this.initialPassword,
+      password: '',
       errorMessage: '',
     }
   },
@@ -76,8 +72,6 @@ export default {
     async handleLogin() {
       this.errorMessage = ''
 
-      const csrfToken = this.getCookie('csrftoken')
-
       try {
         const response = await axios.post(
           '/api/accounts/login/',
@@ -87,16 +81,12 @@ export default {
           },
           {
             headers: {
-              'X-CSRFToken': csrfToken
+              'X-CSRFToken': this.getCookie('csrftoken')
             }
           }
         )
 
-        this.$emit('login-success', {
-          name: response.data.user.display_name,
-          username: response.data.user.username,
-          email: response.data.user.email,
-        })
+        this.$emit('login-success', response.data.user)
       } catch (error) {
         if (error.response && error.response.data && error.response.data.detail) {
           this.errorMessage = error.response.data.detail
@@ -126,7 +116,7 @@ export default {
   max-width: 420px;
   background: #111111;
   border: 1px solid #333333;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 32px 28px;
   box-sizing: border-box;
   position: relative;

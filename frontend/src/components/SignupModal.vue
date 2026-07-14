@@ -1,97 +1,53 @@
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-card">
-      <button class="close-btn" @click="$emit('close')">×</button>
+      <button class="close-btn" type="button" @click="$emit('close')">x</button>
 
       <h1 class="modal-title">회원가입</h1>
 
       <div class="form-group">
         <label class="form-label">이메일</label>
-        <input
-          v-model="email"
-          type="email"
-          class="form-input"
-          placeholder="이메일을 입력하세요"
-        />
+        <input v-model="email" type="email" class="form-input" placeholder="이메일을 입력하세요" />
       </div>
 
       <div class="form-group">
         <label class="form-label">아이디</label>
-        <input
-          v-model="username"
-          type="text"
-          class="form-input"
-          placeholder="아이디를 입력하세요"
-        />
+        <input v-model="username" type="text" class="form-input" placeholder="아이디를 입력하세요" />
       </div>
 
       <div class="form-group">
         <label class="form-label">비밀번호</label>
-        <input
-          v-model="password"
-          type="password"
-          class="form-input"
-          placeholder="비밀번호를 입력하세요"
-        />
+        <input v-model="password" type="password" class="form-input" placeholder="비밀번호를 입력하세요" />
       </div>
 
       <div class="form-group">
         <label class="form-label">비밀번호 확인</label>
-        <input
-          v-model="passwordConfirm"
-          type="password"
-          class="form-input"
-          placeholder="비밀번호를 다시 입력하세요"
-        />
+        <input v-model="passwordConfirm" type="password" class="form-input" placeholder="비밀번호를 다시 입력하세요" />
       </div>
 
       <div class="form-group">
         <label class="form-label">이름</label>
-        <input
-          v-model="name"
-          type="text"
-          class="form-input"
-          placeholder="이름을 입력하세요"
-        />
+        <input v-model="name" type="text" class="form-input" placeholder="이름을 입력하세요" />
       </div>
 
       <div class="form-row">
         <div class="form-group half">
-          <label class="form-label">주민등록번호 앞 6자리</label>
-          <input
-            v-model="birth"
-            type="text"
-            maxlength="6"
-            inputmode="numeric"
-            class="form-input"
-            placeholder="예: 900101"
-          />
+          <label class="form-label">생년월일 6자리</label>
+          <input v-model="birth" type="text" maxlength="6" inputmode="numeric" class="form-input" placeholder="예: 900101" />
         </div>
 
         <div class="form-group half">
-          <label class="form-label">휴대폰번호</label>
-          <input
-            v-model="phone"
-            type="text"
-            maxlength="11"
-            inputmode="numeric"
-            class="form-input"
-            placeholder="예: 01012345678"
-          />
+          <label class="form-label">휴대폰 번호</label>
+          <input v-model="phone" type="text" maxlength="11" inputmode="numeric" class="form-input" placeholder="예: 01012345678" />
         </div>
       </div>
 
-      <button class="submit-btn" @click="handleSignup">
+      <button class="submit-btn" type="button" @click="handleSignup">
         회원가입
       </button>
 
-      <p v-if="errorMessage" class="error-text">
-        {{ errorMessage }}
-      </p>
-
-      <p v-if="successMessage" class="success-text">
-        {{ successMessage }}
-      </p>
+      <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="success-text">{{ successMessage }}</p>
     </div>
   </div>
 </template>
@@ -141,20 +97,15 @@ export default {
         phone: this.phone.trim(),
       }
 
-      const csrfToken = this.getCookie('csrftoken')
-
       try {
         const response = await axios.post('/api/accounts/signup/', payload, {
           headers: {
-            'X-CSRFToken': csrfToken
+            'X-CSRFToken': this.getCookie('csrftoken')
           }
         })
 
         this.successMessage = response.data.message || '회원가입이 완료되었습니다.'
-
         const savedUsername = this.username
-        const savedPassword = this.password
-
         this.email = ''
         this.username = ''
         this.password = ''
@@ -165,10 +116,7 @@ export default {
 
         setTimeout(() => {
           this.$emit('close')
-          this.$emit('signup-success', {
-            username: savedUsername,
-            password: savedPassword,
-          })
+          this.$emit('signup-success', { username: savedUsername })
         }, 500)
       } catch (error) {
         if (error.response && error.response.data) {
@@ -208,7 +156,7 @@ export default {
   max-width: 420px;
   background: #111111;
   border: 1px solid #333333;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 24px 22px;
   box-sizing: border-box;
   position: relative;
@@ -296,7 +244,7 @@ export default {
 
 .success-text {
   margin-top: 12px;
-  color: #7CFC98;
+  color: #7cfc98;
   font-size: 13px;
   text-align: center;
 }

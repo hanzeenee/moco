@@ -4,23 +4,15 @@
       <div class="lecture-left">
         <div class="lecture-left-content">
           <div class="lecture-text">
-            <div>모코 - 해외선물 자동매매 MT5 EA</div>
+            <div>MOCO - 해외선물 자동매매 MT5 EA</div>
             <div>Money Copier</div>
           </div>
 
-          <button
-            v-if="isLoggedIn"
-            class="go-classroom-btn"
-            @click="goToClassroom"
-          >
+          <button v-if="isLoggedIn" class="go-classroom-btn" type="button" @click="goToClassroom">
             강의실 바로가기
           </button>
 
-          <button
-            v-else
-            class="go-classroom-btn"
-            @click="handlePayment"
-          >
+          <button v-else class="go-classroom-btn" type="button" @click="handlePayment">
             결제하기
           </button>
         </div>
@@ -58,7 +50,7 @@ export default {
     },
 
     handlePayment() {
-      // 현재는 아무 기능 없음
+      // Payment is intentionally not implemented yet.
     }
   }
 }
@@ -128,6 +120,6 @@ export default {
 .video-player {
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 </style>

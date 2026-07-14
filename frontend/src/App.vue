@@ -17,7 +17,6 @@
     <LoginModal
       v-if="isLoginOpen"
       :initialUsername="loginForm.username"
-      :initialPassword="loginForm.password"
       @close="closeAllModals"
       @login-success="handleLoginSuccess"
     />
@@ -31,6 +30,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import TopBar from './components/TopBar.vue'
 import LoginModal from './components/LoginModal.vue'
 import SignupModal from './components/SignupModal.vue'
@@ -51,22 +51,27 @@ export default {
       userName: '',
       loginForm: {
         username: '',
-        password: '',
       }
     }
   },
 
-  mounted() {
-    const savedIsLoggedIn = localStorage.getItem('isLoggedIn')
-    const savedUserName = localStorage.getItem('userName')
-
-    if (savedIsLoggedIn === 'true') {
-      this.isLoggedIn = true
-      this.userName = savedUserName || ''
-    }
+  async mounted() {
+    await this.loadCurrentUser()
   },
 
   methods: {
+    async loadCurrentUser() {
+      try {
+        const response = await axios.get('/api/accounts/me/')
+        if (response.data.authenticated) {
+          this.setLoggedInUser(response.data.user)
+        }
+      } catch (error) {
+        this.isLoggedIn = false
+        this.userName = ''
+      }
+    },
+
     openLoginModal() {
       this.isSignupOpen = false
       this.isLoginOpen = true
@@ -81,31 +86,33 @@ export default {
       this.isLoginOpen = false
       this.isSignupOpen = false
       this.loginForm.username = ''
-      this.loginForm.password = ''
     },
 
     handleSignupSuccess(payload) {
       this.isSignupOpen = false
       this.loginForm.username = payload.username
-      this.loginForm.password = payload.password
       this.isLoginOpen = true
     },
 
-    handleLoginSuccess(user) {
+    setLoggedInUser(user) {
       this.isLoggedIn = true
-      this.userName = user.name
-      localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('userName', user.name)
+      this.userName = user.display_name || user.username
+    },
+
+    handleLoginSuccess(user) {
+      this.setLoggedInUser(user)
       this.closeAllModals()
     },
 
-    handleLogout() {
-      this.isLoggedIn = false
-      this.userName = ''
-      localStorage.removeItem('isLoggedIn')
-      localStorage.removeItem('userName')
-      this.closeAllModals()
-      this.$router.push('/')
+    async handleLogout() {
+      try {
+        await axios.post('/api/accounts/logout/')
+      } finally {
+        this.isLoggedIn = false
+        this.userName = ''
+        this.closeAllModals()
+        this.$router.push('/')
+      }
     }
   }
 }

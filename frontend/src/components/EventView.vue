@@ -1,12 +1,7 @@
 <template>
   <div class="event-page">
-    <div class="event-box left-box">
-      이벤트1
-    </div>
-
-    <div class="event-box right-box">
-      이벤트2
-    </div>
+    <div class="event-box left-box">이벤트 1</div>
+    <div class="event-box right-box">이벤트 2</div>
   </div>
 </template>
 

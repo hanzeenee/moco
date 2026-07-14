@@ -1,7 +1,127 @@
-# moco
-EA 제작 강의 사이트
+# MOCO
 
-## moconix
-### test
+Django + Vue web service.
 
-## YJ
+## Detected Structure
+
+- Django root: `backend`
+- Django settings module: `config.settings`
+- Django apps: `dashboard`, `accounts`
+- Vue root: `frontend`
+- Vue build system: Vue CLI
+- Vue build output: `backend/templates/home.html`, `backend/static/frontend/`
+- API prefix: `/api/`
+- Admin path: `/admin/`
+- Gunicorn module: `config.wsgi:application`
+
+## Local Development
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp ../.env.example ../.env
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+On Windows PowerShell, activate with:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm ci
+npm run serve
+```
+
+The frontend uses same-origin API paths such as `/api/accounts/login/`.
+
+## Production Build
+
+```bash
+cd frontend
+npm ci
+npm run build
+```
+
+The Vue CLI build copies the SPA artifact into Django:
+
+- HTML: `backend/templates/home.html`
+- Static assets: `backend/static/frontend/`
+
+Then run Django static collection:
+
+```bash
+cd ../backend
+python manage.py collectstatic --noinput
+```
+
+## EC2 Clone Checklist
+
+```bash
+git clone <repository-url>
+cd moco
+python -m venv backend/.venv
+source backend/.venv/bin/activate
+pip install -r backend/requirements.txt
+cp .env.example .env
+```
+
+Set real production values in `.env` on the server. Do not commit `.env`.
+
+```bash
+cd frontend
+npm ci
+npm run build
+cd ../backend
+python manage.py migrate
+python manage.py collectstatic --noinput
+python manage.py check --deploy
+gunicorn config.wsgi:application --bind 0.0.0.0:8000
+```
+
+## Production Environment Variables
+
+- `DJANGO_SECRET_KEY`
+- `DJANGO_DEBUG=False`
+- `DJANGO_ALLOWED_HOSTS`
+- `DJANGO_CSRF_TRUSTED_ORIGINS`
+- `DJANGO_DB_ENGINE`
+- `DJANGO_DB_NAME`
+- `DJANGO_DB_USER`
+- `DJANGO_DB_PASSWORD`
+- `DJANGO_DB_HOST`
+- `DJANGO_DB_PORT`
+- `DJANGO_SESSION_COOKIE_SECURE`
+- `DJANGO_CSRF_COOKIE_SECURE`
+- `DJANGO_SECURE_SSL_REDIRECT`
+- `DJANGO_SECURE_HSTS_SECONDS`
+- `DJANGO_USE_X_FORWARDED_PROTO`
+
+For PostgreSQL, install and configure a supported Django PostgreSQL driver on EC2 before setting `DJANGO_DB_ENGINE=postgresql`.
+
+## AWS Items Not Implemented Here
+
+- EC2 instance creation
+- RDS provisioning or data migration
+- S3 or CloudFront setup
+- HTTPS certificate and Nginx/systemd configuration
+- CI/CD
+
+## Pre-Launch Security Checks
+
+- Replace `DJANGO_SECRET_KEY` with a real secret in server environment variables.
+- Set `DJANGO_DEBUG=False`.
+- Set production `DJANGO_ALLOWED_HOSTS`.
+- Set HTTPS origins in `DJANGO_CSRF_TRUSTED_ORIGINS`.
+- Enable secure cookies and HSTS only after HTTPS is working.
+- Remove local private keys and backup folders from Git tracking before pushing.

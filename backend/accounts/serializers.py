@@ -33,28 +33,27 @@ class SignupSerializer(serializers.Serializer):
 
     def validate_birth(self, value):
         if not re.fullmatch(r"\d{6}", value):
-            raise serializers.ValidationError("주민등록번호 앞 6자리를 숫자로 입력하세요.")
+            raise serializers.ValidationError("생년월일 6자리를 숫자로 입력하세요.")
 
         yy = int(value[:2])
         mm = int(value[2:4])
         dd = int(value[4:6])
-
         current_two_digit_year = datetime.now().year % 100
         year = 2000 + yy if yy <= current_two_digit_year else 1900 + yy
 
         try:
             datetime(year, mm, dd)
-        except ValueError:
-            raise serializers.ValidationError("올바른 주민등록번호 앞 6자리 형식이 아닙니다.")
+        except ValueError as exc:
+            raise serializers.ValidationError("올바른 생년월일 6자리 형식이 아닙니다.") from exc
 
         return value
 
     def validate_phone(self, value):
         if "-" in value:
-            raise serializers.ValidationError("휴대폰번호는 - 없이 입력하세요.")
+            raise serializers.ValidationError("휴대폰 번호는 '-' 없이 입력하세요.")
 
         if not re.fullmatch(r"01[016789]\d{7,8}", value):
-            raise serializers.ValidationError("올바른 휴대폰번호 형식이 아닙니다. 예: 01012345678")
+            raise serializers.ValidationError("올바른 휴대폰 번호 형식이 아닙니다. 예: 01012345678")
 
         return value
 
@@ -67,25 +66,15 @@ class SignupSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         validated_data.pop("password_confirm")
-
-        email = validated_data["email"]
-        username = validated_data["username"]
-        password = validated_data["password"]
-        name = validated_data["name"]
-        birth = validated_data["birth"]
-        phone = validated_data["phone"]
-
         user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
         )
-
         Profile.objects.create(
             user=user,
-            name=name,
-            birth=birth,
-            phone=phone,
+            name=validated_data["name"],
+            birth=validated_data["birth"],
+            phone=validated_data["phone"],
         )
-
         return user
