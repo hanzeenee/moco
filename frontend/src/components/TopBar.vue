@@ -1,8 +1,8 @@
 <template>
   <header class="topbar">
-    <div class="brand" @click="goHome">MOCO</div>
+    <button class="brand" type="button" @click="goHome">MOCONIX</button>
 
-    <nav class="nav">
+    <nav class="nav" aria-label="주 메뉴">
       <button
         v-for="btn in buttons"
         :key="btn.name"
@@ -25,34 +25,24 @@
         </button>
       </template>
 
-      <template v-else>
-        <button class="nav-btn" type="button" @click="$router.push('/classroom')">
-          내 강의실
-        </button>
+      <div v-else class="user-dropdown">
+        <button class="nav-btn user-btn" type="button">{{ userName }}</button>
 
-        <button class="nav-btn" type="button" @click="$router.push('/event')">
-          이벤트
-        </button>
-
-        <div class="user-dropdown">
-          <button class="nav-btn user-btn" type="button">{{ userName }}</button>
-
-          <div class="dropdown-menu">
-            <button class="dropdown-btn" type="button" @click="$emit('logout')">
-              로그아웃
-            </button>
-          </div>
+        <div class="dropdown-menu">
+          <button class="dropdown-btn" type="button" @click="$emit('logout')">
+            로그아웃
+          </button>
         </div>
-      </template>
+      </div>
     </div>
   </header>
 </template>
 
 <script>
 export default {
-  name: "TopBar",
+  name: 'TopBar',
 
-  emits: ["open-login", "open-signup", "logout"],
+  emits: ['open-login', 'open-signup', 'logout'],
 
   props: {
     isLoggedIn: {
@@ -68,73 +58,64 @@ export default {
   data() {
     return {
       buttons: [
-        { name: "홈", type: "route", value: "/" },
-        { name: "강의", type: "route", value: "/lecture" },
-        { name: "유튜브", type: "link", value: "https://www.youtube.com" },
-        { name: "카페", type: "link", value: "https://cafe.naver.com" },
-        { name: "EA문의", type: "link", value: "https://cafe.naver.com" },
-        { name: "PT", type: "link", value: "https://cafe.naver.com" },
-        { name: "이벤트", type: "route", value: "/event" },
-        { name: "Admin", type: "link", value: "/admin/" }
+        { name: '홈', route: '/' },
+        { name: 'EA 문의' },
+        { name: '인디케이터(지표) 문의' },
+        { name: '무료 제공' },
+        { name: '기타 문의' }
       ]
-    };
+    }
   },
 
   methods: {
     goHome() {
-      this.$router.push("/");
-    },
-
-    goLink(url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+      this.$router.push('/')
     },
 
     handleMenuClick(btn) {
-      if (btn.type === "route") {
-        this.$router.push(btn.value);
-      } else {
-        this.goLink(btn.value);
+      if (btn.route) {
+        this.$router.push(btn.route)
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>
 .topbar {
-  height: 56px;
-  display: flex;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  position: relative;
-  padding: 0 20px;
+  gap: 20px;
+  padding: 8px 20px;
   border-bottom: 1px solid #333;
   background: #000000;
   box-sizing: border-box;
 }
 
 .brand {
+  justify-self: start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
   font-weight: 700;
   color: #ffffff;
   cursor: pointer;
-  z-index: 2;
 }
 
 .nav {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   gap: 14px;
-  z-index: 1;
 }
 
 .right-menu {
-  margin-left: auto;
-  margin-right: 20px;
+  justify-self: end;
   display: flex;
   gap: 10px;
-  z-index: 2;
   align-items: center;
+  min-width: 0;
 }
 
 .nav-btn {
@@ -169,17 +150,20 @@ export default {
 .user-dropdown {
   position: relative;
   display: inline-block;
+  max-width: 100%;
 }
 
 .user-btn {
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 42px;
-  left: 0;
-  width: 100%;
+  top: 100%;
+  right: 0;
+  min-width: 100%;
   background: #111111;
   border: 1px solid #333333;
   border-radius: 8px;
@@ -189,7 +173,8 @@ export default {
   display: none;
 }
 
-.user-dropdown:hover .dropdown-menu {
+.user-dropdown:hover .dropdown-menu,
+.user-dropdown:focus-within .dropdown-menu {
   display: block;
 }
 
@@ -211,5 +196,30 @@ export default {
 
 .dropdown-btn:hover {
   background: #222222;
+}
+
+@media (max-width: 1100px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 8px 12px;
+  }
+
+  .nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .right-menu {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .nav-btn {
+    padding: 8px 10px;
+  }
 }
 </style>

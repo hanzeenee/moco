@@ -4,15 +4,15 @@ from django.db import models
 class NavLink(models.Model):
     KEY_CHOICES = [
         ("home", "홈"),
-        ("youtube", "유튜브"),
-        ("cafe", "카페"),
-        ("ea", "EA"),
-        ("pt", "PT"),
+        ("ea", "EA 문의"),
+        ("indicator", "인디케이터(지표) 문의"),
+        ("free", "무료 제공"),
+        ("other", "기타 문의"),
     ]
 
     key = models.CharField(max_length=20, choices=KEY_CHOICES, unique=True)
     title = models.CharField(max_length=50)
-    url = models.URLField()
+    url = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
