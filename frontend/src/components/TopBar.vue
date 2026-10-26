@@ -1,6 +1,8 @@
 <template>
   <header class="topbar">
-    <button class="brand" type="button" @click="goHome">MOCONIX</button>
+    <button class="brand" type="button" aria-label="MOCONIX 홈" @click="goHome">
+      <img class="brand-logo" src="@/assets/brand/moconix-wordmark.png" alt="MOCONIX" />
+    </button>
 
     <nav class="nav" aria-label="주 메뉴">
       <button
@@ -95,14 +97,33 @@ export default {
 }
 
 .brand {
+  position: relative;
   justify-self: start;
+  width: 160px;
+  max-width: 100%;
+  height: 32px;
   padding: 0;
   border: none;
   background: transparent;
-  font: inherit;
-  font-weight: 700;
-  color: #ffffff;
   cursor: pointer;
+  overflow: hidden;
+}
+
+/* Frame the supplied wordmark without changing the original image. */
+.brand-logo {
+  position: absolute;
+  top: 50%;
+  left: -9%;
+  display: block;
+  width: 118%;
+  max-width: none;
+  height: auto;
+  transform: translateY(-50%);
+}
+
+.brand:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
 }
 
 .nav {
