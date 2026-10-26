@@ -12,3 +12,5 @@ Original PNGs supplied by the owner on 2026-10-27. Files are preserved without p
 | moconix-wordmark-on-black.png | 로고전체_배경검정.png | Full wordmark variant supplied for a black background. |
 
 Only the header wordmark is currently imported into the application. Keep the other originals for later owner-directed placements.
+
+Favicon assets in frontend/public are derived from moconix-mark-transparent.png (누끼_로고.png), using the visible symbol bounds, transparent square padding, and unchanged aspect ratio. favicon.ico contains 16/32/48/64px frames; 32px and 64px PNG alternatives are linked explicitly. The ICO URL includes a version suffix to refresh the previous favicon cache.
