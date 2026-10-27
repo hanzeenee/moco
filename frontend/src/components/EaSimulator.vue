@@ -9,10 +9,16 @@
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
       <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><button v-else class="apply-ea-btn" type="button" @click="applyEa">EA 적용하기</button></div>
-      <div class="quote-strip">
-        <div class="quote sell"><span>SELL</span><strong>{{ (state.price - 0.1).toFixed(2) }}</strong></div>
-        <label class="lot-control" for="simulation-lot">거래량<span class="lot-input"><input id="simulation-lot" v-model.number="lotInput" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="거래량 (랏)" title="0.01~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" /><span>랏</span></span></label>
-        <div class="quote buy"><span>BUY</span><strong>{{ (state.price + 0.1).toFixed(2) }}</strong></div>
+      <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
+        <span class="quote-label sell">SELL</span>
+        <div class="lot-control">
+          <button class="lot-step" type="button" aria-label="거래량 줄이기" :disabled="Number(lotInput) <= 0.01" @click="adjustLot(-0.01)">▾</button>
+          <input id="simulation-lot" v-model.number="lotInput" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="거래량 (랏)" title="거래량 0.01~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
+          <button class="lot-step" type="button" aria-label="거래량 늘리기" :disabled="Number(lotInput) >= 100" @click="adjustLot(0.01)">▴</button>
+        </div>
+        <span class="quote-label buy">BUY</span>
+        <div class="quote-price sell" :aria-label="`SELL ${sellPrice.join('.')}`"><small>{{ sellPrice[0] }}</small><strong>{{ sellPrice[1] }}</strong></div>
+        <div class="quote-price buy" :aria-label="`BUY ${buyPrice.join('.')}`"><small>{{ buyPrice[0] }}</small><strong>{{ buyPrice[1] }}</strong></div>
       </div>
 
       <div ref="chart" class="chart">
@@ -98,6 +104,8 @@ export default {
         return candle ? [{ id: trade.id, x: candle.x, y: this.priceY(trade.exitMid), label: trade.exitTarget === 'OUT' ? '종료' : trade.exitTarget, color: trade.exitTarget === 'TP' ? '#79c2ff' : '#ff858c' }] : []
       })
     },
+    sellPrice() { return (this.state.price - 0.1).toFixed(2).split('.') },
+    buyPrice() { return (this.state.price + 0.1).toFixed(2).split('.') },
     openProfit() { return floatingProfit(this.state) }
   },
   mounted() {
@@ -132,6 +140,7 @@ export default {
       this.chartHeight = Math.max(100, Math.min(440, Math.floor(available - fixedHeight - 4)))
     },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
+    adjustLot(amount) { this.lotInput = normalizeLot(normalizeLot(this.lotInput) + amount); this.applyLot() },
     applyEa() { this.applyLot(); applyEa(this.state) },
     reset() { this.state = createSimulation() },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
@@ -164,15 +173,23 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .ea-name { color: #9caebd; }
 .apply-ea-btn { border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
 .apply-ea-btn:hover { background: #ffdf46; border-color: #ffdf46; }
-.quote-strip { display: flex; gap: 2px; align-items: stretch; padding: 4px 10px 0; }
-.quote { display: flex; flex-direction: column; min-width: 0; width: 96px; padding: 4px 7px; border: 1px solid #9e535b; background: linear-gradient(#78363e, #3b1b22); font-family: Consolas, monospace; }
-.quote span { font-size: 9px; color: #bacde9; }
-.quote strong { text-align: center; font-size: clamp(12px, 1.65vw, 21px); font-weight: 400; color: #fff; }
-.quote.buy { background: linear-gradient(#183d75, #102342); border-color: #4776a9; }
-.lot-control { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; padding: 0 5px; font-size: 9px; color: #aeb7c2; text-align: center; }
-.lot-input { display: flex; align-items: center; gap: 3px; }
-.lot-input > span { font-size: 10px; }
-.lot-control input { text-align: center; width: 72px; min-width: 0; box-sizing: border-box; border: 1px solid #5b646d; color: #fff; background: #252a30; border-radius: 0; padding: 2px; font-size: 11px; }
+.quote-strip { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; grid-template-rows: 23px 38px; width: min(260px, calc(100% - 20px)); box-sizing: border-box; margin: 4px 10px 0; border: 1px solid #7890aa; background: #26313d; box-shadow: inset 0 0 0 1px #ffffff12; font-family: Consolas, monospace; }
+.quote-label { display: grid; place-items: center; font-family: Arial, sans-serif; font-size: 10px; color: #e1e8f2; border-bottom: 1px solid #7890aa; }
+.quote-label.sell { background: linear-gradient(#78363e, #4b232b); }
+.quote-label.buy { background: linear-gradient(#294f88, #183459); }
+.lot-control { display: flex; min-width: 0; margin: 1px 0 2px; border: 1px solid #8e969f; background: #080b0d; }
+.lot-step { display: grid; place-items: center; flex: 0 0 20px; padding: 0; border: 0; color: #f0f3f7; background: linear-gradient(#515861, #30353d); font-size: 12px; line-height: 1; }
+.lot-step:first-child { border-right: 1px solid #8e969f; }
+.lot-step:last-child { border-left: 1px solid #8e969f; }
+.lot-step:hover { filter: brightness(1.2); }
+.lot-step:disabled { opacity: 0.45; cursor: default; }
+.lot-control input { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; padding: 0 2px; border: 0; border-radius: 0; background: #080b0d; color: #fff; text-align: center; font-size: 12px; appearance: textfield; -moz-appearance: textfield; }
+.lot-control input::-webkit-inner-spin-button, .lot-control input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.quote-price { display: flex; align-items: baseline; justify-content: center; gap: 3px; min-width: 0; grid-row: 2; grid-column: 1 / -1; width: 50%; box-sizing: border-box; padding: 0 4px; color: #fff; line-height: 36px; font-variant-numeric: tabular-nums; }
+.quote-price.sell { justify-self: start; border-right: 1px solid #7890aa; background: linear-gradient(#78363e, #3b1b22); }
+.quote-price.buy { justify-self: end; background: linear-gradient(#234a84, #102342); }
+.quote-price small { font-size: 13px; }
+.quote-price strong { font-size: 30px; font-weight: 400; }
 .chart { position: relative; margin: 0 6px; background: #000; }
 .chart svg { display: block; width: 100%; height: 224px; font-family: Consolas, monospace; }
 .chart-grid line { stroke: #15221b; stroke-dasharray: 2 5; stroke-width: 0.6; }
@@ -214,12 +231,13 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .terminal-title strong { font-size: 10px; }
   .demo-badge { margin-left: 0; }
   .chart-heading { padding: 8px 6px 4px; }
-  .quote-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px 5px 0; }
-  .quote { width: auto; padding: 4px; }
-  .quote.sell { grid-row: 1; grid-column: 1; }
-  .quote.buy { grid-row: 1; grid-column: 2; }
-  .lot-control { grid-row: 2; grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 6px; padding: 2px 0; font-size: 10px; }
-  .lot-control input { text-align: center; width: 72px; flex: 0 0 72px; font-size: 11px; }
+  .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
+  .quote-label { font-size: 9px; }
+  .lot-step { flex-basis: 16px; }
+  .lot-control input { font-size: 11px; }
+  .quote-price { gap: 1px; padding: 0 2px; }
+  .quote-price small { font-size: 10px; }
+  .quote-price strong { font-size: 23px; }
   .chart { margin: 0 3px; }
   .account-stats { gap: 9px; padding: 10px 6px; grid-template-columns: 1fr; }
   .account-stats > div { display: flex; justify-content: space-between; align-items: center; }
