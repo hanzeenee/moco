@@ -36,7 +36,7 @@
 export default {
   name: 'TopBar',
 
-  emits: ['open-login', 'open-signup', 'logout'],
+  emits: ['open-login', 'open-signup', 'logout', 'go-home'],
 
   props: {
     isLoggedIn: {
@@ -51,7 +51,7 @@ export default {
 
   methods: {
     goHome() {
-      this.$router.push('/')
+      this.$emit('go-home')
     }
   }
 }

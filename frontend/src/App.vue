@@ -6,11 +6,12 @@
       @open-login="openLoginModal"
       @open-signup="openSignupModal"
       @logout="handleLogout"
+      @go-home="goHome"
     />
 
     <v-main class="app-main">
       <router-view v-slot="{ Component }">
-        <component :is="Component" :isLoggedIn="isLoggedIn" />
+        <component :is="Component" :key="$route.path === '/' ? homeViewKey : $route.fullPath" :isLoggedIn="isLoggedIn" />
       </router-view>
     </v-main>
 
@@ -49,6 +50,7 @@ export default {
       isSignupOpen: false,
       isLoggedIn: false,
       userName: '',
+      homeViewKey: 0,
       loginForm: {
         username: '',
       }
@@ -60,6 +62,13 @@ export default {
   },
 
   methods: {
+    async goHome() {
+      this.closeAllModals()
+      this.homeViewKey += 1
+      await this.$router.push('/')
+      await this.$nextTick()
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    },
     async loadCurrentUser() {
       try {
         const response = await axios.get('/api/accounts/me/')

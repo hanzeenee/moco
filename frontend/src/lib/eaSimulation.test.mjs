@@ -46,6 +46,7 @@ test('drawdown includes open losses and reset returns a fresh independent accoun
   assert.equal(reset.maxDrawdown, 0)
   assert.equal(reset.position, null)
   assert.equal(reset.tradeCount, 0)
+  assert.equal(reset.entryCount, 0)
   assert.equal(reset.winCount, 0)
   assert.equal(reset.lossCount, 0)
 })
@@ -56,6 +57,7 @@ test('long runs open and close trades, retain bounded data and valid OHLC', () =
   const state = createSimulation(random)
   for (let i = 0; i < 10000; i++) advanceSimulation(state, 0.01, random)
   assert.ok(state.tradeCount > 20)
+  assert.equal(state.entryCount, state.tradeCount + (state.position ? 1 : 0))
   assert.ok(state.winCount + state.lossCount > 20)
   assert.ok(state.winCount + state.lossCount <= state.tradeCount)
   assert.ok(state.trades.length <= 20)
@@ -89,13 +91,13 @@ test('manual lot input supports the full range and normalizes invalid entries', 
   assert.equal(normalizeLot(-10), 0.01)
   assert.equal(normalizeLot(1000), 100)
   assert.equal(normalizeLot(1.234), 1.23)
-  for (const value of ['', null, undefined, NaN, Infinity, 'invalid']) assert.equal(normalizeLot(value), 1)
+  for (const value of ['', null, undefined, NaN, Infinity, 'invalid']) assert.equal(normalizeLot(value), 10)
 })
 
-test('default entries use one lot and larger lots scale actual P/L', () => {
+test('default entries use ten lots and larger lots scale actual P/L', () => {
   const state = createSimulation(() => 0.5)
   for (let i = 0; i < 4; i++) advanceSimulation(state, undefined, () => 0.5)
-  assert.equal(state.position.lot, 1)
+  assert.equal(state.position.lot, 10)
   assert.equal(floatingProfit(withPosition('BUY', 4000.1, 4001, 1)), 80)
   assert.equal(floatingProfit(withPosition('BUY', 4000.1, 4001, 100)), 8000)
 })
@@ -115,4 +117,22 @@ test('timed exits count their realized outcome and entry levels match trade dire
       assert.equal(timed.lossCount, gain ? 0 : 1)
     }
   }
+})
+test('cumulative trades count entries once and remain unchanged at exit', () => {
+  const state = createSimulation(() => 0.5)
+  assert.equal(state.entryCount, 0)
+  for (let i = 0; i < 4; i++) advanceSimulation(state, 0.01, () => 0.5)
+  assert.equal(state.entryCount, 1)
+  assert.ok(state.position)
+  const side = state.position.side === 'BUY' ? 1 : -1
+  state.price = state.position.entry + side * 5
+  advanceSimulation(state, 0.01, () => 0.5)
+  assert.equal(state.position, null)
+  assert.equal(state.entryCount, 1)
+  assert.equal(state.tradeCount, 1)
+  for (let i = 0; i < 20 && state.entryCount < 2; i++) advanceSimulation(state, 0.01, () => 0.5)
+  assert.equal(state.entryCount, 2)
+  assert.ok(state.position)
+  advanceSimulation(state, 0.01, () => 0.5)
+  assert.equal(state.entryCount, 2)
 })

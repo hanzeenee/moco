@@ -30,7 +30,7 @@
               <line :x1="candle.x" :x2="candle.x" :y1="priceY(candle.high)" :y2="priceY(candle.low)" />
               <rect :x="candle.x - candleWidth / 2" :y="priceY(Math.max(candle.open, candle.close))" :width="candleWidth" :height="Math.max(1, Math.abs(priceY(candle.open) - priceY(candle.close)))" :fill="candle.close >= candle.open ? '#050805' : '#62ff2b'" />
             </g>
-            <g v-if="state.position" class="order-lines"><line x1="0" :x2="plotWidth" :y1="priceY(state.position.entry)" :y2="priceY(state.position.entry)" stroke="#4baaff"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.stop)" :y2="priceY(state.position.stop)" stroke="#ed727e"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.target)" :y2="priceY(state.position.target)" stroke="#ffd000"/><text x="7" :y="priceY(state.position.target) - 5" fill="#ffd000">TP</text><text x="7" :y="priceY(state.position.stop) - 5" fill="#ed727e">SL</text></g>
+            <g v-if="state.position" class="order-lines"><line x1="0" :x2="plotWidth" :y1="priceY(state.position.entry)" :y2="priceY(state.position.entry)" stroke="#4baaff"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.stop)" :y2="priceY(state.position.stop)" stroke="#ff858c"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.target)" :y2="priceY(state.position.target)" stroke="#79c2ff"/><text x="7" :y="priceY(state.position.target) - 5" fill="#79c2ff">TP</text><text x="7" :y="priceY(state.position.stop) - 5" fill="#ff858c">SL</text></g>
             <g v-for="marker in markers" :key="marker.key"><path :d="marker.path" :fill="marker.side === 'BUY' ? '#48aaff' : '#ff7b85'" /></g>
           </g>
           <line x1="0" :x2="plotWidth" :y1="priceY(state.price)" :y2="priceY(state.price)" stroke="#718491" stroke-width="0.7" />
@@ -47,7 +47,7 @@
         <div><span>최대 낙폭</span><strong>{{ state.maxDrawdown.toFixed(2) }}%</strong></div>
       </div>
       <div class="trade-panel">
-        <div class="panel-tab">거래 <span>{{ state.position ? '1' : '0' }}</span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span><span class="closed-count">청산 {{ state.tradeCount }}건</span></span></div>
+        <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
         <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
           <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '진입 신호를 기다리고 있어요.' }}</td></tr></tbody></table>
         </div>
@@ -173,14 +173,14 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
 .ea-name { color: #9caebd; }
 .quote-strip { display: flex; gap: 2px; align-items: stretch; padding: 4px 10px 0; }
-.quote { display: flex; flex-direction: column; min-width: 0; width: 96px; padding: 4px 7px; border: 1px solid #4776a9; background: linear-gradient(#183d75, #102342); font-family: Consolas, monospace; }
+.quote { display: flex; flex-direction: column; min-width: 0; width: 96px; padding: 4px 7px; border: 1px solid #9e535b; background: linear-gradient(#78363e, #3b1b22); font-family: Consolas, monospace; }
 .quote span { font-size: 9px; color: #bacde9; }
-.quote strong { font-size: clamp(12px, 1.65vw, 21px); font-weight: 400; color: #fff; }
-.quote.buy { background: linear-gradient(#78363e, #3b1b22); border-color: #9e535b; }
+.quote strong { text-align: center; font-size: clamp(12px, 1.65vw, 21px); font-weight: 400; color: #fff; }
+.quote.buy { background: linear-gradient(#183d75, #102342); border-color: #4776a9; }
 .lot-control { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; padding: 0 5px; font-size: 9px; color: #aeb7c2; text-align: center; }
 .lot-input { display: flex; align-items: center; gap: 3px; }
 .lot-input > span { font-size: 10px; }
-.lot-control input { width: 72px; min-width: 0; box-sizing: border-box; border: 1px solid #5b646d; color: #fff; background: #252a30; border-radius: 0; padding: 2px; font-size: 11px; }
+.lot-control input { text-align: center; width: 72px; min-width: 0; box-sizing: border-box; border: 1px solid #5b646d; color: #fff; background: #252a30; border-radius: 0; padding: 2px; font-size: 11px; }
 .chart { position: relative; margin: 0 6px; background: #000; }
 .chart svg { display: block; width: 100%; height: 224px; font-family: Consolas, monospace; }
 .chart-grid line { stroke: #15221b; stroke-dasharray: 2 5; stroke-width: 0.6; }
@@ -199,10 +199,10 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .positive { color: #79c2ff; }
 .negative { color: #ff858c; }
 .trade-panel { background: #16191d; }
-.panel-tab { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-top: 1px solid #3a4048; border-bottom: 1px solid #343a43; font-size: 11px; }
-.panel-tab > span:first-child { color: #98a9b9; }
-.trade-counts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-left: auto; font-size: 10px; }
-.closed-count { color: #8f9ba7; font-size: 10px; }
+.panel-tab { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; padding: 7px 10px; border-top: 1px solid #3a4048; border-bottom: 1px solid #343a43; font-size: 11px; }
+.trade-label { white-space: nowrap; }
+.trade-label > span { color: #98a9b9; }
+.trade-counts { grid-column: 2; display: flex; justify-content: center; gap: 10px; font-size: 10px; white-space: nowrap; }
 .trade-scroll { width: 100%; overflow-x: auto; }
 table { width: 100%; min-width: 500px; border-collapse: collapse; white-space: nowrap; font-family: Consolas, 'Malgun Gothic', monospace; font-size: 10px; }
 th, td { text-align: right; padding: 6px 8px; font-weight: 400; }
@@ -214,8 +214,8 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 .empty-position { height: 22px; color: #85929e; }
 .last-trade { min-height: 28px; box-sizing: border-box; padding: 7px 10px; border-top: 1px solid #2c323a; color: #9ba6b2; font-size: 10px; line-height: 1.5; }
 @media (max-width: 600px) {
-  .panel-tab { flex-wrap: wrap; }
-  .trade-counts { width: 100%; gap: 8px; justify-content: space-between; }
+  .panel-tab { grid-template-columns: minmax(0, 1fr); }
+  .trade-counts { grid-column: 1; gap: 8px; }
   .sim-heading { gap: 5px; margin-bottom: 12px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.06em; }
   .exit-btn { font-size: 13px; }
@@ -231,7 +231,7 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .quote.sell { grid-row: 1; grid-column: 1; }
   .quote.buy { grid-row: 1; grid-column: 2; }
   .lot-control { grid-row: 2; grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 6px; padding: 2px 0; font-size: 10px; }
-  .lot-control input { width: 72px; flex: 0 0 72px; font-size: 11px; }
+  .lot-control input { text-align: center; width: 72px; flex: 0 0 72px; font-size: 11px; }
   .chart { margin: 0 3px; }
   .account-stats { gap: 9px; padding: 10px 6px; grid-template-columns: 1fr; }
   .account-stats > div { display: flex; justify-content: space-between; align-items: center; }

@@ -16,7 +16,7 @@
         </p>
 
         <p class="intro-services">기존 EA 수정 · 기능 추가</p>
-        <button class="game-start-btn" type="button" @click="gameOpen = true">트레이딩 미니게임 시작하기</button>
+        <button class="game-start-btn" type="button" @click="gameOpen = true">EA 체험하기</button>
       </div>
     </div>
 

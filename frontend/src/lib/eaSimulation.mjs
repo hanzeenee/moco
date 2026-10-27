@@ -2,7 +2,7 @@
 const SPREAD = 0.2
 const CONTRACT_SIZE = 100
 const INITIAL_BALANCE = 10000
-export const DEFAULT_LOT = 1
+export const DEFAULT_LOT = 10
 export const CANDLE_MINUTES = 5
 export const TICK_INTERVAL_MS = 250
 export const STOP_DISTANCE = 2.4
@@ -36,7 +36,7 @@ export function createSimulation(random = Math.random) {
   return {
     price, candles, tick: 0, nextCandle: 48, balance: INITIAL_BALANCE,
     equity: INITIAL_BALANCE, peakEquity: INITIAL_BALANCE, maxDrawdown: 0,
-    position: null, trades: [], tradeCount: 0, winCount: 0, lossCount: 0, cooldown: 0,
+    position: null, trades: [], tradeCount: 0, entryCount: 0, winCount: 0, lossCount: 0, cooldown: 0,
     status: '시세 분석 중 · 진입 조건 확인', bankrupt: false
   }
 }
@@ -91,6 +91,7 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
       const side = fast > slow ? 'BUY' : 'SELL'
       const entry = round(state.price + sideSign(side) * SPREAD / 2)
       const validLot = normalizeLot(lot)
+      state.entryCount += 1
       state.position = { side, entry, lot: validLot, openedAt: state.tick, candleId: state.candles[state.candles.length - 1].id, stop: round(entry - sideSign(side) * STOP_DISTANCE), target: round(entry + sideSign(side) * TARGET_DISTANCE) }
       state.status = `${side === 'BUY' ? '매수' : '매도'} 진입 · 이동평균 추세 감지`
     } else {
