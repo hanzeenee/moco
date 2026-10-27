@@ -2,14 +2,21 @@
   <div class="main-area">
     <div class="main-panel main-panel-left">
       <div class="main-content">
-        <div class="main-text">
-          MOCO - 해외선물 자동매매 MT5 EA<br>
-          Money Copier
-        </div>
+        <p class="intro-eyebrow">MT5 · TradingView 맞춤 개발</p>
 
-        <button class="detail-btn" type="button" @click="goToLecture">
-          강의 자세히 보기
-        </button>
+        <h1 class="intro-title">
+          <span>매매 아이디어를,</span>
+          <span>실제로 동작하는 <span class="intro-accent">프로그램으로.</span></span>
+        </h1>
+
+        <p class="intro-description">
+          <span>MT5 EA와 인디케이터, TradingView 지표까지.</span>
+          <span>원하는 매매 조건과 표시 기능을 구체화해 구현합니다.</span>
+        </p>
+
+        <p class="intro-services">기존 EA 수정 · 기능 추가</p>
+
+        <button class="inquiry-btn" type="button">제작 문의하기</button>
       </div>
     </div>
 
@@ -19,12 +26,7 @@
 
 <script>
 export default {
-  name: 'HomeView',
-  methods: {
-    goToLecture() {
-      this.$router.push('/lecture')
-    }
-  }
+  name: 'HomeView'
 }
 </script>
 
@@ -43,7 +45,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 32px 24px;
+  padding: 40px 24px;
   box-sizing: border-box;
 }
 
@@ -53,36 +55,76 @@ export default {
 
 .main-content {
   width: 100%;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-}
-
-.main-text {
-  font-size: clamp(18px, 2.8vw, 40px);
-  font-weight: bold;
-  color: #ffffff;
+  gap: 20px;
   text-align: center;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-.detail-btn {
+.intro-eyebrow {
+  margin: 0;
+  color: #c7c7c7;
+  font-size: clamp(12px, 1.1vw, 14px);
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+}
+
+.intro-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(20px, 3vw, 44px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.intro-title > span,
+.intro-description > span {
+  display: block;
+}
+
+.intro-accent {
+  color: #ffd000;
+}
+
+.intro-description {
+  margin: 0;
+  color: #b8bcc4;
+  font-size: clamp(13px, 1.25vw, 17px);
+  line-height: 1.8;
+}
+
+.intro-services {
+  margin: 0;
+  color: #a6a6a6;
+  font-size: clamp(12px, 1.1vw, 14px);
+  line-height: 1.6;
+}
+
+.inquiry-btn {
   max-width: 100%;
   padding: 12px 24px;
-  border: 1px solid #ffffff;
-  background: transparent;
-  color: #ffffff;
+  border: 1px solid #ffd000;
+  background: #ffd000;
+  color: #000000;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.detail-btn:hover {
-  background: #ffffff;
-  color: #000000;
+.inquiry-btn:hover {
+  border-color: #ffdf46;
+  background: #ffdf46;
+}
+
+.inquiry-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
 }
 
 @media (max-width: 600px) {
@@ -90,7 +132,11 @@ export default {
     padding: 24px 12px;
   }
 
-  .detail-btn {
+  .main-content {
+    gap: 16px;
+  }
+
+  .inquiry-btn {
     padding: 10px 12px;
     font-size: 14px;
   }
