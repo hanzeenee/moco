@@ -6,7 +6,7 @@ Django + Vue web service.
 
 - Django root: `backend`
 - Django settings module: `config.settings`
-- Django apps: `dashboard`, `accounts`
+- Django apps: `dashboard`; `accounts` is retained for migration history only.
 - Vue root: `frontend`
 - Vue build system: Vue CLI
 - Vue build output: `backend/templates/home.html`, `backend/static/frontend/`
@@ -43,7 +43,7 @@ npm ci
 npm run serve
 ```
 
-The frontend uses same-origin API paths such as `/api/accounts/login/`.
+The frontend uses same-origin public API paths such as `/api/comments/`. Visitor login, signup, logout, and current-user APIs have been removed. Django admin authentication remains available at `/admin/`.
 
 ## Production Build
 
@@ -131,3 +131,7 @@ For PostgreSQL, install and configure a supported Django PostgreSQL driver on EC
 Vue Router uses HTML5 history mode. Home is `/`; existing pages use `/lecture`, `/event`, and `/classroom` without a `#` fragment. Django's frontend fallback serves the SPA for direct visits and refreshes, while `/api/`, `/admin/`, `/static/`, and `/media/` keep their own handling. Nginx forwards frontend requests to Django.
 
 Existing links such as `/#/` and `/#/lecture` are upgraded to the corresponding history URL in the browser. Root query parameters are kept when the legacy route has no query of its own. Ordinary page anchors are left intact.
+
+## Retired Membership Data
+
+The accounts.0004_retire_profile migration removes the Profile model from Django state without dropping its database table. Its former user relation is archived as a numeric ID so it cannot block administrator user deletion. Existing user and profile records are preserved; no public membership API, registration serializer, profile admin, or frontend authentication flow remains. Keep the accounts migration history installed so existing and fresh databases share a consistent migration graph.

@@ -8,12 +8,8 @@
             <div>Money Copier</div>
           </div>
 
-          <button v-if="isLoggedIn" class="go-classroom-btn" type="button" @click="goToClassroom">
+          <button class="go-classroom-btn" type="button" @click="goToClassroom">
             강의실 바로가기
-          </button>
-
-          <button v-else class="go-classroom-btn" type="button" @click="handlePayment">
-            결제하기
           </button>
         </div>
       </div>
@@ -37,20 +33,9 @@
 export default {
   name: 'LectureView',
 
-  props: {
-    isLoggedIn: {
-      type: Boolean,
-      default: false
-    }
-  },
-
   methods: {
     goToClassroom() {
       this.$router.push('/classroom')
-    },
-
-    handlePayment() {
-      // Payment is intentionally not implemented yet.
     }
   }
 }

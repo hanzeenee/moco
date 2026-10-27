@@ -192,9 +192,7 @@ Browser checklist:
 
 - main page uses `/` without `/#/`; old hash links are upgraded in the browser
 - refresh
-- login
-- signup
-- logout
+- visitor login/signup/logout controls and `/api/accounts/` routes are absent
 - `/api/` requests
 - `/admin/`
 - CSS
