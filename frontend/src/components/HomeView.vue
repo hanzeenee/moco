@@ -6,13 +6,13 @@
         <p class="intro-eyebrow">MT5 · TradingView 맞춤 개발</p>
 
         <h1 class="intro-title">
-          <span>매매 아이디어를,</span>
-          <span>실제로 동작하는 <span class="intro-accent">프로그램으로.</span></span>
+          <span>매매 아이디어를</span>
+          <span>실제로 동작하는 <span class="intro-accent">프로그램으로</span></span>
         </h1>
 
         <p class="intro-description">
-          <span>MT5 EA와 인디케이터, TradingView 지표까지.</span>
-          <span>원하는 매매 조건과 표시 기능을 구체화해 구현합니다.</span>
+          <span>MT5 EA와 인디케이터, TradingView 지표까지</span>
+          <span>원하는 매매 조건과 표시 기능을 구체화해 구현합니다</span>
         </p>
 
         <p class="intro-services">기존 EA 수정 · 기능 추가</p>
