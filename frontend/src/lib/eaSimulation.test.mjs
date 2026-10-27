@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { createSimulation, advanceSimulation, floatingProfit } from './eaSimulation.mjs'
+import { createSimulation, advanceSimulation, floatingProfit, normalizeLot } from './eaSimulation.mjs'
 
 function withPosition(side, entry, price, lot = 0.1) {
   const state = createSimulation(() => 0.5)
@@ -70,4 +70,26 @@ test('exhausted account stops ticking until a new simulation is created', () => 
   const tick = state.tick
   advanceSimulation(state, 0.1, () => 0.5)
   assert.equal(state.tick, tick)
+})
+
+test('manual lot input supports the full range and normalizes invalid entries', () => {
+  for (const amount of [0.01, 0.25, 1, 12.34, 100]) {
+    const state = createSimulation(() => 0.5)
+    for (let i = 0; i < 4; i++) advanceSimulation(state, amount, () => 0.5)
+    assert.equal(state.position.lot, amount)
+  }
+  assert.equal(normalizeLot('2.37'), 2.37)
+  assert.equal(normalizeLot(0), 0.01)
+  assert.equal(normalizeLot(-10), 0.01)
+  assert.equal(normalizeLot(1000), 100)
+  assert.equal(normalizeLot(1.234), 1.23)
+  for (const value of ['', null, undefined, NaN, Infinity, 'invalid']) assert.equal(normalizeLot(value), 1)
+})
+
+test('default entries use one lot and larger lots scale actual P/L', () => {
+  const state = createSimulation(() => 0.5)
+  for (let i = 0; i < 4; i++) advanceSimulation(state, undefined, () => 0.5)
+  assert.equal(state.position.lot, 1)
+  assert.equal(floatingProfit(withPosition('BUY', 4000.1, 4001, 1)), 80)
+  assert.equal(floatingProfit(withPosition('BUY', 4000.1, 4001, 100)), 8000)
 })

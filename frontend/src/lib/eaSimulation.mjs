@@ -2,6 +2,9 @@
 const SPREAD = 0.2
 const CONTRACT_SIZE = 100
 const INITIAL_BALANCE = 10000
+export const DEFAULT_LOT = 1
+export const CANDLE_MINUTES = 5
+export const TICK_INTERVAL_MS = 250
 export const STOP_DISTANCE = 2.4
 export const TARGET_DISTANCE = 3.6
 
@@ -9,6 +12,13 @@ const round = value => Math.round(value * 100) / 100
 const average = values => values.reduce((sum, value) => sum + value, 0) / values.length
 const sideSign = side => side === 'BUY' ? 1 : -1
 const exitPrice = (price, side) => round(price - sideSign(side) * SPREAD / 2)
+
+// Clamp committed input to 0.01–100 lots with two decimal places.
+export function normalizeLot(value) {
+  const amount = Number(value)
+  if (value === '' || value === null || !Number.isFinite(amount)) return DEFAULT_LOT
+  return round(Math.min(100, Math.max(0.01, amount)))
+}
 
 export function floatingProfit(state) {
   const p = state.position
@@ -31,8 +41,8 @@ export function createSimulation(random = Math.random) {
   }
 }
 
-// One call advances one simulated tick; four ticks form one virtual minute.
-export function advanceSimulation(state, lot = 0.1, random = Math.random) {
+// One call advances one simulated tick; four ticks form one virtual five-minute candle.
+export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random) {
   if (state.bankrupt) return state
   state.tick += 1
   const previousPrice = state.price
@@ -78,7 +88,7 @@ export function advanceSimulation(state, lot = 0.1, random = Math.random) {
     if (Math.abs(fast - slow) >= 0.12) {
       const side = fast > slow ? 'BUY' : 'SELL'
       const entry = round(state.price + sideSign(side) * SPREAD / 2)
-      const validLot = [0.01, 0.05, 0.1].includes(Number(lot)) ? Number(lot) : 0.1
+      const validLot = normalizeLot(lot)
       state.position = { side, entry, lot: validLot, openedAt: state.tick, candleId: state.candles[state.candles.length - 1].id, stop: round(entry - sideSign(side) * STOP_DISTANCE), target: round(entry + sideSign(side) * TARGET_DISTANCE) }
       state.status = `${side === 'BUY' ? '매수' : '매도'} 진입 · 이동평균 추세 감지`
     } else {

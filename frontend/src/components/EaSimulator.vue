@@ -1,7 +1,7 @@
 <template>
   <section class="simulator" aria-label="가상 EA 트레이딩 체험">
     <header class="sim-heading">
-      <div><p class="eyebrow">MOCONIX PLAYGROUND</p><h1>나의 첫 자동매매</h1></div>
+      <p class="eyebrow">MOCONIX PLAYGROUND</p>
       <button class="exit-btn" type="button" @click="$emit('exit')">소개로 돌아가기 ↗</button>
     </header>
 
@@ -14,10 +14,10 @@
         <button class="reset-btn" type="button" @click="reset">↻ 다시 시작</button>
       </div>
 
-      <div class="chart-heading"><strong>XAUUSD <span>· M1</span></strong><span class="ea-name">MOCONIX EA {{ running ? '☺' : 'Ⅱ' }}</span></div>
+      <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span class="ea-name">MOCONIX EA {{ running ? '☺' : 'Ⅱ' }}</span></div>
       <div class="quote-strip">
         <div class="quote sell"><span>SELL</span><strong>{{ (state.price - 0.1).toFixed(2) }}</strong></div>
-        <label class="lot-control" for="simulation-lot">거래량<select id="simulation-lot" v-model.number="lot"><option :value="0.01">0.01</option><option :value="0.05">0.05</option><option :value="0.1">0.10</option></select></label>
+        <label class="lot-control" for="simulation-lot">거래량<span class="lot-input"><input id="simulation-lot" v-model.number="lotInput" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="거래량 (랏)" title="0.01~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" /><span>랏</span></span></label>
         <div class="quote buy"><span>BUY</span><strong>{{ (state.price + 0.1).toFixed(2) }}</strong></div>
       </div>
 
@@ -54,18 +54,17 @@
         <div class="last-trade">{{ lastTradeText }}</div>
       </div>
     </div>
-    <p class="simulation-note">가상 시세 · 가상 자금 $10,000 <span>거래량 변경은 다음 진입부터 적용돼요.</span></p>
   </section>
 </template>
 
 <script>
-import { advanceSimulation, createSimulation, floatingProfit } from '../lib/eaSimulation.mjs'
+import { advanceSimulation, createSimulation, floatingProfit, normalizeLot, DEFAULT_LOT, CANDLE_MINUTES, TICK_INTERVAL_MS } from '../lib/eaSimulation.mjs'
 
 export default {
   name: 'EaSimulator',
   emits: ['exit'],
   data() {
-    return { state: createSimulation(), running: true, lot: 0.1, chartWidth: 560 }
+    return { state: createSimulation(), running: true, lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560 }
   },
   computed: {
     chartHeight() { return this.chartWidth < 240 ? 244 : 200 },
@@ -113,19 +112,20 @@ export default {
         advanceSimulation(this.state, this.lot)
         if (this.state.bankrupt) this.running = false
       }
-    }, 650)
+    }, TICK_INTERVAL_MS)
   },
   beforeUnmount() {
     window.clearInterval(this.tickTimer)
     this.resizeObserver.disconnect()
   },
   methods: {
+    applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
     reset() { this.state = createSimulation(); this.running = true },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
     money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
     signed(value) { return `${value >= 0 ? '+' : '−'}$${this.money(Math.abs(value))}` },
     profitClass(value) { return value > 0 ? 'positive' : value < 0 ? 'negative' : '' },
-    timeLabel(id = 0) { return `${String((9 + Math.floor(id / 60)) % 24).padStart(2, '0')}:${String(id % 60).padStart(2, '0')}` }
+    timeLabel(id = 0) { return `${String((9 + Math.floor(id * CANDLE_MINUTES / 60)) % 24).padStart(2, '0')}:${String(id * CANDLE_MINUTES % 60).padStart(2, '0')}` }
   }
 }
 </script>
@@ -133,12 +133,11 @@ export default {
 <style scoped>
 .simulator { line-height: 1.35; width: 100%; max-width: 860px; min-width: 0; color: #d6dce4; text-align: left; font-family: Arial, 'Malgun Gothic', sans-serif; }
 .sim-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-.eyebrow { margin: 0 0 6px; color: #ffd000; font-size: 10px; letter-spacing: 0.14em; }
-h1 { margin: 0; font-size: clamp(18px, 1.7vw, 26px); font-weight: 600; }
-button, select { font: inherit; }
+.eyebrow { margin: 0; color: #ffd000; font-size: 13px; letter-spacing: 0.14em; }
+button, input { font: inherit; }
 button { cursor: pointer; }
-button:focus-visible, select:focus-visible, .trade-scroll:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
-.exit-btn { padding: 6px 0; background: none; border: 0; color: #a1abb7; font-size: 11px; }
+button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
+.exit-btn { padding: 6px 0; background: none; border: 0; color: #a1abb7; font-size: 15px; }
 .exit-btn:hover { color: #fff; }
 .terminal { overflow: hidden; border: 1px solid #37434b; background: #080b0d; box-shadow: 0 12px 36px #0006; }
 .terminal-title { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; background: #102b3b; font-size: 11px; flex-wrap: wrap; }
@@ -162,7 +161,9 @@ button:focus-visible, select:focus-visible, .trade-scroll:focus-visible { outlin
 .quote strong { font-size: clamp(12px, 1.65vw, 21px); font-weight: 400; color: #fff; }
 .quote.buy { background: linear-gradient(#78363e, #3b1b22); border-color: #9e535b; }
 .lot-control { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; padding: 0 5px; font-size: 9px; color: #aeb7c2; text-align: center; }
-.lot-control select { width: 52px; border: 1px solid #5b646d; color: #fff; background: #252a30; border-radius: 0; padding: 2px; font-size: 11px; }
+.lot-input { display: flex; align-items: center; gap: 3px; }
+.lot-input > span { font-size: 10px; }
+.lot-control input { width: 72px; min-width: 0; box-sizing: border-box; border: 1px solid #5b646d; color: #fff; background: #252a30; border-radius: 0; padding: 2px; font-size: 11px; }
 .chart { position: relative; margin: 0 6px; background: #000; }
 .chart svg { display: block; width: 100%; height: 224px; font-family: Consolas, monospace; }
 .chart-grid line { stroke: #15221b; stroke-dasharray: 2 5; stroke-width: 0.6; }
@@ -193,14 +194,10 @@ td b { font-size: 9px; padding-left: 3px; font-weight: 400; }
 td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 .empty-position { height: 22px; color: #85929e; }
 .last-trade { min-height: 28px; box-sizing: border-box; padding: 7px 10px; border-top: 1px solid #2c323a; color: #9ba6b2; font-size: 10px; line-height: 1.5; }
-.simulation-note { margin: 8px 0 0; font-size: 10px; line-height: 1.7; color: #929ba6; }
-.simulation-note span { display: inline; margin-left: 6px; color: #717b86; }
 @media (max-width: 600px) {
-  .simulation-note span { display: block; margin-left: 0; }
   .sim-heading { gap: 5px; margin-bottom: 12px; }
-  .eyebrow { font-size: 8px; letter-spacing: 0.06em; }
-  h1 { font-size: 17px; }
-  .exit-btn { font-size: 10px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.06em; }
+  .exit-btn { font-size: 13px; }
   .terminal-title { padding: 6px; gap: 4px; }
   .terminal-title strong { font-size: 10px; }
   .demo-badge { margin-left: 0; }
@@ -208,10 +205,12 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .toolbar button { padding: 5px; font-size: 10px; }
   .reset-btn { margin-left: 0; }
   .chart-heading { padding: 8px 6px 4px; }
-  .quote-strip { padding: 4px 5px 0; }
-  .quote { padding: 4px; }
-  .lot-control { padding: 0 1px; font-size: 8px; }
-  .lot-control select { width: 42px; font-size: 10px; }
+  .quote-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px 5px 0; }
+  .quote { width: auto; padding: 4px; }
+  .quote.sell { grid-row: 1; grid-column: 1; }
+  .quote.buy { grid-row: 1; grid-column: 2; }
+  .lot-control { grid-row: 2; grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 6px; padding: 2px 0; font-size: 10px; }
+  .lot-control input { width: 72px; flex: 0 0 72px; font-size: 11px; }
   .chart { margin: 0 3px; }
   .account-stats { gap: 9px; padding: 10px 6px; grid-template-columns: 1fr; }
   .account-stats > div { display: flex; justify-content: space-between; align-items: center; }
