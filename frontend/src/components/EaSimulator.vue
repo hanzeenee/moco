@@ -1,12 +1,12 @@
 <template>
-  <section class="simulator" aria-label="가상 EA 트레이딩 체험">
+  <section ref="simulator" class="simulator" aria-label="가상 EA 트레이딩 체험">
     <header class="sim-heading">
       <p class="eyebrow">MOCONIX PLAYGROUND</p>
       <button class="exit-btn" type="button" @click="$emit('exit')">소개로 돌아가기 ↗</button>
     </header>
 
     <div class="terminal">
-      <div class="terminal-title"><span class="terminal-icon">▥</span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
+      <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
       <div class="toolbar">
         <button class="ea-toggle" :class="{ active: running }" type="button" :aria-pressed="running" @click="running = !running" :disabled="state.bankrupt">
           <span class="status-dot"></span>{{ running ? 'EA 일시정지' : 'EA 재개' }}
@@ -47,9 +47,9 @@
         <div><span>최대 낙폭</span><strong>{{ state.maxDrawdown.toFixed(2) }}%</strong></div>
       </div>
       <div class="trade-panel">
-        <div class="panel-tab">거래 <span>{{ state.position ? '1' : '0' }}</span><span class="closed-count">청산 {{ state.tradeCount }}건</span></div>
+        <div class="panel-tab">거래 <span>{{ state.position ? '1' : '0' }}</span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span><span class="closed-count">청산 {{ state.tradeCount }}건</span></span></div>
         <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
-          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="4" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '진입 신호를 기다리고 있어요.' }}</td></tr></tbody></table>
+          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '진입 신호를 기다리고 있어요.' }}</td></tr></tbody></table>
         </div>
         <div class="last-trade">{{ lastTradeText }}</div>
       </div>
@@ -64,10 +64,9 @@ export default {
   name: 'EaSimulator',
   emits: ['exit'],
   data() {
-    return { state: createSimulation(), running: true, lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560 }
+    return { state: createSimulation(), running: true, lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200 }
   },
   computed: {
-    chartHeight() { return this.chartWidth < 240 ? 244 : 200 },
     plotWidth() { return Math.max(80, this.chartWidth - 48) },
     chartCandles() {
       const count = this.chartWidth < 240 ? 22 : this.chartWidth < 400 ? 36 : 54
@@ -105,8 +104,14 @@ export default {
     }
   },
   mounted() {
-    this.resizeObserver = new ResizeObserver(entries => { this.chartWidth = Math.max(128, Math.floor(entries[0].contentRect.width)) })
+    this.resizeObserver = new ResizeObserver(() => {
+      this.chartWidth = Math.max(128, Math.floor(this.$refs.chart.getBoundingClientRect().width))
+      this.$nextTick(this.fitChartHeight)
+    })
     this.resizeObserver.observe(this.$refs.chart)
+    this.resizeObserver.observe(this.$refs.simulator)
+    window.addEventListener('resize', this.fitChartHeight)
+    this.$nextTick(this.fitChartHeight)
     this.tickTimer = window.setInterval(() => {
       if (this.running && !document.hidden) {
         advanceSimulation(this.state, this.lot)
@@ -117,8 +122,19 @@ export default {
   beforeUnmount() {
     window.clearInterval(this.tickTimer)
     this.resizeObserver.disconnect()
+    window.removeEventListener('resize', this.fitChartHeight)
   },
   methods: {
+    fitChartHeight() {
+      const simulator = this.$refs.simulator
+      const chart = this.$refs.chart
+      if (!simulator || !chart) return
+      const panel = simulator.parentElement
+      const padding = window.getComputedStyle(panel)
+      const fixedHeight = simulator.getBoundingClientRect().height - chart.getBoundingClientRect().height
+      const available = window.innerHeight - panel.getBoundingClientRect().top - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom)
+      this.chartHeight = Math.max(100, Math.min(440, Math.floor(available - fixedHeight - 4)))
+    },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
     reset() { this.state = createSimulation(); this.running = true },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
@@ -141,7 +157,8 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .exit-btn:hover { color: #fff; }
 .terminal { overflow: hidden; border: 1px solid #37434b; background: #080b0d; box-shadow: 0 12px 36px #0006; }
 .terminal-title { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; background: #102b3b; font-size: 11px; flex-wrap: wrap; }
-.terminal-icon { color: #59e7c4; font-size: 17px; }
+.terminal-icon { position: relative; display: inline-block; width: 28px; height: 14px; overflow: hidden; flex: 0 0 auto; }
+.terminal-icon img { position: absolute; width: 228%; max-width: none; height: auto; left: -64%; top: 50%; transform: translateY(-50%); }
 .demo-badge { margin-left: auto; color: #abbed0; font-size: 10px; }
 .toolbar { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid #34383d; background: #202226; flex-wrap: wrap; }
 .toolbar button { border: 1px solid #525b64; border-radius: 2px; padding: 4px 8px; background: #262a30; color: #ccd3dc; font-size: 11px; }
@@ -184,10 +201,12 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .trade-panel { background: #16191d; }
 .panel-tab { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-top: 1px solid #3a4048; border-bottom: 1px solid #343a43; font-size: 11px; }
 .panel-tab > span:first-child { color: #98a9b9; }
-.closed-count { margin-left: auto; color: #8f9ba7; font-size: 10px; }
+.trade-counts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-left: auto; font-size: 10px; }
+.closed-count { color: #8f9ba7; font-size: 10px; }
 .trade-scroll { width: 100%; overflow-x: auto; }
-table { width: 100%; min-width: 300px; border-collapse: collapse; white-space: nowrap; font-family: Consolas, 'Malgun Gothic', monospace; font-size: 10px; }
+table { width: 100%; min-width: 500px; border-collapse: collapse; white-space: nowrap; font-family: Consolas, 'Malgun Gothic', monospace; font-size: 10px; }
 th, td { text-align: right; padding: 6px 8px; font-weight: 400; }
+tbody tr { height: 34px; }
 th { color: #8896a3; background: #1c2025; }
 th:first-child, td:first-child { text-align: left; }
 td b { font-size: 9px; padding-left: 3px; font-weight: 400; }
@@ -195,6 +214,8 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 .empty-position { height: 22px; color: #85929e; }
 .last-trade { min-height: 28px; box-sizing: border-box; padding: 7px 10px; border-top: 1px solid #2c323a; color: #9ba6b2; font-size: 10px; line-height: 1.5; }
 @media (max-width: 600px) {
+  .panel-tab { flex-wrap: wrap; }
+  .trade-counts { width: 100%; gap: 8px; justify-content: space-between; }
   .sim-heading { gap: 5px; margin-bottom: 12px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.06em; }
   .exit-btn { font-size: 13px; }

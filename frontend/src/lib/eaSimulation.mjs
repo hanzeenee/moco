@@ -36,7 +36,7 @@ export function createSimulation(random = Math.random) {
   return {
     price, candles, tick: 0, nextCandle: 48, balance: INITIAL_BALANCE,
     equity: INITIAL_BALANCE, peakEquity: INITIAL_BALANCE, maxDrawdown: 0,
-    position: null, trades: [], tradeCount: 0, cooldown: 0,
+    position: null, trades: [], tradeCount: 0, winCount: 0, lossCount: 0, cooldown: 0,
     status: '시세 분석 중 · 진입 조건 확인', bankrupt: false
   }
 }
@@ -70,6 +70,8 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
     if (reason) {
       state.balance = round(state.balance + pnl)
       state.tradeCount += 1
+      if (pnl > 0) state.winCount += 1
+      if (pnl < 0) state.lossCount += 1
       state.trades.unshift({ ...position, id: state.tradeCount, exit: exitPrice(state.price, position.side), profit: pnl, reason })
       state.trades = state.trades.slice(0, 20)
       state.position = null
