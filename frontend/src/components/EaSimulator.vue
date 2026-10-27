@@ -26,8 +26,9 @@
               <line :x1="candle.x" :x2="candle.x" :y1="priceY(candle.high)" :y2="priceY(candle.low)" />
               <rect :x="candle.x - candleWidth / 2" :y="priceY(Math.max(candle.open, candle.close))" :width="candleWidth" :height="Math.max(1, Math.abs(priceY(candle.open) - priceY(candle.close)))" :fill="candle.close >= candle.open ? '#050805' : '#62ff2b'" />
             </g>
-            <g v-if="state.position" class="order-lines"><line x1="0" :x2="plotWidth" :y1="priceY(state.position.entry)" :y2="priceY(state.position.entry)" stroke="#ffffff"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.stop)" :y2="priceY(state.position.stop)" stroke="#ff858c"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.target)" :y2="priceY(state.position.target)" stroke="#79c2ff"/><text x="7" :y="priceY(state.position.target) - 5" fill="#79c2ff">TP</text><text x="7" :y="priceY(state.position.stop) - 5" fill="#ff858c">SL</text></g>
+            <g v-if="displayOrder" class="order-lines" :class="{ 'closed-order': !state.position }"><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.entry)" :y2="priceY(displayOrder.entry)" stroke="#ffffff"/><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.stop)" :y2="priceY(displayOrder.stop)" stroke="#ff858c"/><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.target)" :y2="priceY(displayOrder.target)" stroke="#79c2ff"/><text x="7" :y="priceY(displayOrder.target) - 5" fill="#79c2ff">TP</text><text x="7" :y="priceY(displayOrder.stop) - 5" fill="#ff858c">SL</text></g>
             <g v-for="marker in markers" :key="marker.key"><path :d="marker.path" :fill="marker.side === 'BUY' ? '#48aaff' : '#ff7b85'" /></g>
+            <g v-for="marker in exitMarkers" :key="`exit-${marker.id}`" class="exit-marker"><circle :cx="marker.x" :cy="marker.y" r="3.5" :fill="marker.color" stroke="#000"/><text :x="marker.x - 6" :y="marker.y - 6" text-anchor="end" :fill="marker.color">{{ marker.label }}</text></g>
           </g>
           <line x1="0" :x2="plotWidth" :y1="priceY(state.price)" :y2="priceY(state.price)" stroke="#718491" stroke-width="0.7" />
           <rect :x="plotWidth" :y="priceY(state.price) - 8" width="46" height="16" fill="#173142"/><text :x="plotWidth + 4" :y="priceY(state.price) + 3" fill="#e3f2ff" class="axis-label">{{ state.price.toFixed(2) }}</text>
@@ -72,7 +73,7 @@ export default {
     candleWidth() { return Math.max(1, this.plotWidth / this.chartCandles.length * 0.55) },
     priceRange() {
       const values = this.chartCandles.flatMap(c => [c.low, c.high])
-      if (this.state.position) values.push(this.state.position.stop, this.state.position.target)
+      if (this.displayOrder) values.push(this.displayOrder.stop, this.displayOrder.target)
       const min = Math.min(...values), max = Math.max(...values)
       const pad = Math.max(1, (max - min) * 0.14)
       return { min: min - pad, max: max + pad }
@@ -91,6 +92,13 @@ export default {
         const y = this.priceY(position.side === 'BUY' ? candle.low : candle.high)
         const direction = position.side === 'BUY' ? 1 : -1
         return [{ key: position.openedAt, side: position.side, path: `M ${candle.x} ${y + direction * 4} l -4 ${direction * 7} h 8 Z` }]
+      })
+    },
+    displayOrder() { return this.state.position || (this.state.cooldown > 0 ? this.state.trades[0] : null) },
+    exitMarkers() {
+      return this.state.trades.flatMap(trade => {
+        const candle = this.chartCandles.find(c => c.id === trade.exitCandleId)
+        return candle ? [{ id: trade.id, x: candle.x, y: this.priceY(trade.exitMid), label: trade.exitTarget, color: trade.exitTarget === 'TP' ? '#79c2ff' : '#ff858c' }] : []
       })
     },
     openProfit() { return floatingProfit(this.state) },
@@ -185,6 +193,8 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .candle { stroke: #62ff2b; stroke-width: 1; }
 .order-lines line { stroke-dasharray: 4 4; stroke-width: 0.8; }
 .order-lines text { font-size: 9px; }
+.closed-order { opacity: 0.65; }
+.exit-marker text { font: 9px Consolas, monospace; paint-order: stroke; stroke: #000; stroke-width: 3px; }
 .end-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #0005; pointer-events: none; }
 .end-overlay span { background: #18222ee6; padding: 9px 15px; border: 1px solid #506173; color: #e9edf3; font-size: 13px; }
 .ea-status { display: flex; align-items: center; min-height: 28px; padding: 6px 10px; box-sizing: border-box; background: #101a16; border-top: 1px solid #273d30; font-size: 10px; color: #a8c5b1; line-height: 1.5; }

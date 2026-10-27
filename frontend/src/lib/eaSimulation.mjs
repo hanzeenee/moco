@@ -35,6 +35,22 @@ function nextPrice(market, price, random) {
   return round(Math.max(100, price + market.drift + noise + jump))
 }
 
+// A synthetic trade scene: random bends/noise, with the chosen TP/SL reached at 4s.
+function tradeScenePrice(position, tick, previousPrice, marketPrice) {
+  const elapsed = tick - position.openedAt
+  const level = position.exitTarget === 'TP' ? position.target : position.stop
+  const quoteShift = sideSign(position.side) * SPREAD / 2
+  const destination = round(level + quoteShift)
+  if (elapsed >= MAX_HOLD_TICKS) return destination
+  const progress = elapsed / MAX_HOLD_TICKS
+  const curvedProgress = progress + position.pathBend * progress * (1 - progress)
+  position.pathOffset = Math.max(-0.7, Math.min(0.7, position.pathOffset * 0.65 + (marketPrice - previousPrice) * position.pathNoise * 0.35))
+  const price = position.pathStart + (destination - position.pathStart) * curvedProgress + position.pathOffset * 4 * progress * (1 - progress)
+  // Stay inside both visible levels and executable quote levels until the final tick.
+  const lower = Math.min(position.stop, position.target) + Math.max(0, quoteShift) + 0.02
+  const upper = Math.max(position.stop, position.target) + Math.min(0, quoteShift) - 0.02
+  return round(Math.max(lower, Math.min(upper, price)))
+}
 export function normalizeLot(value) {
   const amount = Number(value)
   if (value === '' || value === null || !Number.isFinite(amount)) return DEFAULT_LOT
@@ -81,7 +97,8 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
   if (state.bankrupt) return state
   state.tick += 1
   const previousPrice = state.price
-  state.price = nextPrice(state.market, previousPrice, random)
+  const marketPrice = nextPrice(state.market, previousPrice, random)
+  state.price = state.position ? tradeScenePrice(state.position, state.tick, previousPrice, marketPrice) : marketPrice
   if ((state.tick - 1) % 4 === 0) {
     state.candles.push({ id: state.nextCandle++, open: previousPrice, high: Math.max(previousPrice, state.price), low: Math.min(previousPrice, state.price), close: state.price })
     if (state.candles.length > 64) state.candles.shift()
@@ -101,14 +118,13 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
 
   if (state.position) {
     const position = state.position
-    const movement = (exitPrice(state.price, position.side) - position.entry) * sideSign(position.side)
-    const reason = movement <= -STOP_DISTANCE ? '손절' : movement >= TARGET_DISTANCE ? '익절' : state.tick - position.openedAt >= MAX_HOLD_TICKS ? '시간 청산' : state.equity <= 0 ? '잔고 소진' : null
+    const reason = state.tick - position.openedAt >= MAX_HOLD_TICKS ? (position.exitTarget === 'TP' ? '익절' : '손절') : null
     if (reason) {
       state.balance = round(state.balance + pnl)
       state.tradeCount += 1
       if (pnl > 0) state.winCount += 1
       if (pnl < 0) state.lossCount += 1
-      state.trades.unshift({ ...position, id: state.tradeCount, exit: exitPrice(state.price, position.side), profit: pnl, reason })
+      state.trades.unshift({ ...position, id: state.tradeCount, exit: exitPrice(state.price, position.side), exitMid: state.price, closedAt: state.tick, exitCandleId: state.candles[state.candles.length - 1].id, profit: pnl, reason })
       state.trades = state.trades.slice(0, 20)
       state.position = null
       state.cooldown = entryDelay(random)
@@ -127,6 +143,8 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
     state.position = {
       side, entry, lot: normalizeLot(lot), openedAt: state.tick,
       candleId: state.candles[state.candles.length - 1].id,
+      exitTarget: random() < 0.5 ? 'TP' : 'SL',
+      pathStart: state.price, pathBend: (random() - 0.5) * 1.2, pathNoise: 0.2 + random() * 0.65, pathOffset: 0,
       stop: round(entry - sideSign(side) * STOP_DISTANCE),
       target: round(entry + sideSign(side) * TARGET_DISTANCE)
     }
