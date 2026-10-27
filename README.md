@@ -132,6 +132,8 @@ Vue Router uses HTML5 history mode. Home is `/`; existing pages use `/lecture`, 
 
 Existing links such as `/#/` and `/#/lecture` are upgraded to the corresponding history URL in the browser. Root query parameters are kept when the legacy route has no query of its own. Ordinary page anchors are left intact.
 
-## Retired Membership Data
+## Removed Membership Data
 
-The accounts.0004_retire_profile migration removes the Profile model from Django state without dropping its database table. Its former user relation is archived as a numeric ID so it cannot block administrator user deletion. Existing user and profile records are preserved; no public membership API, registration serializer, profile admin, or frontend authentication flow remains. Keep the accounts migration history installed so existing and fresh databases share a consistent migration graph.
+Visitor membership UI and APIs are removed. The accounts.0005_purge_legacy_members migration deletes non-staff, non-superuser accounts, retired profile records/table, non-administrator sessions, and membership-specific permissions/content types and log entries. All staff or superuser accounts, their data, and valid administrator sessions are preserved. Django admin authentication remains available at /admin/.
+
+Back up the database before this irreversible data migration. Keep the accounts migration history installed for consistent upgrades; no runtime membership model or API remains.

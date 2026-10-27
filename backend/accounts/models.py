@@ -1,1 +1,1 @@
-"""Retired membership app; historical database tables are preserved by migrations."""
+"""Membership is removed; only its upgrade migration history remains."""
