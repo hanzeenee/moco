@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="app-shell">
     <TopBar
       :isLoggedIn="isLoggedIn"
       :userName="userName"
@@ -127,7 +127,17 @@ body,
   background: #000000;
 }
 
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 .app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: #000000;
 }
 </style>

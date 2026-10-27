@@ -1,15 +1,19 @@
 <template>
   <div class="main-area">
-    <div class="main-content">
-      <div class="main-text">
-        MOCO - 해외선물 자동매매 MT5 EA<br>
-        Money Copier
-      </div>
+    <div class="main-panel main-panel-left">
+      <div class="main-content">
+        <div class="main-text">
+          MOCO - 해외선물 자동매매 MT5 EA<br>
+          Money Copier
+        </div>
 
-      <button class="detail-btn" type="button" @click="goToLecture">
-        강의 자세히 보기
-      </button>
+        <button class="detail-btn" type="button" @click="goToLecture">
+          강의 자세히 보기
+        </button>
+      </div>
     </div>
+
+    <div class="main-panel main-panel-right" aria-hidden="true"></div>
   </div>
 </template>
 
@@ -26,14 +30,29 @@ export default {
 
 <style scoped>
 .main-area {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   background: #000000;
-  min-height: calc(100vh - 56px);
+}
+
+.main-panel {
+  min-width: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 32px 24px;
+  box-sizing: border-box;
+}
+
+.main-panel-left {
+  border-right: 1px solid #333333;
 }
 
 .main-content {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,13 +60,16 @@ export default {
 }
 
 .main-text {
-  font-size: 40px;
+  font-size: clamp(18px, 2.8vw, 40px);
   font-weight: bold;
   color: #ffffff;
   text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .detail-btn {
+  max-width: 100%;
   padding: 12px 24px;
   border: 1px solid #ffffff;
   background: transparent;
@@ -61,5 +83,16 @@ export default {
 .detail-btn:hover {
   background: #ffffff;
   color: #000000;
+}
+
+@media (max-width: 600px) {
+  .main-panel {
+    padding: 24px 12px;
+  }
+
+  .detail-btn {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
 }
 </style>
