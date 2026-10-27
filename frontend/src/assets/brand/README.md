@@ -13,4 +13,4 @@ Original PNGs supplied by the owner on 2026-10-27. Files are preserved without p
 
 Only the header wordmark is currently imported into the application. Keep the other originals for later owner-directed placements.
 
-Favicon assets in frontend/public are derived from moconix-mark-transparent.png (누끼_로고.png), using the visible symbol bounds, transparent square padding, and unchanged aspect ratio. favicon.ico contains 16/32/48/64px frames; 32px and 64px PNG alternatives are linked explicitly. The ICO URL includes a version suffix to refresh the previous favicon cache.
+Favicon assets in frontend/public are derived from moconix-mark-transparent.png (누끼_로고.png). At the owner's request, the favicon-only symbol is stretched vertically to fill its square canvas edge to edge, with no added padding; original brand files and the header wordmark remain unchanged. favicon.ico contains 16/32/48/64px frames; 32px and 64px PNG alternatives are linked explicitly. All icon URLs include a version suffix to refresh the previous favicon cache.
