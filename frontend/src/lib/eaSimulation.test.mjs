@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { createSimulation, advanceSimulation, floatingProfit, normalizeLot } from './eaSimulation.mjs'
+import { createSimulation, advanceSimulation, floatingProfit, normalizeLot, MAX_HOLD_MS, MAX_HOLD_TICKS, TICK_INTERVAL_MS } from './eaSimulation.mjs'
 
 function withPosition(side, entry, price, lot = 0.1) {
   const state = createSimulation(() => 0.5)
@@ -110,7 +110,7 @@ test('timed exits count their realized outcome and entry levels match trade dire
     for (const gain of [true, false]) {
       const direction = side === 'BUY' ? 1 : -1
       const timed = withPosition(side, 4000, 4000 + direction * (gain ? 1 : -1))
-      timed.position.openedAt = -32
+      timed.position.openedAt = -MAX_HOLD_TICKS
       advanceSimulation(timed, 1, () => 0.5)
       assert.equal(timed.trades[0].reason, '시간 청산')
       assert.equal(timed.winCount, gain ? 1 : 0)
@@ -135,4 +135,67 @@ test('cumulative trades count entries once and remain unchanged at exit', () => 
   assert.ok(state.position)
   advanceSimulation(state, 0.01, () => 0.5)
   assert.equal(state.entryCount, 2)
+})
+test('an unchanged position remains open before four seconds and settles at four seconds', () => {
+  assert.equal(MAX_HOLD_MS, 4000)
+  assert.equal(MAX_HOLD_TICKS * TICK_INTERVAL_MS, 4000)
+  const state = withPosition('BUY', 4000, 4000.2, 1)
+  const expectedProfit = floatingProfit(state)
+  for (let tick = 1; tick < MAX_HOLD_TICKS; tick++) {
+    advanceSimulation(state, 1, () => 0.5)
+    assert.ok(state.position)
+    assert.equal(state.tradeCount, 0)
+  }
+  advanceSimulation(state, 1, () => 0.5)
+  assert.equal(state.position, null)
+  assert.equal(state.trades[0].reason, '시간 청산')
+  assert.equal(state.trades[0].profit, expectedProfit)
+  assert.equal(state.balance, 10000 + expectedProfit)
+})
+
+function seededRandom(seed) {
+  let value = Math.imul(seed, 2654435761) >>> 0
+  return () => {
+    value = (Math.imul(value, 1664525) + 1013904223) >>> 0
+    return value / 4294967296
+  }
+}
+
+test('independent starts vary history, trends, first positions and realized win rates', () => {
+  const paths = new Set(), firstSides = new Set(), rates = new Set(), volatility = new Set()
+  let rising = 0, falling = 0, againstTrend = 0, profitableRuns = 0, losingRuns = 0
+  for (let seed = 1; seed <= 80; seed++) {
+    const random = seededRandom(seed)
+    const state = createSimulation(random)
+    const historyMove = state.price - state.candles[0].open
+    if (historyMove > 0) rising += 1
+    if (historyMove < 0) falling += 1
+    paths.add(state.candles.map(c => `${c.open}/${c.high}/${c.low}/${c.close}`).join(','))
+    volatility.add(state.market.volatility)
+    for (let tick = 0; tick < 6 && !state.position; tick++) advanceSimulation(state, 0.01, random)
+    assert.ok(state.position)
+    firstSides.add(state.position.side)
+    if ((historyMove > 0 && state.position.side === 'SELL') || (historyMove < 0 && state.position.side === 'BUY')) againstTrend += 1
+    for (let tick = 0; tick < 400; tick++) advanceSimulation(state, 0.01, random)
+    assert.ok(state.tradeCount > 0)
+    rates.add((state.winCount / state.tradeCount).toFixed(3))
+    if (state.balance > 10000) profitableRuns += 1
+    if (state.balance < 10000) losingRuns += 1
+    assert.equal(state.entryCount, state.tradeCount + (state.position ? 1 : 0))
+    assert.ok(state.winCount + state.lossCount <= state.tradeCount)
+    assert.ok(Math.abs(state.equity - state.balance - floatingProfit(state)) < 0.011)
+    for (let index = 1; index < state.candles.length; index++) {
+      const current = state.candles[index], previous = state.candles[index - 1]
+      assert.equal(current.open, previous.close)
+      assert.ok(current.low <= current.open && current.low <= current.close)
+      assert.ok(current.high >= current.open && current.high >= current.close)
+    }
+  }
+  assert.equal(paths.size, 80)
+  assert.equal(firstSides.size, 2)
+  assert.ok(rising >= 20 && falling >= 20)
+  assert.ok(againstTrend >= 20)
+  assert.ok(volatility.size > 40)
+  assert.ok(rates.size > 10)
+  assert.ok(profitableRuns > 0 && losingRuns > 0)
 })

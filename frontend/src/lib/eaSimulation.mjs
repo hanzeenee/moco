@@ -5,15 +5,36 @@ const INITIAL_BALANCE = 10000
 export const DEFAULT_LOT = 10
 export const CANDLE_MINUTES = 5
 export const TICK_INTERVAL_MS = 250
+export const MAX_HOLD_MS = 4000
+export const MAX_HOLD_TICKS = MAX_HOLD_MS / TICK_INTERVAL_MS
 export const STOP_DISTANCE = 2.4
 export const TARGET_DISTANCE = 3.6
 
 const round = value => Math.round(value * 100) / 100
-const average = values => values.reduce((sum, value) => sum + value, 0) / values.length
 const sideSign = side => side === 'BUY' ? 1 : -1
 const exitPrice = (price, side) => round(price - sideSign(side) * SPREAD / 2)
+const entryDelay = random => 2 + Math.floor(random() * 5)
 
-// Clamp committed input to 0.01–100 lots with two decimal places.
+// Direction, strength, duration and volatility have no fixed phase or cycle.
+function newRegime(random) {
+  const direction = Math.floor(random() * 3) - 1
+  return {
+    drift: direction * (0.06 + random() * 0.42),
+    volatility: 0.25 + random() * 1.05,
+    remainingTicks: 8 + Math.floor(random() * 65)
+  }
+}
+
+// History and live candles use the same stochastic process and continuous price.
+function nextPrice(market, price, random) {
+  if (market.remainingTicks <= 0) Object.assign(market, newRegime(random))
+  market.remainingTicks -= 1
+  const scale = market.volatility * (0.5 + random())
+  const noise = (random() + random() - 1) * scale * 1.8
+  const jump = random() < 0.025 ? (random() - 0.5) * market.volatility * 6 : 0
+  return round(Math.max(100, price + market.drift + noise + jump))
+}
+
 export function normalizeLot(value) {
   const amount = Number(value)
   if (value === '' || value === null || !Number.isFinite(amount)) return DEFAULT_LOT
@@ -26,28 +47,33 @@ export function floatingProfit(state) {
 }
 
 export function createSimulation(random = Math.random) {
+  const market = newRegime(random)
   const candles = []
-  let price = 4000
+  let price = round(4000 + (random() - 0.5) * 80)
   for (let i = 0; i < 48; i++) {
     const open = price
-    price = round(open + Math.sin(i / 5) * 0.38 + (random() - 0.5) * 1.2)
-    candles.push({ id: i, open, close: price, high: round(Math.max(open, price) + random() * 0.7), low: round(Math.min(open, price) - random() * 0.7) })
+    let high = open, low = open
+    for (let tick = 0; tick < 4; tick++) {
+      price = nextPrice(market, price, random)
+      high = Math.max(high, price)
+      low = Math.min(low, price)
+    }
+    candles.push({ id: i, open, close: price, high, low })
   }
   return {
-    price, candles, tick: 0, nextCandle: 48, balance: INITIAL_BALANCE,
-    equity: INITIAL_BALANCE, peakEquity: INITIAL_BALANCE, maxDrawdown: 0,
+    price, candles, market, tick: 0, nextCandle: 48, firstEntryTick: entryDelay(random),
+    balance: INITIAL_BALANCE, equity: INITIAL_BALANCE, peakEquity: INITIAL_BALANCE, maxDrawdown: 0,
     position: null, trades: [], tradeCount: 0, entryCount: 0, winCount: 0, lossCount: 0, cooldown: 0,
-    status: '시세 분석 중 · 진입 조건 확인', bankrupt: false
+    status: 'EA 준비 중 · 진입 대기', bankrupt: false
   }
 }
 
-// One call advances one simulated tick; four ticks form one virtual five-minute candle.
+// Four active ticks form one virtual M5 candle. Paused/hidden tabs do not advance.
 export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random) {
   if (state.bankrupt) return state
   state.tick += 1
   const previousPrice = state.price
-  const drift = Math.sin(state.tick / 18) * 0.32
-  state.price = round(Math.max(100, previousPrice + drift + (random() - 0.5) * 1.5))
+  state.price = nextPrice(state.market, previousPrice, random)
   if ((state.tick - 1) % 4 === 0) {
     state.candles.push({ id: state.nextCandle++, open: previousPrice, high: Math.max(previousPrice, state.price), low: Math.min(previousPrice, state.price), close: state.price })
     if (state.candles.length > 64) state.candles.shift()
@@ -66,7 +92,7 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
   if (state.position) {
     const position = state.position
     const movement = (exitPrice(state.price, position.side) - position.entry) * sideSign(position.side)
-    const reason = movement <= -STOP_DISTANCE ? '손절' : movement >= TARGET_DISTANCE ? '익절' : state.tick - position.openedAt >= 32 ? '시간 청산' : state.equity <= 0 ? '잔고 소진' : null
+    const reason = movement <= -STOP_DISTANCE ? '손절' : movement >= TARGET_DISTANCE ? '익절' : state.tick - position.openedAt >= MAX_HOLD_TICKS ? '시간 청산' : state.equity <= 0 ? '잔고 소진' : null
     if (reason) {
       state.balance = round(state.balance + pnl)
       state.tradeCount += 1
@@ -75,7 +101,7 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
       state.trades.unshift({ ...position, id: state.tradeCount, exit: exitPrice(state.price, position.side), profit: pnl, reason })
       state.trades = state.trades.slice(0, 20)
       state.position = null
-      state.cooldown = 4
+      state.cooldown = entryDelay(random)
       state.status = `${reason} 완료 · 다음 진입 대기`
       state.bankrupt = state.balance <= 0
     } else {
@@ -83,20 +109,18 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
     }
   } else if (state.cooldown > 0) {
     state.cooldown -= 1
-  } else if (state.tick >= 4) {
-    const closes = state.candles.map(candle => candle.close)
-    const fast = average(closes.slice(-5))
-    const slow = average(closes.slice(-12))
-    if (Math.abs(fast - slow) >= 0.12) {
-      const side = fast > slow ? 'BUY' : 'SELL'
-      const entry = round(state.price + sideSign(side) * SPREAD / 2)
-      const validLot = normalizeLot(lot)
-      state.entryCount += 1
-      state.position = { side, entry, lot: validLot, openedAt: state.tick, candleId: state.candles[state.candles.length - 1].id, stop: round(entry - sideSign(side) * STOP_DISTANCE), target: round(entry + sideSign(side) * TARGET_DISTANCE) }
-      state.status = `${side === 'BUY' ? '매수' : '매도'} 진입 · 이동평균 추세 감지`
-    } else {
-      state.status = '횡보 구간 · 추세 형성 대기'
+  } else if (state.tick >= state.firstEntryTick) {
+    // Sample every entry independently of history, trend, prior side or outcome.
+    const side = random() < 0.5 ? 'BUY' : 'SELL'
+    const entry = round(state.price + sideSign(side) * SPREAD / 2)
+    state.entryCount += 1
+    state.position = {
+      side, entry, lot: normalizeLot(lot), openedAt: state.tick,
+      candleId: state.candles[state.candles.length - 1].id,
+      stop: round(entry - sideSign(side) * STOP_DISTANCE),
+      target: round(entry + sideSign(side) * TARGET_DISTANCE)
     }
+    state.status = `${side === 'BUY' ? '매수' : '매도'} 진입 · 가상 EA 실행`
   }
   pnl = floatingProfit(state)
   state.equity = round(state.balance + pnl)

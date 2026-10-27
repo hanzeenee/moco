@@ -1,7 +1,6 @@
 <template>
   <section ref="simulator" class="simulator" aria-label="가상 EA 트레이딩 체험">
     <header class="sim-heading">
-      <p class="eyebrow">MOCONIX PLAYGROUND</p>
       <button class="exit-btn" type="button" @click="$emit('exit')">소개로 돌아가기 ↗</button>
     </header>
 
@@ -49,7 +48,7 @@
       <div class="trade-panel">
         <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
         <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
-          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '진입 신호를 기다리고 있어요.' }}</td></tr></tbody></table>
+          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '다음 거래를 기다리고 있어요.' }}</td></tr></tbody></table>
         </div>
         <div class="last-trade">{{ lastTradeText }}</div>
       </div>
@@ -100,7 +99,7 @@ export default {
     openProfit() { return floatingProfit(this.state) },
     lastTradeText() {
       const last = this.state.trades[0]
-      return last ? `최근 청산 · ${last.side} ${last.lot.toFixed(2)} · ${last.reason} ${this.signed(last.profit)}` : 'EA가 추세를 감지하면 자동으로 거래를 시작합니다.'
+      return last ? `최근 청산 · ${last.side} ${last.lot.toFixed(2)} · ${last.reason} ${this.signed(last.profit)}` : '가상 EA가 매수·매도 포지션을 자동으로 실행합니다.'
     }
   },
   mounted() {
@@ -148,8 +147,7 @@ export default {
 
 <style scoped>
 .simulator { line-height: 1.35; width: 100%; max-width: 860px; min-width: 0; color: #d6dce4; text-align: left; font-family: Arial, 'Malgun Gothic', sans-serif; }
-.sim-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-.eyebrow { margin: 0; color: #ffd000; font-size: 13px; letter-spacing: 0.14em; }
+.sim-heading { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
@@ -217,7 +215,6 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .panel-tab { grid-template-columns: minmax(0, 1fr); }
   .trade-counts { grid-column: 1; gap: 8px; }
   .sim-heading { gap: 5px; margin-bottom: 12px; }
-  .eyebrow { font-size: 11px; letter-spacing: 0.06em; }
   .exit-btn { font-size: 13px; }
   .terminal-title { padding: 6px; gap: 4px; }
   .terminal-title strong { font-size: 10px; }
