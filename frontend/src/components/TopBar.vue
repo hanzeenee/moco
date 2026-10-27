@@ -5,7 +5,7 @@
     </button>
 
     <nav class="nav" aria-label="주 메뉴">
-      <button class="nav-btn" type="button" @click="goHome">홈</button>
+      <button class="nav-btn" type="button" @click="goHome">HOME</button>
     </nav>
 
     <div class="right-menu">

@@ -15,6 +15,7 @@
         </p>
 
         <p class="intro-services">기존 EA 수정 · 기능 추가</p>
+        <button class="game-start-btn" type="button">트레이딩 미니게임 시작하기</button>
       </div>
     </div>
 
@@ -103,6 +104,31 @@ export default {
   line-height: 1.6;
 }
 
+.game-start-btn {
+  max-width: 100%;
+  padding: 12px 24px;
+  border: 1px solid #ffd000;
+  background: #ffd000;
+  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: normal;
+  word-break: keep-all;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.game-start-btn:hover {
+  border-color: #ffdf46;
+  background: #ffdf46;
+}
+
+.game-start-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
+}
+
 @media (max-width: 600px) {
   .main-panel {
     padding: 24px 12px;
@@ -110,6 +136,10 @@ export default {
 
   .main-content {
     gap: 16px;
+  }
+  .game-start-btn {
+    padding: 10px 12px;
+    font-size: 14px;
   }
 }
 </style>
