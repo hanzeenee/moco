@@ -1,7 +1,8 @@
 <template>
   <div class="main-area">
-    <div class="main-panel main-panel-left">
-      <div class="main-content">
+    <div class="main-panel main-panel-left" :class="{ 'game-open': gameOpen }">
+      <EaSimulator v-if="gameOpen" @exit="gameOpen = false" />
+      <div v-else class="main-content">
         <p class="intro-eyebrow">MT5 · TradingView 맞춤 개발</p>
 
         <h1 class="intro-title">
@@ -15,7 +16,7 @@
         </p>
 
         <p class="intro-services">기존 EA 수정 · 기능 추가</p>
-        <button class="game-start-btn" type="button">트레이딩 미니게임 시작하기</button>
+        <button class="game-start-btn" type="button" @click="gameOpen = true">트레이딩 미니게임 시작하기</button>
       </div>
     </div>
 
@@ -24,8 +25,12 @@
 </template>
 
 <script>
+import EaSimulator from './EaSimulator.vue'
+
 export default {
-  name: 'HomeView'
+  name: 'HomeView',
+  components: { EaSimulator },
+  data() { return { gameOpen: false } }
 }
 </script>
 
@@ -50,6 +55,10 @@ export default {
 
 .main-panel-left {
   border-right: 1px solid #333333;
+}
+
+.main-panel-left.game-open {
+  padding: 16px;
 }
 
 .main-content {
@@ -130,6 +139,8 @@ export default {
 }
 
 @media (max-width: 600px) {
+  .main-panel-left.game-open { padding: 20px 8px; }
+
   .main-panel {
     padding: 24px 12px;
   }

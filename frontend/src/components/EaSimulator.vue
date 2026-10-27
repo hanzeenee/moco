@@ -1,0 +1,221 @@
+<template>
+  <section class="simulator" aria-label="가상 EA 트레이딩 체험">
+    <header class="sim-heading">
+      <div><p class="eyebrow">MOCONIX PLAYGROUND</p><h1>나의 첫 자동매매</h1></div>
+      <button class="exit-btn" type="button" @click="$emit('exit')">소개로 돌아가기 ↗</button>
+    </header>
+
+    <div class="terminal">
+      <div class="terminal-title"><span class="terminal-icon">▥</span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
+      <div class="toolbar">
+        <button class="ea-toggle" :class="{ active: running }" type="button" :aria-pressed="running" @click="running = !running" :disabled="state.bankrupt">
+          <span class="status-dot"></span>{{ running ? 'EA 일시정지' : 'EA 재개' }}
+        </button>
+        <button class="reset-btn" type="button" @click="reset">↻ 다시 시작</button>
+      </div>
+
+      <div class="chart-heading"><strong>XAUUSD <span>· M1</span></strong><span class="ea-name">MOCONIX EA {{ running ? '☺' : 'Ⅱ' }}</span></div>
+      <div class="quote-strip">
+        <div class="quote sell"><span>SELL</span><strong>{{ (state.price - 0.1).toFixed(2) }}</strong></div>
+        <label class="lot-control" for="simulation-lot">거래량<select id="simulation-lot" v-model.number="lot"><option :value="0.01">0.01</option><option :value="0.05">0.05</option><option :value="0.1">0.10</option></select></label>
+        <div class="quote buy"><span>BUY</span><strong>{{ (state.price + 0.1).toFixed(2) }}</strong></div>
+      </div>
+
+      <div ref="chart" class="chart">
+        <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" :style="{ height: chartHeight + 'px' }" role="img" aria-label="자동으로 움직이는 가상 금 시세 캔들 차트">
+          <defs><clipPath id="ea-chart-clip"><rect x="0" y="8" :width="plotWidth" :height="chartHeight - 28" /></clipPath></defs>
+          <g v-for="line in gridLines" :key="line.value" class="chart-grid"><line x1="0" :x2="plotWidth" :y1="line.y" :y2="line.y"/><text :x="plotWidth + 5" :y="line.y + 3">{{ line.value.toFixed(1) }}</text></g>
+          <g clip-path="url(#ea-chart-clip)">
+            <g v-for="candle in chartCandles" :key="candle.id" class="candle">
+              <line :x1="candle.x" :x2="candle.x" :y1="priceY(candle.high)" :y2="priceY(candle.low)" />
+              <rect :x="candle.x - candleWidth / 2" :y="priceY(Math.max(candle.open, candle.close))" :width="candleWidth" :height="Math.max(1, Math.abs(priceY(candle.open) - priceY(candle.close)))" :fill="candle.close >= candle.open ? '#050805' : '#62ff2b'" />
+            </g>
+            <g v-if="state.position" class="order-lines"><line x1="0" :x2="plotWidth" :y1="priceY(state.position.entry)" :y2="priceY(state.position.entry)" stroke="#4baaff"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.stop)" :y2="priceY(state.position.stop)" stroke="#ed727e"/><line x1="0" :x2="plotWidth" :y1="priceY(state.position.target)" :y2="priceY(state.position.target)" stroke="#ffd000"/><text x="7" :y="priceY(state.position.target) - 5" fill="#ffd000">TP</text><text x="7" :y="priceY(state.position.stop) - 5" fill="#ed727e">SL</text></g>
+            <g v-for="marker in markers" :key="marker.key"><path :d="marker.path" :fill="marker.side === 'BUY' ? '#48aaff' : '#ff7b85'" /></g>
+          </g>
+          <line x1="0" :x2="plotWidth" :y1="priceY(state.price)" :y2="priceY(state.price)" stroke="#718491" stroke-width="0.7" />
+          <rect :x="plotWidth" :y="priceY(state.price) - 8" width="46" height="16" fill="#173142"/><text :x="plotWidth + 4" :y="priceY(state.price) + 3" fill="#e3f2ff" class="axis-label">{{ state.price.toFixed(2) }}</text>
+          <text x="6" :y="chartHeight - 8" class="time-label">{{ timeLabel(chartCandles[0]?.id) }}</text><text :x="plotWidth - 2" :y="chartHeight - 8" text-anchor="end" class="time-label">{{ timeLabel(state.candles[state.candles.length - 1].id) }}</text>
+        </svg>
+        <div v-if="!running || state.bankrupt" class="pause-overlay"><span>{{ state.bankrupt ? '체험 종료' : '일시정지' }}</span></div>
+      </div>
+
+      <div class="ea-status"><span class="status-dot" :class="{ paused: !running || state.bankrupt }"></span>{{ state.status }}</div>
+      <div class="account-stats">
+        <div><span>잔고</span><strong>${{ money(state.balance) }}</strong></div>
+        <div><span>평가금</span><strong :class="profitClass(state.equity - 10000)">${{ money(state.equity) }}</strong></div>
+        <div><span>최대 낙폭</span><strong>{{ state.maxDrawdown.toFixed(2) }}%</strong></div>
+      </div>
+      <div class="trade-panel">
+        <div class="panel-tab">거래 <span>{{ state.position ? '1' : '0' }}</span><span class="closed-count">청산 {{ state.tradeCount }}건</span></div>
+        <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
+          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="4" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '진입 신호를 기다리고 있어요.' }}</td></tr></tbody></table>
+        </div>
+        <div class="last-trade">{{ lastTradeText }}</div>
+      </div>
+    </div>
+    <p class="simulation-note">가상 시세 · 가상 자금 $10,000 <span>거래량 변경은 다음 진입부터 적용돼요.</span></p>
+  </section>
+</template>
+
+<script>
+import { advanceSimulation, createSimulation, floatingProfit } from '../lib/eaSimulation.mjs'
+
+export default {
+  name: 'EaSimulator',
+  emits: ['exit'],
+  data() {
+    return { state: createSimulation(), running: true, lot: 0.1, chartWidth: 560 }
+  },
+  computed: {
+    chartHeight() { return this.chartWidth < 240 ? 244 : 200 },
+    plotWidth() { return Math.max(80, this.chartWidth - 48) },
+    chartCandles() {
+      const count = this.chartWidth < 240 ? 22 : this.chartWidth < 400 ? 36 : 54
+      const candles = this.state.candles.slice(-count)
+      return candles.map((candle, i) => ({ ...candle, x: (i + 0.5) * this.plotWidth / candles.length }))
+    },
+    candleWidth() { return Math.max(1, this.plotWidth / this.chartCandles.length * 0.55) },
+    priceRange() {
+      const values = this.chartCandles.flatMap(c => [c.low, c.high])
+      if (this.state.position) values.push(this.state.position.stop, this.state.position.target)
+      const min = Math.min(...values), max = Math.max(...values)
+      const pad = Math.max(1, (max - min) * 0.14)
+      return { min: min - pad, max: max + pad }
+    },
+    gridLines() {
+      return Array.from({ length: 5 }, (_, i) => {
+        const value = this.priceRange.min + (this.priceRange.max - this.priceRange.min) * i / 4
+        return { value, y: this.priceY(value) }
+      })
+    },
+    markers() {
+      const positions = [...this.state.trades, ...(this.state.position ? [this.state.position] : [])]
+      return positions.flatMap(position => {
+        const candle = this.chartCandles.find(c => c.id === position.candleId)
+        if (!candle) return []
+        const y = this.priceY(position.side === 'BUY' ? candle.low : candle.high)
+        const direction = position.side === 'BUY' ? 1 : -1
+        return [{ key: position.openedAt, side: position.side, path: `M ${candle.x} ${y + direction * 4} l -4 ${direction * 7} h 8 Z` }]
+      })
+    },
+    openProfit() { return floatingProfit(this.state) },
+    lastTradeText() {
+      const last = this.state.trades[0]
+      return last ? `최근 청산 · ${last.side} ${last.lot.toFixed(2)} · ${last.reason} ${this.signed(last.profit)}` : 'EA가 추세를 감지하면 자동으로 거래를 시작합니다.'
+    }
+  },
+  mounted() {
+    this.resizeObserver = new ResizeObserver(entries => { this.chartWidth = Math.max(128, Math.floor(entries[0].contentRect.width)) })
+    this.resizeObserver.observe(this.$refs.chart)
+    this.tickTimer = window.setInterval(() => {
+      if (this.running && !document.hidden) {
+        advanceSimulation(this.state, this.lot)
+        if (this.state.bankrupt) this.running = false
+      }
+    }, 650)
+  },
+  beforeUnmount() {
+    window.clearInterval(this.tickTimer)
+    this.resizeObserver.disconnect()
+  },
+  methods: {
+    reset() { this.state = createSimulation(); this.running = true },
+    priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
+    money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+    signed(value) { return `${value >= 0 ? '+' : '−'}$${this.money(Math.abs(value))}` },
+    profitClass(value) { return value > 0 ? 'positive' : value < 0 ? 'negative' : '' },
+    timeLabel(id = 0) { return `${String((9 + Math.floor(id / 60)) % 24).padStart(2, '0')}:${String(id % 60).padStart(2, '0')}` }
+  }
+}
+</script>
+
+<style scoped>
+.simulator { line-height: 1.35; width: 100%; max-width: 860px; min-width: 0; color: #d6dce4; text-align: left; font-family: Arial, 'Malgun Gothic', sans-serif; }
+.sim-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.eyebrow { margin: 0 0 6px; color: #ffd000; font-size: 10px; letter-spacing: 0.14em; }
+h1 { margin: 0; font-size: clamp(18px, 1.7vw, 26px); font-weight: 600; }
+button, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, select:focus-visible, .trade-scroll:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
+.exit-btn { padding: 6px 0; background: none; border: 0; color: #a1abb7; font-size: 11px; }
+.exit-btn:hover { color: #fff; }
+.terminal { overflow: hidden; border: 1px solid #37434b; background: #080b0d; box-shadow: 0 12px 36px #0006; }
+.terminal-title { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; background: #102b3b; font-size: 11px; flex-wrap: wrap; }
+.terminal-icon { color: #59e7c4; font-size: 17px; }
+.demo-badge { margin-left: auto; color: #abbed0; font-size: 10px; }
+.toolbar { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid #34383d; background: #202226; flex-wrap: wrap; }
+.toolbar button { border: 1px solid #525b64; border-radius: 2px; padding: 4px 8px; background: #262a30; color: #ccd3dc; font-size: 11px; }
+.toolbar .active { border-color: #47705e; background: #21392e; color: #a8edbf; }
+.toolbar button:hover { filter: brightness(1.2); }
+.toolbar button:disabled { opacity: 0.5; cursor: default; }
+.status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #70ed98; flex: 0 0 auto; }
+.ea-toggle:not(.active) .status-dot, .status-dot.paused { background: #d3a74e; }
+.reset-btn { margin-left: auto; }
+.chart-heading { display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: wrap; }
+.chart-heading strong { color: #e1e9f2; font-size: 11px; }
+.chart-heading strong span { color: #8194a8; font-weight: 400; }
+.ea-name { color: #9caebd; }
+.quote-strip { display: flex; gap: 2px; align-items: stretch; padding: 4px 10px 0; }
+.quote { display: flex; flex-direction: column; min-width: 0; width: 96px; padding: 4px 7px; border: 1px solid #4776a9; background: linear-gradient(#183d75, #102342); font-family: Consolas, monospace; }
+.quote span { font-size: 9px; color: #bacde9; }
+.quote strong { font-size: clamp(12px, 1.65vw, 21px); font-weight: 400; color: #fff; }
+.quote.buy { background: linear-gradient(#78363e, #3b1b22); border-color: #9e535b; }
+.lot-control { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; padding: 0 5px; font-size: 9px; color: #aeb7c2; text-align: center; }
+.lot-control select { width: 52px; border: 1px solid #5b646d; color: #fff; background: #252a30; border-radius: 0; padding: 2px; font-size: 11px; }
+.chart { position: relative; margin: 0 6px; background: #000; }
+.chart svg { display: block; width: 100%; height: 224px; font-family: Consolas, monospace; }
+.chart-grid line { stroke: #15221b; stroke-dasharray: 2 5; stroke-width: 0.6; }
+.chart-grid text, .time-label { fill: #8f9b9f; font-size: 9px; }
+.axis-label { font-size: 9px; }
+.candle { stroke: #62ff2b; stroke-width: 1; }
+.order-lines line { stroke-dasharray: 4 4; stroke-width: 0.8; }
+.order-lines text { font-size: 9px; }
+.pause-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #0005; pointer-events: none; }
+.pause-overlay span { background: #18222ee6; padding: 9px 15px; border: 1px solid #506173; color: #e9edf3; font-size: 13px; }
+.ea-status { display: flex; align-items: center; min-height: 28px; padding: 6px 10px; box-sizing: border-box; background: #101a16; border-top: 1px solid #273d30; font-size: 10px; color: #a8c5b1; line-height: 1.5; }
+.account-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 9px 10px; background: #1c2025; }
+.account-stats > div { min-width: 0; }
+.account-stats span { display: block; margin-bottom: 5px; color: #9ba5b2; font-size: 10px; }
+.account-stats strong { font-family: Consolas, monospace; font-size: clamp(11px, 1.3vw, 17px); font-weight: 400; overflow-wrap: anywhere; }
+.positive { color: #79c2ff; }
+.negative { color: #ff858c; }
+.trade-panel { background: #16191d; }
+.panel-tab { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-top: 1px solid #3a4048; border-bottom: 1px solid #343a43; font-size: 11px; }
+.panel-tab > span:first-child { color: #98a9b9; }
+.closed-count { margin-left: auto; color: #8f9ba7; font-size: 10px; }
+.trade-scroll { width: 100%; overflow-x: auto; }
+table { width: 100%; min-width: 300px; border-collapse: collapse; white-space: nowrap; font-family: Consolas, 'Malgun Gothic', monospace; font-size: 10px; }
+th, td { text-align: right; padding: 6px 8px; font-weight: 400; }
+th { color: #8896a3; background: #1c2025; }
+th:first-child, td:first-child { text-align: left; }
+td b { font-size: 9px; padding-left: 3px; font-weight: 400; }
+td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
+.empty-position { height: 22px; color: #85929e; }
+.last-trade { min-height: 28px; box-sizing: border-box; padding: 7px 10px; border-top: 1px solid #2c323a; color: #9ba6b2; font-size: 10px; line-height: 1.5; }
+.simulation-note { margin: 8px 0 0; font-size: 10px; line-height: 1.7; color: #929ba6; }
+.simulation-note span { display: inline; margin-left: 6px; color: #717b86; }
+@media (max-width: 600px) {
+  .simulation-note span { display: block; margin-left: 0; }
+  .sim-heading { gap: 5px; margin-bottom: 12px; }
+  .eyebrow { font-size: 8px; letter-spacing: 0.06em; }
+  h1 { font-size: 17px; }
+  .exit-btn { font-size: 10px; }
+  .terminal-title { padding: 6px; gap: 4px; }
+  .terminal-title strong { font-size: 10px; }
+  .demo-badge { margin-left: 0; }
+  .toolbar { padding: 6px; gap: 5px; }
+  .toolbar button { padding: 5px; font-size: 10px; }
+  .reset-btn { margin-left: 0; }
+  .chart-heading { padding: 8px 6px 4px; }
+  .quote-strip { padding: 4px 5px 0; }
+  .quote { padding: 4px; }
+  .lot-control { padding: 0 1px; font-size: 8px; }
+  .lot-control select { width: 42px; font-size: 10px; }
+  .chart { margin: 0 3px; }
+  .account-stats { gap: 9px; padding: 10px 6px; grid-template-columns: 1fr; }
+  .account-stats > div { display: flex; justify-content: space-between; align-items: center; }
+  .account-stats span { margin: 0; }
+  .ea-status { padding: 6px; }
+}
+</style>
