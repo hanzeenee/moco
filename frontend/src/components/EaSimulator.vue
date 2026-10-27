@@ -38,8 +38,8 @@
       <div class="ea-status"><span class="status-dot" :class="{ inactive: !state.eaApplied || state.bankrupt }"></span>{{ state.status }}</div>
       <div class="account-stats">
         <div><span>잔고</span><strong>${{ money(state.balance) }}</strong></div>
-        <div><span>평가금</span><strong :class="profitClass(state.equity - 10000)">${{ money(state.equity) }}</strong></div>
-        <div><span>최대 낙폭</span><strong>{{ state.maxDrawdown.toFixed(2) }}%</strong></div>
+        <div><span>평가금</span><strong>${{ money(state.equity) }}</strong></div>
+        <div><span>수익</span><strong :class="profitClass(openProfit)">{{ openProfit === 0 ? '$0.00' : signed(openProfit) }}</strong></div>
       </div>
       <div class="trade-panel">
         <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
