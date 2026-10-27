@@ -5,15 +5,7 @@
     </button>
 
     <nav class="nav" aria-label="주 메뉴">
-      <button
-        v-for="btn in buttons"
-        :key="btn.name"
-        class="nav-btn"
-        type="button"
-        @click="handleMenuClick(btn)"
-      >
-        {{ btn.name }}
-      </button>
+      <button class="nav-btn" type="button" @click="goHome">홈</button>
     </nav>
 
     <div class="right-menu">
@@ -57,27 +49,9 @@ export default {
     }
   },
 
-  data() {
-    return {
-      buttons: [
-        { name: '홈', route: '/' },
-        { name: 'EA 문의' },
-        { name: '인디케이터(지표) 문의' },
-        { name: '무료 제공' },
-        { name: '기타 문의' }
-      ]
-    }
-  },
-
   methods: {
     goHome() {
       this.$router.push('/')
-    },
-
-    handleMenuClick(btn) {
-      if (btn.route) {
-        this.$router.push(btn.route)
-      }
     }
   }
 }
@@ -127,8 +101,9 @@ export default {
 }
 
 .nav {
+  justify-self: center;
   display: flex;
-  gap: 14px;
+  justify-content: center;
 }
 
 .right-menu {
@@ -219,7 +194,7 @@ export default {
   background: #222222;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 600px) {
   .topbar {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px 12px;
@@ -229,9 +204,6 @@ export default {
   .nav {
     grid-column: 1 / -1;
     grid-row: 2;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
   }
 
   .right-menu {

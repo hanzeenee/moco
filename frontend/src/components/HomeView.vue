@@ -15,8 +15,6 @@
         </p>
 
         <p class="intro-services">기존 EA 수정 · 기능 추가</p>
-
-        <button class="inquiry-btn" type="button">제작 문의하기</button>
       </div>
     </div>
 
@@ -105,28 +103,6 @@ export default {
   line-height: 1.6;
 }
 
-.inquiry-btn {
-  max-width: 100%;
-  padding: 12px 24px;
-  border: 1px solid #ffd000;
-  background: #ffd000;
-  color: #000000;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.inquiry-btn:hover {
-  border-color: #ffdf46;
-  background: #ffdf46;
-}
-
-.inquiry-btn:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 4px;
-}
-
 @media (max-width: 600px) {
   .main-panel {
     padding: 24px 12px;
@@ -134,11 +110,6 @@ export default {
 
   .main-content {
     gap: 16px;
-  }
-
-  .inquiry-btn {
-    padding: 10px 12px;
-    font-size: 14px;
   }
 }
 </style>
