@@ -1,14 +1,12 @@
 <template>
   <section ref="simulator" class="simulator" aria-label="가상 EA 트레이딩 체험">
     <header class="sim-heading">
-      <button class="exit-btn" type="button" @click="$emit('exit')">소개로 돌아가기 ↗</button>
+      <button class="sim-action-btn" type="button" aria-label="돌아가기" @click="$emit('exit')">↶ 돌아가기</button>
+      <button class="sim-action-btn" type="button" aria-label="다시 시작" @click="reset">↻ 다시 시작</button>
     </header>
 
     <div class="terminal">
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
-      <div class="toolbar">
-        <button class="reset-btn" type="button" @click="reset">↻ 다시 시작</button>
-      </div>
 
       <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><button v-else class="apply-ea-btn" type="button" @click="applyEa">EA 적용하기</button></div>
       <div class="quote-strip">
@@ -48,7 +46,6 @@
         <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
           <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : state.eaApplied ? '다음 거래를 기다리고 있어요.' : 'EA 적용 후 거래가 시작돼요.' }}</td></tr></tbody></table>
         </div>
-        <div class="last-trade">{{ lastTradeText }}</div>
       </div>
     </div>
   </section>
@@ -98,15 +95,10 @@ export default {
     exitMarkers() {
       return this.state.trades.flatMap(trade => {
         const candle = this.chartCandles.find(c => c.id === trade.exitCandleId)
-        return candle ? [{ id: trade.id, x: candle.x, y: this.priceY(trade.exitMid), label: trade.exitTarget, color: trade.exitTarget === 'TP' ? '#79c2ff' : '#ff858c' }] : []
+        return candle ? [{ id: trade.id, x: candle.x, y: this.priceY(trade.exitMid), label: trade.exitTarget === 'OUT' ? '종료' : trade.exitTarget, color: trade.exitTarget === 'TP' ? '#79c2ff' : '#ff858c' }] : []
       })
     },
-    openProfit() { return floatingProfit(this.state) },
-    lastTradeText() {
-      if (!this.state.eaApplied) return 'EA 적용 전 · 차트만 실행 중입니다.'
-      const last = this.state.trades[0]
-      return last ? `최근 청산 · ${last.side} ${last.lot.toFixed(2)} · ${last.reason} ${this.signed(last.profit)}` : '가상 EA가 매수·매도 포지션을 자동으로 실행합니다.'
-    }
+    openProfit() { return floatingProfit(this.state) }
   },
   mounted() {
     this.resizeObserver = new ResizeObserver(() => {
@@ -153,23 +145,19 @@ export default {
 
 <style scoped>
 .simulator { line-height: 1.35; width: 100%; max-width: 860px; min-width: 0; color: #d6dce4; text-align: left; font-family: Arial, 'Malgun Gothic', sans-serif; }
-.sim-heading { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.sim-heading { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 button, input { font: inherit; }
+.sim-action-btn { border: 1px solid #525b64; border-radius: 2px; padding: 4px 8px; background: #262a30; color: #ccd3dc; font-size: 11px; }
+.sim-action-btn:hover { filter: brightness(1.2); }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
-.exit-btn { padding: 6px 0; background: none; border: 0; color: #a1abb7; font-size: 15px; }
-.exit-btn:hover { color: #fff; }
 .terminal { overflow: hidden; border: 1px solid #37434b; background: #080b0d; box-shadow: 0 12px 36px #0006; }
 .terminal-title { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; background: #102b3b; font-size: 11px; flex-wrap: wrap; }
 .terminal-icon { position: relative; display: inline-block; width: 28px; height: 14px; overflow: hidden; flex: 0 0 auto; }
 .terminal-icon img { position: absolute; width: 228%; max-width: none; height: auto; left: -64%; top: 50%; transform: translateY(-50%); }
 .demo-badge { margin-left: auto; color: #abbed0; font-size: 10px; }
-.toolbar { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid #34383d; background: #202226; flex-wrap: wrap; }
-.toolbar button { border: 1px solid #525b64; border-radius: 2px; padding: 4px 8px; background: #262a30; color: #ccd3dc; font-size: 11px; }
-.toolbar button:hover { filter: brightness(1.2); }
 .status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #70ed98; flex: 0 0 auto; }
 .status-dot.inactive { background: #7a8592; }
-.reset-btn { margin-left: auto; }
 .chart-heading { min-height: 38px; box-sizing: border-box; align-items: center; display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: wrap; }
 .chart-heading strong { color: #e1e9f2; font-size: 11px; }
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
@@ -218,18 +206,13 @@ th:first-child, td:first-child { text-align: left; }
 td b { font-size: 9px; padding-left: 3px; font-weight: 400; }
 td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 .empty-position { height: 22px; color: #85929e; }
-.last-trade { min-height: 28px; box-sizing: border-box; padding: 7px 10px; border-top: 1px solid #2c323a; color: #9ba6b2; font-size: 10px; line-height: 1.5; }
 @media (max-width: 600px) {
   .panel-tab { grid-template-columns: minmax(0, 1fr); }
   .trade-counts { grid-column: 1; gap: 8px; }
   .sim-heading { gap: 5px; margin-bottom: 12px; }
-  .exit-btn { font-size: 13px; }
   .terminal-title { padding: 6px; gap: 4px; }
   .terminal-title strong { font-size: 10px; }
   .demo-badge { margin-left: 0; }
-  .toolbar { padding: 6px; gap: 5px; }
-  .toolbar button { padding: 5px; font-size: 10px; }
-  .reset-btn { margin-left: 0; }
   .chart-heading { padding: 8px 6px 4px; }
   .quote-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px 5px 0; }
   .quote { width: auto; padding: 4px; }

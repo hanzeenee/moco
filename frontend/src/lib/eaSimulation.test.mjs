@@ -99,20 +99,31 @@ test('drawdown includes open losses and a fresh session resets the account and E
   assert.equal(reset.entryCount + reset.tradeCount + reset.winCount + reset.lossCount, 0)
 })
 
-test('account exhaustion is settled at SL and then stops the completed session', () => {
-  const state = withPosition('BUY', 4000, 4000, 0.1, 'SL')
-  state.balance = 1
-  for (let tick = 1; tick < MAX_HOLD_TICKS; tick++) {
-    advanceSimulation(state, 0.1, () => 0.5)
-    assert.equal(state.bankrupt, false)
-    assert.ok(state.position)
+test('zero equity closes immediately before the four-second SL scene completes', () => {
+  for (const side of ['BUY', 'SELL']) {
+    const state = withPosition(side, 4000, 4000, 100, 'SL')
+    let closedAfter = 0
+    for (let tick = 1; tick <= MAX_HOLD_TICKS; tick++) {
+      advanceSimulation(state, 100, () => 0.5)
+      assert.ok(state.equity >= 0)
+      if (state.bankrupt) { closedAfter = tick; break }
+      assert.ok(state.equity > 0)
+    }
+    assert.ok(closedAfter > 0 && closedAfter < MAX_HOLD_TICKS)
+    assert.equal(state.position, null)
+    assert.equal(state.equity, 0)
+    assert.equal(state.balance, 0)
+    assert.equal(state.maxDrawdown, 100)
+    assert.equal(state.trades[0].reason, '평가금 소진')
+    assert.equal(state.trades[0].exitTarget, 'OUT')
+    assert.equal(state.trades[0].profit, -10000)
+    assert.equal(state.trades[0].exit, side === 'BUY' ? 3999 : 4001)
+    const tick = state.tick, price = state.price, trades = state.entryCount
+    for (let i = 0; i < 20; i++) advanceSimulation(state, 100, () => 0.5)
+    assert.equal(state.tick, tick)
+    assert.equal(state.price, price)
+    assert.equal(state.entryCount, trades)
   }
-  advanceSimulation(state, 0.1, () => 0.5)
-  assert.equal(state.bankrupt, true)
-  assert.equal(state.trades[0].reason, '손절')
-  const tick = state.tick
-  advanceSimulation(state, 0.1, () => 0.5)
-  assert.equal(state.tick, tick)
 })
 
 test('manual lot range, default ten lots and input normalization stay intact', () => {
@@ -219,4 +230,31 @@ test('EA applies once to the current market and remains applied after TP/SL', ()
   assert.equal(state.position, null)
   assert.equal(state.eaApplied, true)
   assert.equal(createSimulation(() => 0.5).eaApplied, false)
+})
+
+test('a fractional-lot stop-out reaches exactly zero without a negative cash balance', () => {
+  const state = withPosition('BUY', 4000, 4000, 0.37, 'SL')
+  state.balance = 37.43
+  for (let tick = 0; tick < MAX_HOLD_TICKS && !state.bankrupt; tick++) advanceSimulation(state, 0.37, () => 0.5)
+  assert.equal(state.bankrupt, true)
+  assert.equal(state.equity, 0)
+  assert.equal(state.balance, 0)
+  const trade = state.trades[0]
+  assert.equal(trade.profit, -37.43)
+  assert.ok(Math.abs(Math.round((trade.exit - trade.entry) * trade.lot * 100 * 100) / 100 - trade.profit) < 0.011)
+})
+
+test('entry spread can end an exhausted account on the entry tick', () => {
+  const state = activeSimulation(() => 0.5)
+  state.balance = 50
+  for (let tick = 0; tick < 4; tick++) advanceSimulation(state, 100, () => 0.5)
+  assert.equal(state.bankrupt, true)
+  assert.equal(state.position, null)
+  assert.equal(state.equity, 0)
+  assert.equal(state.balance, 0)
+  assert.equal(state.entryCount, 1)
+  assert.equal(state.tradeCount, 1)
+  assert.equal(state.trades[0].closedAt, state.trades[0].openedAt)
+  assert.equal(state.trades[0].exitTarget, 'OUT')
+  assert.equal(state.trades[0].profit, -50)
 })

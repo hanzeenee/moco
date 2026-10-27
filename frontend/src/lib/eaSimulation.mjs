@@ -12,7 +12,8 @@ export const TARGET_DISTANCE = 3.6
 
 const round = value => Math.round(value * 100) / 100
 const sideSign = side => side === 'BUY' ? 1 : -1
-const exitPrice = (price, side) => round(price - sideSign(side) * SPREAD / 2)
+const precisePrice = value => Math.round(value * 1e8) / 1e8
+const exitPrice = (price, side) => precisePrice(price - sideSign(side) * SPREAD / 2)
 const entryDelay = random => 2 + Math.floor(random() * 5)
 
 // Direction, strength, duration and volatility have no fixed phase or cycle.
@@ -92,6 +93,46 @@ export function applyEa(state, random = Math.random) {
   state.status = 'EA 적용 완료 · 진입 대기'
   return state
 }
+function updateAccount(state) {
+  state.equity = Math.max(0, round(state.balance + floatingProfit(state)))
+  state.peakEquity = Math.max(state.peakEquity, state.equity)
+  state.maxDrawdown = Math.max(state.maxDrawdown, (state.peakEquity - state.equity) / state.peakEquity * 100)
+}
+
+// Stop at the zero-equity boundary instead of showing a negative account.
+function capAtZeroEquity(state) {
+  const position = state.position
+  if (!position || state.balance + floatingProfit(state) > 0) return false
+  const direction = sideSign(position.side)
+  const level = position.entry - direction * state.balance / (position.lot * CONTRACT_SIZE)
+  state.price = precisePrice(level + direction * SPREAD / 2)
+  return true
+}
+
+function updateCurrentCandle(state) {
+  const candle = state.candles[state.candles.length - 1]
+  candle.close = state.price
+  candle.high = Math.max(candle.high, state.price)
+  candle.low = Math.min(candle.low, state.price)
+}
+
+function closePosition(state, exitTarget, random) {
+  const position = state.position
+  const exhausted = exitTarget === 'OUT'
+  const pnl = exhausted ? -state.balance : floatingProfit(state)
+  const reason = exhausted ? '평가금 소진' : exitTarget === 'TP' ? '익절' : '손절'
+  state.balance = Math.max(0, round(state.balance + pnl))
+  state.tradeCount += 1
+  if (pnl > 0) state.winCount += 1
+  if (pnl < 0) state.lossCount += 1
+  state.trades.unshift({ ...position, exitTarget, id: state.tradeCount, exit: exitPrice(state.price, position.side), exitMid: state.price, closedAt: state.tick, exitCandleId: state.candles[state.candles.length - 1].id, profit: pnl, reason })
+  state.trades = state.trades.slice(0, 20)
+  state.position = null
+  state.bankrupt = exhausted || state.balance <= 0
+  state.cooldown = state.bankrupt ? 0 : entryDelay(random)
+  state.status = state.bankrupt ? '평가금 0 · 체험 종료' : `${reason} 완료 · 다음 진입 대기`
+}
+
 // Four active ticks form one virtual M5 candle. Hidden tabs do not advance.
 export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random) {
   if (state.bankrupt) return state
@@ -99,44 +140,28 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
   const previousPrice = state.price
   const marketPrice = nextPrice(state.market, previousPrice, random)
   state.price = state.position ? tradeScenePrice(state.position, state.tick, previousPrice, marketPrice) : marketPrice
+  const exhausted = capAtZeroEquity(state)
   if ((state.tick - 1) % 4 === 0) {
     state.candles.push({ id: state.nextCandle++, open: previousPrice, high: Math.max(previousPrice, state.price), low: Math.min(previousPrice, state.price), close: state.price })
     if (state.candles.length > 64) state.candles.shift()
   } else {
-    const candle = state.candles[state.candles.length - 1]
-    candle.close = state.price
-    candle.high = Math.max(candle.high, state.price)
-    candle.low = Math.min(candle.low, state.price)
+    updateCurrentCandle(state)
   }
-
   if (!state.eaApplied) return state
 
-  let pnl = floatingProfit(state)
-  state.equity = round(state.balance + pnl)
-  state.peakEquity = Math.max(state.peakEquity, state.equity)
-  state.maxDrawdown = Math.max(state.maxDrawdown, (state.peakEquity - state.equity) / state.peakEquity * 100)
-
+  updateAccount(state)
   if (state.position) {
     const position = state.position
-    const reason = state.tick - position.openedAt >= MAX_HOLD_TICKS ? (position.exitTarget === 'TP' ? '익절' : '손절') : null
-    if (reason) {
-      state.balance = round(state.balance + pnl)
-      state.tradeCount += 1
-      if (pnl > 0) state.winCount += 1
-      if (pnl < 0) state.lossCount += 1
-      state.trades.unshift({ ...position, id: state.tradeCount, exit: exitPrice(state.price, position.side), exitMid: state.price, closedAt: state.tick, exitCandleId: state.candles[state.candles.length - 1].id, profit: pnl, reason })
-      state.trades = state.trades.slice(0, 20)
-      state.position = null
-      state.cooldown = entryDelay(random)
-      state.status = `${reason} 완료 · 다음 진입 대기`
-      state.bankrupt = state.balance <= 0
+    if (exhausted) {
+      closePosition(state, 'OUT', random)
+    } else if (state.tick - position.openedAt >= MAX_HOLD_TICKS) {
+      closePosition(state, position.exitTarget, random)
     } else {
       state.status = `${position.side === 'BUY' ? '매수' : '매도'} 보유 중 · 익절/손절 감시`
     }
   } else if (state.cooldown > 0) {
     state.cooldown -= 1
   } else if (state.tick >= state.firstEntryTick) {
-    // Sample every entry independently of history, trend, prior side or outcome.
     const side = random() < 0.5 ? 'BUY' : 'SELL'
     const entry = round(state.price + sideSign(side) * SPREAD / 2)
     state.entryCount += 1
@@ -149,11 +174,12 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
       target: round(entry + sideSign(side) * TARGET_DISTANCE)
     }
     state.status = `${side === 'BUY' ? '매수' : '매도'} 진입 · 가상 EA 실행`
+    // A large lot can exhaust the account immediately through the spread.
+    if (capAtZeroEquity(state)) {
+      updateCurrentCandle(state)
+      closePosition(state, 'OUT', random)
+    }
   }
-  pnl = floatingProfit(state)
-  state.equity = round(state.balance + pnl)
-  state.peakEquity = Math.max(state.peakEquity, state.equity)
-  state.maxDrawdown = Math.max(state.maxDrawdown, (state.peakEquity - state.equity) / state.peakEquity * 100)
-  if (state.bankrupt) state.status = '가상 잔고 소진 · 다시 시작해 주세요'
+  updateAccount(state)
   return state
 }
