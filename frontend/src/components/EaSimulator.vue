@@ -7,13 +7,10 @@
     <div class="terminal">
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
       <div class="toolbar">
-        <button class="ea-toggle" :class="{ active: running }" type="button" :aria-pressed="running" @click="running = !running" :disabled="state.bankrupt">
-          <span class="status-dot"></span>{{ running ? 'EA 일시정지' : 'EA 재개' }}
-        </button>
         <button class="reset-btn" type="button" @click="reset">↻ 다시 시작</button>
       </div>
 
-      <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span class="ea-name">MOCONIX EA {{ running ? '☺' : 'Ⅱ' }}</span></div>
+      <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><button v-else class="apply-ea-btn" type="button" @click="applyEa">EA 적용하기</button></div>
       <div class="quote-strip">
         <div class="quote sell"><span>SELL</span><strong>{{ (state.price - 0.1).toFixed(2) }}</strong></div>
         <label class="lot-control" for="simulation-lot">거래량<span class="lot-input"><input id="simulation-lot" v-model.number="lotInput" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="거래량 (랏)" title="0.01~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" /><span>랏</span></span></label>
@@ -36,10 +33,10 @@
           <rect :x="plotWidth" :y="priceY(state.price) - 8" width="46" height="16" fill="#173142"/><text :x="plotWidth + 4" :y="priceY(state.price) + 3" fill="#e3f2ff" class="axis-label">{{ state.price.toFixed(2) }}</text>
           <text x="6" :y="chartHeight - 8" class="time-label">{{ timeLabel(chartCandles[0]?.id) }}</text><text :x="plotWidth - 2" :y="chartHeight - 8" text-anchor="end" class="time-label">{{ timeLabel(state.candles[state.candles.length - 1].id) }}</text>
         </svg>
-        <div v-if="!running || state.bankrupt" class="pause-overlay"><span>{{ state.bankrupt ? '체험 종료' : '일시정지' }}</span></div>
+        <div v-if="state.bankrupt" class="end-overlay"><span>체험 종료</span></div>
       </div>
 
-      <div class="ea-status"><span class="status-dot" :class="{ paused: !running || state.bankrupt }"></span>{{ state.status }}</div>
+      <div class="ea-status"><span class="status-dot" :class="{ inactive: !state.eaApplied || state.bankrupt }"></span>{{ state.status }}</div>
       <div class="account-stats">
         <div><span>잔고</span><strong>${{ money(state.balance) }}</strong></div>
         <div><span>평가금</span><strong :class="profitClass(state.equity - 10000)">${{ money(state.equity) }}</strong></div>
@@ -48,7 +45,7 @@
       <div class="trade-panel">
         <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
         <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
-          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : '다음 거래를 기다리고 있어요.' }}</td></tr></tbody></table>
+          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : state.eaApplied ? '다음 거래를 기다리고 있어요.' : 'EA 적용 후 거래가 시작돼요.' }}</td></tr></tbody></table>
         </div>
         <div class="last-trade">{{ lastTradeText }}</div>
       </div>
@@ -57,13 +54,13 @@
 </template>
 
 <script>
-import { advanceSimulation, createSimulation, floatingProfit, normalizeLot, DEFAULT_LOT, CANDLE_MINUTES, TICK_INTERVAL_MS } from '../lib/eaSimulation.mjs'
+import { advanceSimulation, createSimulation, applyEa, floatingProfit, normalizeLot, DEFAULT_LOT, CANDLE_MINUTES, TICK_INTERVAL_MS } from '../lib/eaSimulation.mjs'
 
 export default {
   name: 'EaSimulator',
   emits: ['exit'],
   data() {
-    return { state: createSimulation(), running: true, lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200 }
+    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200 }
   },
   computed: {
     plotWidth() { return Math.max(80, this.chartWidth - 48) },
@@ -98,6 +95,7 @@ export default {
     },
     openProfit() { return floatingProfit(this.state) },
     lastTradeText() {
+      if (!this.state.eaApplied) return 'EA 적용 전 · 차트만 실행 중입니다.'
       const last = this.state.trades[0]
       return last ? `최근 청산 · ${last.side} ${last.lot.toFixed(2)} · ${last.reason} ${this.signed(last.profit)}` : '가상 EA가 매수·매도 포지션을 자동으로 실행합니다.'
     }
@@ -112,9 +110,8 @@ export default {
     window.addEventListener('resize', this.fitChartHeight)
     this.$nextTick(this.fitChartHeight)
     this.tickTimer = window.setInterval(() => {
-      if (this.running && !document.hidden) {
+      if (!document.hidden) {
         advanceSimulation(this.state, this.lot)
-        if (this.state.bankrupt) this.running = false
       }
     }, TICK_INTERVAL_MS)
   },
@@ -135,7 +132,8 @@ export default {
       this.chartHeight = Math.max(100, Math.min(440, Math.floor(available - fixedHeight - 4)))
     },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
-    reset() { this.state = createSimulation(); this.running = true },
+    applyEa() { this.applyLot(); applyEa(this.state) },
+    reset() { this.state = createSimulation() },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
     money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
     signed(value) { return `${value >= 0 ? '+' : '−'}$${this.money(Math.abs(value))}` },
@@ -160,16 +158,16 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .demo-badge { margin-left: auto; color: #abbed0; font-size: 10px; }
 .toolbar { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid #34383d; background: #202226; flex-wrap: wrap; }
 .toolbar button { border: 1px solid #525b64; border-radius: 2px; padding: 4px 8px; background: #262a30; color: #ccd3dc; font-size: 11px; }
-.toolbar .active { border-color: #47705e; background: #21392e; color: #a8edbf; }
 .toolbar button:hover { filter: brightness(1.2); }
-.toolbar button:disabled { opacity: 0.5; cursor: default; }
 .status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #70ed98; flex: 0 0 auto; }
-.ea-toggle:not(.active) .status-dot, .status-dot.paused { background: #d3a74e; }
+.status-dot.inactive { background: #7a8592; }
 .reset-btn { margin-left: auto; }
-.chart-heading { display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: wrap; }
+.chart-heading { min-height: 38px; box-sizing: border-box; align-items: center; display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: wrap; }
 .chart-heading strong { color: #e1e9f2; font-size: 11px; }
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
 .ea-name { color: #9caebd; }
+.apply-ea-btn { border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
+.apply-ea-btn:hover { background: #ffdf46; border-color: #ffdf46; }
 .quote-strip { display: flex; gap: 2px; align-items: stretch; padding: 4px 10px 0; }
 .quote { display: flex; flex-direction: column; min-width: 0; width: 96px; padding: 4px 7px; border: 1px solid #9e535b; background: linear-gradient(#78363e, #3b1b22); font-family: Consolas, monospace; }
 .quote span { font-size: 9px; color: #bacde9; }
@@ -187,8 +185,8 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .candle { stroke: #62ff2b; stroke-width: 1; }
 .order-lines line { stroke-dasharray: 4 4; stroke-width: 0.8; }
 .order-lines text { font-size: 9px; }
-.pause-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #0005; pointer-events: none; }
-.pause-overlay span { background: #18222ee6; padding: 9px 15px; border: 1px solid #506173; color: #e9edf3; font-size: 13px; }
+.end-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #0005; pointer-events: none; }
+.end-overlay span { background: #18222ee6; padding: 9px 15px; border: 1px solid #506173; color: #e9edf3; font-size: 13px; }
 .ea-status { display: flex; align-items: center; min-height: 28px; padding: 6px 10px; box-sizing: border-box; background: #101a16; border-top: 1px solid #273d30; font-size: 10px; color: #a8c5b1; line-height: 1.5; }
 .account-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 9px 10px; background: #1c2025; }
 .account-stats > div { min-width: 0; }

@@ -61,14 +61,22 @@ export function createSimulation(random = Math.random) {
     candles.push({ id: i, open, close: price, high, low })
   }
   return {
-    price, candles, market, tick: 0, nextCandle: 48, firstEntryTick: entryDelay(random),
+    price, candles, market, tick: 0, nextCandle: 48, firstEntryTick: null, eaApplied: false,
     balance: INITIAL_BALANCE, equity: INITIAL_BALANCE, peakEquity: INITIAL_BALANCE, maxDrawdown: 0,
     position: null, trades: [], tradeCount: 0, entryCount: 0, winCount: 0, lossCount: 0, cooldown: 0,
-    status: 'EA 준비 중 · 진입 대기', bankrupt: false
+    status: 'EA 미적용 · 차트만 실행 중', bankrupt: false
   }
 }
 
-// Four active ticks form one virtual M5 candle. Paused/hidden tabs do not advance.
+// Activation is one-way for this session; only a fresh simulation removes the EA.
+export function applyEa(state, random = Math.random) {
+  if (state.eaApplied || state.bankrupt) return state
+  state.eaApplied = true
+  state.firstEntryTick = state.tick + entryDelay(random)
+  state.status = 'EA 적용 완료 · 진입 대기'
+  return state
+}
+// Four active ticks form one virtual M5 candle. Hidden tabs do not advance.
 export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random) {
   if (state.bankrupt) return state
   state.tick += 1
@@ -83,6 +91,8 @@ export function advanceSimulation(state, lot = DEFAULT_LOT, random = Math.random
     candle.high = Math.max(candle.high, state.price)
     candle.low = Math.min(candle.low, state.price)
   }
+
+  if (!state.eaApplied) return state
 
   let pnl = floatingProfit(state)
   state.equity = round(state.balance + pnl)
