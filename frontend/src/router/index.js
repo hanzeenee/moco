@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../components/HomeView.vue'
 import LectureView from '../components/LectureView.vue'
 import EventView from '../components/EventView.vue'
@@ -27,8 +27,25 @@ const routes = [
   },
 ]
 
+// Preserve existing shared hash links while switching to clean history URLs.
+if (window.location.pathname === '/' && window.location.hash.startsWith('#/')) {
+  try {
+    const legacyUrl = new URL(window.location.hash.slice(1), window.location.origin)
+    if (legacyUrl.origin === window.location.origin) {
+      if (!legacyUrl.search) legacyUrl.search = window.location.search
+      window.history.replaceState(
+        window.history.state,
+        '',
+        legacyUrl.pathname + legacyUrl.search + legacyUrl.hash
+      )
+    }
+  } catch {
+    // Leave malformed legacy links for the router to handle normally.
+  }
+}
+
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
 })
 

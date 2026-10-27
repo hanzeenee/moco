@@ -125,3 +125,9 @@ For PostgreSQL, install and configure a supported Django PostgreSQL driver on EC
 - Set HTTPS origins in `DJANGO_CSRF_TRUSTED_ORIGINS`.
 - Enable secure cookies and HSTS only after HTTPS is working.
 - Remove local private keys and backup folders from Git tracking before pushing.
+
+## Browser URLs
+
+Vue Router uses HTML5 history mode. Home is `/`; existing pages use `/lecture`, `/event`, and `/classroom` without a `#` fragment. Django's frontend fallback serves the SPA for direct visits and refreshes, while `/api/`, `/admin/`, `/static/`, and `/media/` keep their own handling. Nginx forwards frontend requests to Django.
+
+Existing links such as `/#/` and `/#/lecture` are upgraded to the corresponding history URL in the browser. Root query parameters are kept when the legacy route has no query of its own. Ordinary page anchors are left intact.

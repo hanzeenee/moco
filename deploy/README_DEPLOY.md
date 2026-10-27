@@ -190,7 +190,7 @@ ls -al /home/ec2-user/moco/backend/static/frontend/
 
 Browser checklist:
 
-- main page
+- main page uses `/` without `/#/`; old hash links are upgraded in the browser
 - refresh
 - login
 - signup
@@ -200,7 +200,7 @@ Browser checklist:
 - CSS
 - JavaScript
 - images
-- Vue hash routing
+- Vue history routing: direct entry and refresh on `/lecture`, `/event`, and `/classroom`
 - CSRF
 - static file 404s
 - HTTP 500s
