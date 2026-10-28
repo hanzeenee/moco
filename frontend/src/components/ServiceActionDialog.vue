@@ -10,17 +10,16 @@
         </div>
       </v-card-text>
       <v-card-actions class="service-dialog-actions">
-        <v-spacer />
-        <v-btn variant="text" @click="close">닫기</v-btn>
-        <v-btn v-if="modelValue === 'free'" variant="text" @click="$emit('update:modelValue', 'infinox')">가입 안내 보기</v-btn>
         <v-btn v-if="modelValue === 'free'" class="service-dialog-primary" :href="contactUrl" target="_blank" rel="noopener noreferrer" @click="close">카카오톡으로 문의하기</v-btn>
+        <v-btn v-if="modelValue === 'free'" variant="text" @click="$emit('update:modelValue', 'infinox')">가입 안내 보기</v-btn>
+        <v-btn variant="text" @click="close">닫기</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script>
-import { VDialog, VCard, VCardTitle, VCardText, VCardActions, VSpacer, VBtn } from 'vuetify/components'
+import { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn } from 'vuetify/components'
 import { businessContacts, serviceUrl } from '../data/serviceLinks'
 
 const notices = {
@@ -48,13 +47,13 @@ const notices = {
 
 export default {
   name: 'ServiceActionDialog',
-  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VSpacer, VBtn },
+  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn },
   props: { modelValue: { type: String, default: '' } },
   emits: ['update:modelValue'],
   computed: {
     content() { return notices[this.modelValue] || { title: '', paragraphs: [] } },
     contacts() { return businessContacts },
-    contactUrl() { return serviceUrl('development') },
+    contactUrl() { return serviceUrl('freeInquiry') },
   },
   methods: { close() { this.$emit('update:modelValue', '') } },
 }
@@ -65,7 +64,8 @@ export default {
 .service-dialog-title { color: #fff; font-size: 21px; white-space: normal; padding: 18px 18px 8px; }
 .service-dialog-text { color: #bdc1c8; font-size: 15px; line-height: 1.9; padding: 12px 18px !important; word-break: keep-all; overflow-wrap: anywhere; }
 .service-dialog-text p + p { margin-top: 12px; }
-.service-dialog-actions { flex-wrap: wrap; gap: 4px; padding: 10px; }
+.service-dialog-actions { justify-content: flex-end; flex-wrap: wrap; gap: 4px; padding: 10px; }
+.service-dialog-actions > .v-btn { margin-inline-start: 0 !important; }
 .service-dialog-primary { background: #ffd000; color: #000 !important; }
 .business-contacts { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .contact-link { display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px; gap: 12px; align-items: center; padding: 14px; border: 1px solid #383838; border-radius: 7px; color: #d4d8df; text-decoration: none; }

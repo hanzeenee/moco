@@ -1,5 +1,6 @@
 export const serviceLinks = {
   development: 'https://open.kakao.com/o/sIPFiqUi',
+  freeInquiry: 'https://open.kakao.com/o/gjSdoqUi',
   reviews: 'https://kmong.com/gig/607495',
   infinox: '',
 }

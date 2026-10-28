@@ -6,7 +6,7 @@
       class="service-feature"
       @click="activate(services[0])"
     >
-      <span class="feature-top"><span class="mdi mdi-code-braces" aria-hidden="true"></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></span>
+      <span class="feature-top"><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></span>
       <h2>개발 의뢰</h2>
       <p>매매 아이디어를 구체적인 프로그램으로</p>
       <span class="feature-action">카카오톡으로 상담하기 <span class="mdi mdi-arrow-right" aria-hidden="true"></span></span>
@@ -64,7 +64,7 @@ export default {
 <style scoped>
 .service-menu { width: 100%; max-width: 500px; min-width: 0; text-align: left; color: #fff; }
 .service-feature { display: flex; flex-direction: column; align-items: stretch; width: 100%; padding: 24px; border: 1px solid #b6981d; border-radius: 10px; background: #0b0b0b; color: #fff; font: inherit; text-align: left; text-decoration: none; cursor: pointer; transition: background .16s, border-color .16s; }
-.feature-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #d7b82f; font-size: 21px; }
+.feature-top { display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: #d7b82f; font-size: 21px; }
 .feature-top > :last-child { font-size: 19px; }
 .service-feature h2 { margin: 14px 0 7px; font-size: clamp(23px, 2vw, 28px); font-weight: 700; line-height: 1.4; }
 .service-feature p { margin: 0; color: #a9adb3; font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
