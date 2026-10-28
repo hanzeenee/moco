@@ -137,3 +137,7 @@ Existing links such as `/#/` and `/#/lecture` are upgraded to the corresponding 
 Visitor membership UI and APIs are removed. The accounts.0005_purge_legacy_members migration deletes non-staff, non-superuser accounts, retired profile records/table, non-administrator sessions, and membership-specific permissions/content types and log entries. All staff or superuser accounts, their data, and valid administrator sessions are preserved. Django admin authentication remains available at /admin/.
 
 Back up the database before this irreversible data migration. Keep the accounts migration history installed for consistent upgrades; no runtime membership model or API remains.
+
+## Home Service Menu
+
+The right-hand home panel uses the list layout: a featured development inquiry card, followed by reviews, free utilities, INFINOX guidance, and business proposals. Confirmed external destinations are centralized in frontend/src/data/serviceLinks.js. Development/reviews open KakaoTalk/Kmong in a new tab; free utilities, INFINOX, and business proposals open accessible dialogs. The INFINOX signup URL is pending and no referral URL is guessed. Free utility access is arranged through KakaoTalk verification and group invitation, without restoring site membership. Business contacts are email and Telegram. On narrow screens the service menu stacks below the existing introduction/EA simulator.

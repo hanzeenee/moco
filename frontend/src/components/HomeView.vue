@@ -20,16 +20,17 @@
       </div>
     </div>
 
-    <div class="main-panel main-panel-right" aria-hidden="true"></div>
+    <div class="main-panel main-panel-right"><ServiceMenu /></div>
   </div>
 </template>
 
 <script>
 import EaSimulator from './EaSimulator.vue'
+import ServiceMenu from './ServiceMenu.vue'
 
 export default {
   name: 'HomeView',
-  components: { EaSimulator },
+  components: { EaSimulator, ServiceMenu },
   data() { return { gameOpen: false } }
 }
 </script>
@@ -136,6 +137,13 @@ export default {
 .game-start-btn:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 4px;
+}
+
+@media (max-width: 800px) {
+  .main-area { grid-template-columns: minmax(0, 1fr); }
+  .main-panel-left { border-right: 0; border-bottom: 1px solid #333333; }
+  .main-panel-left:not(.game-open) { min-height: 460px; }
+  .main-panel-right { padding: 36px 24px 48px; }
 }
 
 @media (max-width: 600px) {
