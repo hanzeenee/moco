@@ -3,15 +3,18 @@
     <div class="main-panel main-panel-left" :class="{ 'game-open': gameOpen }">
       <EaSimulator v-if="gameOpen" @exit="gameOpen = false" />
       <div v-else class="main-content">
-        <p class="intro-eyebrow">MOCONIX | MT5 · TradingView 맞춤 개발</p>
+        <div class="intro-brand">
+          <span class="intro-mark" aria-hidden="true"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span>
+          <p class="intro-eyebrow"><strong>MOCONIX</strong> | MT5 · TradingView 맞춤 개발</p>
+        </div>
 
         <h1 class="intro-title">
-          <span>원하는 매매 전략과 기능을 그대로 구현하는,</span>
-          <span>MT5 EA·인디케이터 및 TradingView 지표 개발 서비스</span>
+          <span class="intro-lead">원하는 매매 전략과 기능을 그대로 구현하는,</span>
+          <span class="intro-main"><span class="intro-highlight">MT5 EA·인디케이터</span> 및 TradingView 지표 개발 서비스</span>
         </h1>
 
         <p class="intro-services">신규 개발 · 기존 프로그램 수정 및 개선</p>
-        <button class="game-start-btn" type="button" @click="gameOpen = true">EA 체험하기</button>
+        <button class="game-start-btn" type="button" @click="gameOpen = true"><span>EA 체험하기</span><span class="game-start-arrow" aria-hidden="true">→</span></button>
       </div>
     </div>
 
@@ -59,70 +62,33 @@ export default {
 
 .main-content {
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
   text-align: left;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-.intro-eyebrow {
-  margin: 0;
-  color: #c7c7c7;
-  font-size: clamp(12px, 1.1vw, 14px);
-  font-weight: 600;
-  line-height: 1.6;
-  letter-spacing: 0.04em;
-}
+.intro-brand { display: flex; align-items: center; gap: 14px; max-width: 100%; margin-bottom: 28px; }
+.intro-mark { position: relative; display: block; width: 38px; height: 20px; overflow: hidden; flex: 0 0 auto; }
+.intro-mark img { position: absolute; width: 228%; max-width: none; height: auto; left: -64%; top: 50%; transform: translateY(-50%); }
+.intro-eyebrow { margin: 0; color: #959ca8; font-size: 12px; font-weight: 500; line-height: 1.7; letter-spacing: .015em; }
+.intro-eyebrow strong { color: #e3e5ea; font-weight: 700; letter-spacing: .06em; }
 
-.intro-title {
-  margin: 0;
-  color: #ffffff;
-  font-size: clamp(20px, 2.1vw, 32px);
-  font-weight: 700;
-  line-height: 1.35;
-}
+.intro-title { margin: 0; color: #f5f6f8; font-size: clamp(26px, 2.5vw, 38px); font-weight: 700; line-height: 1.4; letter-spacing: -.035em; }
+.intro-title > span { display: block; text-wrap: balance; }
+.intro-lead { color: #b5bbc5; font-size: clamp(16px, 1.5vw, 20px); font-weight: 500; line-height: 1.75; letter-spacing: -.02em; }
+.intro-main { margin-top: 12px; }
+.intro-highlight { color: #ffd000; }
+.intro-services { margin: 24px 0 0; color: #959ca8; font-size: 14px; line-height: 1.8; letter-spacing: -.01em; }
 
-.intro-title > span {
-  display: block;
-  text-wrap: balance;
-}
-
-.intro-services {
-  margin: 0;
-  color: #a6a6a6;
-  font-size: clamp(12px, 1.1vw, 14px);
-  line-height: 1.6;
-}
-
-.game-start-btn {
-  max-width: 100%;
-  padding: 12px 24px;
-  border: 1px solid #ffd000;
-  background: #ffd000;
-  color: #000000;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.5;
-  white-space: normal;
-  word-break: keep-all;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.game-start-btn:hover {
-  border-color: #ffdf46;
-  background: #ffdf46;
-}
-
-.game-start-btn:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 4px;
-}
-
+.game-start-btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 30px; max-width: 100%; min-height: 52px; margin-top: 28px; padding: 12px 20px; border: 1px solid #ffd000; border-radius: 10px; background: #ffd000; color: #111; font: inherit; font-size: 15px; font-weight: 700; line-height: 1.5; text-align: left; white-space: normal; word-break: keep-all; cursor: pointer; transition: background .16s, border-color .16s, transform .16s; }
+.game-start-arrow { font-size: 22px; font-weight: 400; line-height: 1; }
+.game-start-btn:hover { border-color: #ffdf46; background: #ffdf46; transform: translateY(-1px); }
+.game-start-btn:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .game-start-btn { transition: none; } .game-start-btn:hover { transform: none; } }
 @media (max-width: 800px) {
   .main-area { grid-template-columns: minmax(0, 1fr); }
   .main-panel-left { border-right: 0; border-bottom: 1px solid #333333; }
@@ -137,11 +103,13 @@ export default {
     padding: 24px 12px;
   }
 
-  .main-content {
-    gap: 16px;
-  }
+  .main-panel-left:not(.game-open) { padding: 36px 24px; }
+  .intro-brand { gap: 12px; margin-bottom: 22px; }
+  .intro-mark { width: 32px; height: 18px; }
+  .intro-eyebrow { font-size: 11px; }
+  .intro-services { margin-top: 20px; font-size: 13px; }
   .game-start-btn {
-    padding: 10px 12px;
+    padding: 12px 18px;
     font-size: 14px;
   }
 }
