@@ -9,7 +9,7 @@
         class="service-row"
         @click="activate(item)"
       >
-        <img v-if="item.logo" class="service-logo" :src="item.logo" alt="" aria-hidden="true" />
+        <span v-if="item.logo" class="service-logo-frame" aria-hidden="true"><img class="service-logo" :class="{ 'service-logo--mt5': item.key === 'free' }" :src="item.logo" alt="" /></span>
         <span v-else class="service-symbol mdi" :class="item.icon" aria-hidden="true"></span>
         <span class="service-copy"><span class="service-title">{{ item.title }}</span><span class="service-description">{{ item.description }}</span></span>
         <span class="service-arrow mdi" :class="item.external ? 'mdi-arrow-top-right' : 'mdi-arrow-right'" aria-hidden="true"></span>
@@ -59,7 +59,9 @@ export default {
 .service-menu { width: 100%; max-width: 500px; min-width: 0; text-align: left; color: #fff; }
 .service-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 10px; }
 .service-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 20px; align-items: center; gap: 17px; width: 100%; min-height: 80px; padding: 14px 20px; border: 1px solid #303030; border-radius: 10px; background: #0b0b0b; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
+.service-logo-frame { display: grid; place-items: center; width: 22px; height: 22px; overflow: hidden; border-radius: 3px; }
 .service-logo { display: block; width: 22px; height: 22px; object-fit: contain; border-radius: 3px; }
+.service-logo--mt5 { transform: scale(1.7); }
 .service-symbol { color: #969ba3; font-size: 22px; }
 .service-copy { display: flex; flex-direction: column; min-width: 0; gap: 5px; word-break: keep-all; overflow-wrap: anywhere; }
 .service-title { font-size: 17px; font-weight: 600; line-height: 1.5; }
