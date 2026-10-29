@@ -14,7 +14,7 @@
         </h1>
 
         <p class="intro-services">신규 개발 · 기존 프로그램 수정 및 개선</p>
-        <button class="game-start-btn" type="button" aria-label="EA 체험하기" @click="gameOpen = true"><img class="game-start-art" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /></button>
+        <button class="game-start-btn" type="button" aria-label="EA 체험하기" @click="gameOpen = true"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /><img class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /></button>
       </div>
     </div>
 
@@ -50,6 +50,10 @@ export default {
 .game-start-btn { position: relative; display: block; width: 240px; max-width: 100%; aspect-ratio: 15 / 4; margin-top: 30px; padding: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; transform-origin: center; transition: transform .2s ease; }
 /* Keep the supplied lettering and artwork unchanged; frame the original glow margins. */
 .game-start-art { position: absolute; display: block; top: -25%; left: -4.166667%; width: 111.666667%; max-width: none; height: auto; pointer-events: none; transition: filter .2s ease; }
+/* The unchanged 268x88 image supplies both layers. Separate its center from the rim. */
+.game-start-frame { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='268' height='88' viewBox='0 0 268 88'%3E%3Cdefs%3E%3Cfilter id='soft'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3C/filter%3E%3Cmask id='rim'%3E%3Crect width='268' height='88' fill='white'/%3E%3Crect x='51' y='23' width='183' height='48' rx='3' fill='black' filter='url(%23soft)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='268' height='88' fill='white' mask='url(%23rim)'/%3E%3C/svg%3E"); mask-size: 100% 100%; }
+/* Crop source x54..228/y26..68, then move the lettering + pointer together 12.5px left. */
+.game-start-content { clip-path: inset(29.545455% 14.925373% 22.727273% 20.149254%); transform: translateX(-4.664179%); mix-blend-mode: screen; mask-image: linear-gradient(to right, transparent 20.149254%, #000 21.268657%, #000 83.955224%, transparent 85.074627%), linear-gradient(to bottom, transparent 29.545455%, #000 32.954545%, #000 73.863636%, transparent 77.272727%); mask-composite: intersect; }
 @media (hover: hover) {
   .game-start-btn:hover { transform: scale(1.045); }
   .game-start-btn:hover .game-start-art { filter: brightness(1.25); }
