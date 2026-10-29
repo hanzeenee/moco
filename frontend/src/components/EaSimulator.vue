@@ -115,6 +115,7 @@ export default {
     })
     this.resizeObserver.observe(this.$refs.chart)
     this.resizeObserver.observe(this.$refs.simulator)
+    this.resizeObserver.observe(this.$refs.simulator.parentElement)
     window.addEventListener('resize', this.fitChartHeight)
     this.$nextTick(this.fitChartHeight)
     this.tickTimer = window.setInterval(() => {
@@ -136,7 +137,12 @@ export default {
       const panel = simulator.parentElement
       const padding = window.getComputedStyle(panel)
       const fixedHeight = simulator.getBoundingClientRect().height - chart.getBoundingClientRect().height
-      const available = window.innerHeight - panel.getBoundingClientRect().top - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom)
+      const panelBounds = panel.getBoundingClientRect()
+      // Desktop occupies the existing left grid cell without moving the service list.
+      const availableHeight = window.getComputedStyle(simulator).position === 'absolute'
+        ? panelBounds.height
+        : window.innerHeight - panelBounds.top
+      const available = availableHeight - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom)
       this.chartHeight = Math.max(100, Math.min(440, Math.floor(available - fixedHeight - 4)))
     },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },

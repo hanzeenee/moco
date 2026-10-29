@@ -1,5 +1,5 @@
 <template>
-  <div class="main-area" :class="{ 'experience-open': gameOpen }">
+  <div class="main-area">
     <div class="main-panel main-panel-left" :class="{ 'game-open': gameOpen }">
       <EaSimulator v-if="gameOpen" @exit="gameOpen = false" />
       <div v-else class="main-content">
@@ -58,8 +58,9 @@ export default {
 .game-start-btn:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
 .game-start-btn:focus-visible .game-start-art { filter: brightness(1.25); }
 @media (min-width: 981px) {
-  .main-area.experience-open { align-items: start; padding-top: 20px; padding-bottom: 0; }
-  .experience-open .main-panel-left { padding-bottom: 16px; }
+  /* Keep the grid anchored by the service list while only the left content changes. */
+  .main-panel-left.game-open { position: relative; align-self: stretch; }
+  .main-panel-left.game-open > :deep(.simulator) { position: absolute; top: 0; left: 0; }
 }
 @media (max-width: 980px) {
   .main-area { grid-template-columns: minmax(0, 1fr); gap: 40px; max-width: 720px; padding-top: 32px; padding-bottom: 48px; }
