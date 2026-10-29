@@ -70,8 +70,8 @@ export default {
 .service-feature p { margin: 0; color: #a9adb3; font-size: 14px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
 .feature-action { display: flex; align-items: center; gap: 12px; margin-top: 22px; color: #a9adb3; font-size: 14px; line-height: 1.6; }
 .feature-action .mdi { font-size: 19px; }
-.service-list { margin-top: 16px; }
-.service-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 20px; align-items: center; gap: 17px; width: 100%; min-height: 85px; padding: 18px 4px; border: 0; border-bottom: 1px solid #303030; background: transparent; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
+.service-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.service-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 20px; align-items: center; gap: 17px; width: 100%; min-height: 80px; padding: 14px 20px; border: 1px solid #303030; border-radius: 10px; background: #0b0b0b; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
 .service-symbol { color: #969ba3; font-size: 22px; }
 .service-copy { display: flex; flex-direction: column; min-width: 0; gap: 5px; word-break: keep-all; overflow-wrap: anywhere; }
 .service-title { font-size: 17px; font-weight: 600; line-height: 1.5; }
@@ -80,7 +80,7 @@ export default {
 @media (hover: hover) {
   .service-feature:hover { border-color: #ffd000; background: #13120c; }
   .service-feature:hover h2, .service-feature:hover .feature-top, .service-feature:hover .feature-action { color: #ffd000; }
-  .service-row:hover { border-bottom-color: #ffd000; background: #0b0b0b; }
+  .service-row:hover { border-color: #ffd000; background: #13120c; }
   .service-row:hover .service-title, .service-row:hover .service-arrow, .service-row:hover .service-symbol { color: #ffd000; }
 }
 .service-row:focus-visible, .service-feature:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
