@@ -55,25 +55,28 @@ export default {
 </script>
 
 <style scoped>
-.service-menu { width: 100%; max-width: 500px; min-width: 0; text-align: left; color: #fff; }
-.service-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 10px; }
-.service-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 20px; align-items: center; gap: 17px; width: 100%; min-height: 80px; padding: 14px 20px; border: 1px solid #303030; border-radius: 10px; background: #0b0b0b; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
-.service-logo-frame { display: grid; place-items: center; width: 22px; height: 22px; overflow: hidden; border-radius: 3px; }
-.service-logo { display: block; width: 22px; height: 22px; object-fit: contain; border-radius: 3px; }
+.service-menu { --service-icon-size: 28px; width: 100%; max-width: 560px; min-width: 0; text-align: left; color: #fff; }
+.service-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 12px; }
+.service-row { display: grid; grid-template-columns: var(--service-icon-size) minmax(0, 1fr) 24px; align-items: center; gap: 20px; width: 100%; min-height: 100px; padding: 18px 24px; border: 1px solid #303030; border-radius: 12px; background: #0b0b0b; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
+.service-logo-frame { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); overflow: hidden; border-radius: 3px; }
+.service-logo { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 3px; }
 .service-logo--mt5 { transform: scale(1.7); }
-.service-symbol { color: #969ba3; font-size: 22px; }
-.service-copy { display: flex; flex-direction: column; min-width: 0; gap: 5px; word-break: keep-all; overflow-wrap: anywhere; }
-.service-title { font-size: 17px; font-weight: 600; line-height: 1.5; }
-.service-description { color: #969ba3; font-size: 13px; line-height: 1.6; }
-.service-arrow { justify-self: end; color: #969ba3; font-size: 18px; }
+.service-symbol { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); color: #969ba3; font-size: var(--service-icon-size); line-height: 1; }
+.service-copy { display: flex; flex-direction: column; min-width: 0; gap: 6px; word-break: keep-all; overflow-wrap: anywhere; }
+.service-title { font-size: 20px; font-weight: 600; line-height: 1.5; }
+.service-description { color: #969ba3; font-size: 15px; line-height: 1.6; }
+.service-arrow { justify-self: end; color: #969ba3; font-size: 22px; }
 @media (hover: hover) {
   .service-row:hover { border-color: #ffd000; background: #13120c; }
   .service-row:hover .service-title, .service-row:hover .service-arrow, .service-row:hover .service-symbol { color: #ffd000; }
 }
 .service-row:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
 @media (max-width: 600px) {
-  .service-row { gap: 14px; min-height: 82px; }
-  .service-title { font-size: 16px; }
+  .service-menu { --service-icon-size: 26px; }
+  .service-row { gap: 16px; min-height: 94px; padding: 16px 20px; }
+  .service-description { font-size: 14px; }
+  .service-arrow { font-size: 20px; }
+  .service-title { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .service-row { transition: none; } }
 </style>
