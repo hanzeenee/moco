@@ -1,6 +1,6 @@
 # NEXON Lv.1 Gothic
 
-The EA experience button uses the unmodified Bold face from the official low-size edition of NEXON Lv.1 Gothic. Other site text keeps its existing font.
+The unmodified Bold face from the official low-size edition of NEXON Lv.1 Gothic is retained here. The current EA button displays the owner-supplied artwork to preserve its exact lettering; this font is no longer loaded by that button. Other site text keeps its existing font.
 
 Official source: https://brand.nexon.com/ko/ci-brand-guidelines/typeface#section-lv1-gothic
 Archive: https://brand.nexon.com/resources/NEXON_Lv1_Gothic.zip

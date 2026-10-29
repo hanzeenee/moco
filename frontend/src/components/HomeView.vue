@@ -14,7 +14,7 @@
         </h1>
 
         <p class="intro-services">신규 개발 · 기존 프로그램 수정 및 개선</p>
-        <button class="game-start-btn" type="button" @click="gameOpen = true"><span>EA 체험하기</span><span class="game-start-icon mdi mdi-cursor-default-click-outline" aria-hidden="true"></span></button>
+        <button class="game-start-btn" type="button" aria-label="EA 체험하기" @click="gameOpen = true"><img class="game-start-art" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /></button>
       </div>
     </div>
 
@@ -34,7 +34,6 @@ export default {
 </script>
 
 <style scoped>
-@font-face { font-family: 'Moconix Nexon Lv1'; src: url('../assets/fonts/NEXONLv1GothicLowBold.otf') format('opentype'); font-style: normal; font-weight: 700; font-display: swap; }
 .main-area { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--page-gap); width: 100%; max-width: var(--page-width); min-width: 0; margin: 0 auto; padding: clamp(24px, 4vh, 44px) var(--page-gutter) clamp(32px, 5vh, 56px); box-sizing: border-box; background: #000; }
 .main-panel { display: flex; justify-content: center; align-items: center; min-width: 0; }
 .main-content { display: flex; flex-direction: column; align-items: flex-start; width: 100%; max-width: var(--content-width); text-align: left; word-break: keep-all; overflow-wrap: anywhere; }
@@ -48,13 +47,16 @@ export default {
 .intro-lead { color: #b5bbc5; font-size: clamp(16px, 1.45vw, 20px); font-weight: 500; line-height: 1.75; letter-spacing: -.02em; }
 .intro-main { margin-top: 14px; }
 .intro-services { margin: 26px 0 0; color: #959ca8; font-size: 14px; line-height: 1.8; letter-spacing: -.01em; }
-.game-start-btn { display: inline-flex; align-items: center; justify-content: center; gap: 18px; width: 240px; max-width: 100%; min-height: 60px; margin-top: 30px; padding: 12px 24px; border: 2px solid #ffe433; border-radius: 999px; background: #050500; color: #ffe433; box-shadow: 0 0 7px #ffdf0059, 0 0 18px #ffd00026, inset 0 0 10px #ffd0001f; font-family: 'Moconix Nexon Lv1', Arial, 'Malgun Gothic', sans-serif; font-size: 20px; font-weight: 700; line-height: 1.5; text-align: center; white-space: normal; word-break: keep-all; cursor: pointer; transform-origin: center; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, color .2s ease; }
-.game-start-icon { display: grid; place-items: center; flex: 0 0 30px; font-size: 30px; line-height: 1; font-weight: 400; }
+.game-start-btn { position: relative; display: block; width: 240px; max-width: 100%; aspect-ratio: 15 / 4; margin-top: 30px; padding: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; transform-origin: center; transition: transform .2s ease; }
+/* Keep the supplied lettering and artwork unchanged; frame the original glow margins. */
+.game-start-art { position: absolute; display: block; top: -25%; left: -4.166667%; width: 111.666667%; max-width: none; height: auto; pointer-events: none; transition: filter .2s ease; }
 @media (hover: hover) {
-  .game-start-btn:hover { transform: scale(1.045); border-color: #fff078; color: #fff078; box-shadow: 0 0 12px #ffe43399, 0 0 30px #ffd00059, inset 0 0 14px #ffd00026; }
+  .game-start-btn:hover { transform: scale(1.045); }
+  .game-start-btn:hover .game-start-art { filter: brightness(1.25); }
 }
 .game-start-btn:active { transform: scale(.985); }
-.game-start-btn:focus-visible { outline: 2px solid #fff; outline-offset: 6px; box-shadow: 0 0 12px #ffe43399, 0 0 30px #ffd00059, inset 0 0 14px #ffd00026; }
+.game-start-btn:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
+.game-start-btn:focus-visible .game-start-art { filter: brightness(1.25); }
 @media (min-width: 981px) {
   .main-area.experience-open { align-items: start; padding-top: 20px; padding-bottom: 0; }
   .experience-open .main-panel-left { padding-bottom: 16px; }
@@ -71,7 +73,7 @@ export default {
   .intro-eyebrow { font-size: 11px; }
   .intro-title { font-size: 27px; }
   .intro-services { margin-top: 22px; font-size: 13px; }
-  .game-start-btn { width: 224px; margin-top: 26px; padding: 11px 20px; font-size: 18px; min-height: 56px; }
+  .game-start-btn { width: 224px; margin-top: 26px; }
 }
-@media (prefers-reduced-motion: reduce) { .game-start-btn { transition: none; } .game-start-btn:hover, .game-start-btn:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .game-start-btn, .game-start-art { transition: none; } .game-start-btn:hover, .game-start-btn:active { transform: none; } }
 </style>
