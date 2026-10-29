@@ -3,19 +3,14 @@
     <div class="main-panel main-panel-left" :class="{ 'game-open': gameOpen }">
       <EaSimulator v-if="gameOpen" @exit="gameOpen = false" />
       <div v-else class="main-content">
-        <p class="intro-eyebrow">MT5 · TradingView 맞춤 개발</p>
+        <p class="intro-eyebrow">MOCONIX | MT5 · TradingView 맞춤 개발</p>
 
         <h1 class="intro-title">
-          <span>매매 아이디어를</span>
-          <span>실제로 동작하는 <span class="intro-accent">프로그램으로</span></span>
+          <span>원하는 매매 전략과 기능을 그대로 구현하는,</span>
+          <span>MT5 EA·인디케이터 및 TradingView 지표 개발 서비스</span>
         </h1>
 
-        <p class="intro-description">
-          <span>MT5 EA와 인디케이터, TradingView 지표까지</span>
-          <span>원하는 매매 조건과 표시 기능을 구체화해 구현합니다</span>
-        </p>
-
-        <p class="intro-services">기존 EA 수정 · 기능 추가</p>
+        <p class="intro-services">신규 개발 · 기존 프로그램 수정 및 개선</p>
         <button class="game-start-btn" type="button" @click="gameOpen = true">EA 체험하기</button>
       </div>
     </div>
@@ -64,12 +59,12 @@ export default {
 
 .main-content {
   width: 100%;
-  max-width: 600px;
+  max-width: 560px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
-  text-align: center;
+  text-align: left;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
@@ -86,25 +81,14 @@ export default {
 .intro-title {
   margin: 0;
   color: #ffffff;
-  font-size: clamp(20px, 3vw, 44px);
+  font-size: clamp(20px, 2.1vw, 32px);
   font-weight: 700;
   line-height: 1.35;
 }
 
-.intro-title > span,
-.intro-description > span {
+.intro-title > span {
   display: block;
-}
-
-.intro-accent {
-  color: #ffd000;
-}
-
-.intro-description {
-  margin: 0;
-  color: #b8bcc4;
-  font-size: clamp(13px, 1.25vw, 17px);
-  line-height: 1.8;
+  text-wrap: balance;
 }
 
 .intro-services {
