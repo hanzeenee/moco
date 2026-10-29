@@ -30,7 +30,7 @@ export default {
     return {
       notice: '',
       services: [
-        { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', external: true },
+        { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', icon: 'mdi-message-text-outline', external: true },
         { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', icon: 'mdi-check-decagram-outline', external: true },
         { key: 'free', title: '무료 유틸리티 지표', description: '가입 확인 고객 전용', icon: 'mdi-chart-line', external: false },
         { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 제공 조건 확인', icon: 'mdi-book-open-page-variant-outline', external: false },

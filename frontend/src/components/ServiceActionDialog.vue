@@ -5,7 +5,7 @@
       <v-card-text class="service-dialog-text">
         <p v-for="paragraph in content.paragraphs" :key="paragraph">{{ paragraph }}</p>
         <div v-if="modelValue === 'business'" class="business-contacts">
-          <a class="contact-link" :href="contacts.email"><span class="mdi mdi-email-outline" aria-hidden="true"></span><span><strong>이메일</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
+          <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>이메일</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
           <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-mark.svg" alt="" aria-hidden="true" /><span><strong>텔레그램</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
         </div>
       </v-card-text>
@@ -70,7 +70,7 @@ export default {
 .business-contacts { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .contact-link { display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px; gap: 12px; align-items: center; padding: 14px; border: 1px solid #383838; border-radius: 7px; color: #d4d8df; text-decoration: none; }
 .contact-link > span:nth-child(2) { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.telegram-icon { display: block; width: 20px; height: 20px; object-fit: contain; }
+.gmail-icon, .telegram-icon { display: block; width: 20px; height: 20px; object-fit: contain; }
 .contact-link strong { font-size: 13px; font-weight: 500; color: #a5a9b0; }
 .contact-link > span:nth-child(2) > span { color: #fff; overflow-wrap: anywhere; }
 .contact-link:hover { background: #1a1a1a; border-color: #b6981d; }
@@ -78,7 +78,7 @@ export default {
 @media (max-width: 480px) {
   .contact-link { grid-template-columns: 20px minmax(0, 1fr) 16px; gap: 8px; padding: 12px; }
   .contact-link > span:nth-child(2) { display: contents; }
-  .telegram-icon { display: block; width: 20px; height: 20px; object-fit: contain; }
+  .gmail-icon, .telegram-icon { display: block; width: 20px; height: 20px; object-fit: contain; }
 .contact-link strong { grid-column: 2; grid-row: 1; }
   .contact-link > span:nth-child(2) > span { grid-column: 1 / -1; grid-row: 2; font-size: 14px; }
   .contact-link > .mdi:last-child { grid-column: 3; grid-row: 1; }
