@@ -10,7 +10,7 @@
 
         <h1 class="intro-title">
           <span class="intro-lead">원하는 매매 전략과 기능을 그대로 구현하는,</span>
-          <span class="intro-main"><span class="intro-highlight">MT5 EA·인디케이터</span> 및 TradingView 지표 개발 서비스</span>
+          <span class="intro-main">MT5 EA·인디케이터 및 TradingView 지표 개발 서비스</span>
         </h1>
 
         <p class="intro-services">신규 개발 · 기존 프로그램 수정 및 개선</p>
@@ -46,7 +46,6 @@ export default {
 .intro-title > span { display: block; text-wrap: balance; }
 .intro-lead { color: #b5bbc5; font-size: clamp(16px, 1.45vw, 20px); font-weight: 500; line-height: 1.75; letter-spacing: -.02em; }
 .intro-main { margin-top: 14px; }
-.intro-highlight { color: #ffd000; }
 .intro-services { margin: 26px 0 0; color: #959ca8; font-size: 14px; line-height: 1.8; letter-spacing: -.01em; }
 .game-start-btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 32px; max-width: 100%; min-height: 54px; margin-top: 30px; padding: 13px 22px; border: 1px solid #ffd000; border-radius: 12px; background: #ffd000; color: #111; font: inherit; font-size: 15px; font-weight: 700; line-height: 1.5; text-align: left; white-space: normal; word-break: keep-all; cursor: pointer; transition: background .16s, border-color .16s, transform .16s; }
 .game-start-arrow { font-size: 22px; font-weight: 400; line-height: 1; }
