@@ -34,9 +34,9 @@ export default {
 </script>
 
 <style scoped>
-.main-area { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: clamp(36px, 5vw, 80px); width: 100%; max-width: var(--page-width); min-width: 0; margin: 0 auto; padding: clamp(24px, 4vh, 44px) var(--page-gutter) clamp(32px, 5vh, 56px); box-sizing: border-box; background: #000; }
+.main-area { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--page-gap); width: 100%; max-width: var(--page-width); min-width: 0; margin: 0 auto; padding: clamp(24px, 4vh, 44px) var(--page-gutter) clamp(32px, 5vh, 56px); box-sizing: border-box; background: #000; }
 .main-panel { display: flex; justify-content: center; align-items: center; min-width: 0; }
-.main-content { display: flex; flex-direction: column; align-items: flex-start; width: 100%; max-width: 560px; text-align: left; word-break: keep-all; overflow-wrap: anywhere; }
+.main-content { display: flex; flex-direction: column; align-items: flex-start; width: 100%; max-width: var(--content-width); text-align: left; word-break: keep-all; overflow-wrap: anywhere; }
 .intro-brand { display: flex; align-items: center; gap: 14px; max-width: 100%; margin-bottom: 30px; }
 .intro-mark { position: relative; display: block; width: 38px; height: 20px; overflow: hidden; flex: 0 0 auto; }
 .intro-mark img { position: absolute; width: 228%; max-width: none; height: auto; left: -64%; top: 50%; transform: translateY(-50%); }

@@ -55,7 +55,7 @@ export default {
 </script>
 
 <style scoped>
-.service-menu { --service-icon-size: 28px; width: 100%; max-width: 560px; min-width: 0; text-align: left; color: #fff; }
+.service-menu { --service-icon-size: 28px; width: 100%; max-width: var(--content-width); min-width: 0; text-align: left; color: #fff; }
 .service-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 12px; }
 .service-row { display: grid; grid-template-columns: var(--service-icon-size) minmax(0, 1fr) 32px; align-items: center; gap: 20px; width: 100%; min-height: 100px; padding: 19px 24px; border: 1px solid #292c31; border-radius: 16px; background: linear-gradient(125deg, #101113, #090a0b); color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .18s, border-color .18s; }
 .service-logo-frame { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); overflow: hidden; border-radius: 4px; }

@@ -31,7 +31,7 @@ export default {
 </script>
 
 <style>
-:root { --page-width: 1440px; --page-gutter: clamp(24px, 5vw, 80px); }
+:root { --page-width: 1440px; --page-gutter: clamp(24px, 5vw, 80px); --page-gap: clamp(36px, 5vw, 80px); --content-width: 560px; }
 
 html,
 body,
