@@ -26,6 +26,8 @@ import { serviceUrl } from '../data/serviceLinks'
 import kakaotalkLogo from '../assets/brand/kakaotalk-mark.png'
 import kmongLogo from '../assets/brand/kmong-mark.png'
 import infinoxLogo from '../assets/brand/infinox-mark.png'
+import utilityLogo from '../assets/brand/utility-indicator.png'
+import businessLogo from '../assets/brand/business-handshake.png'
 
 export default {
   name: 'ServiceMenu',
@@ -36,9 +38,9 @@ export default {
       services: [
         { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo, external: true },
         { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo, external: true },
-        { key: 'free', title: '무료 유틸리티 지표', description: '가입 확인 고객 전용', icon: 'mdi-chart-line', external: false },
+        { key: 'free', title: '무료 유틸리티 지표', description: '가입 확인 고객 전용', logo: utilityLogo, external: false },
         { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 제공 조건 확인', logo: infinoxLogo, external: false },
-        { key: 'business', title: '비즈니스 제안', description: '공동 개발 · 콘텐츠 협업 등', icon: 'mdi-handshake-outline', external: false },
+        { key: 'business', title: '비즈니스 제안', description: '공동 개발 · 콘텐츠 협업 등', logo: businessLogo, external: false },
       ],
     }
   },
