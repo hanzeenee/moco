@@ -31,6 +31,8 @@ export default {
 </script>
 
 <style>
+:root { --page-width: 1440px; --page-gutter: clamp(24px, 5vw, 80px); }
+
 html,
 body,
 #app {

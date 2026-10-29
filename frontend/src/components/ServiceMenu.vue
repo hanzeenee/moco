@@ -57,26 +57,27 @@ export default {
 <style scoped>
 .service-menu { --service-icon-size: 28px; width: 100%; max-width: 560px; min-width: 0; text-align: left; color: #fff; }
 .service-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 12px; }
-.service-row { display: grid; grid-template-columns: var(--service-icon-size) minmax(0, 1fr) 24px; align-items: center; gap: 20px; width: 100%; min-height: 100px; padding: 18px 24px; border: 1px solid #303030; border-radius: 12px; background: #0b0b0b; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
-.service-logo-frame { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); overflow: hidden; border-radius: 3px; }
-.service-logo { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 3px; }
+.service-row { display: grid; grid-template-columns: var(--service-icon-size) minmax(0, 1fr) 32px; align-items: center; gap: 20px; width: 100%; min-height: 100px; padding: 19px 24px; border: 1px solid #292c31; border-radius: 16px; background: linear-gradient(125deg, #101113, #090a0b); color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .18s, border-color .18s; }
+.service-logo-frame { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); overflow: hidden; border-radius: 4px; }
+.service-logo { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 4px; }
 .service-logo--mt5 { transform: scale(1.7); }
-.service-symbol { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); color: #969ba3; font-size: var(--service-icon-size); line-height: 1; }
+.service-symbol { display: grid; place-items: center; width: var(--service-icon-size); height: var(--service-icon-size); color: #a4abb6; font-size: var(--service-icon-size); line-height: 1; }
 .service-copy { display: flex; flex-direction: column; min-width: 0; gap: 6px; word-break: keep-all; overflow-wrap: anywhere; }
-.service-title { font-size: 20px; font-weight: 600; line-height: 1.5; }
-.service-description { color: #969ba3; font-size: 15px; line-height: 1.6; }
-.service-arrow { justify-self: end; color: #969ba3; font-size: 22px; }
+.service-title { font-size: 20px; font-weight: 600; line-height: 1.45; letter-spacing: -.025em; }
+.service-description { color: #969da9; font-size: 14px; line-height: 1.7; }
+.service-arrow { display: grid; place-items: center; justify-self: end; width: 32px; height: 32px; border: 1px solid #292c31; border-radius: 50%; background: #15171a; color: #a4abb6; font-size: 20px; line-height: 1; transition: color .18s, border-color .18s, background .18s; }
 @media (hover: hover) {
-  .service-row:hover { border-color: #ffd000; background: #13120c; }
-  .service-row:hover .service-title, .service-row:hover .service-arrow, .service-row:hover .service-symbol { color: #ffd000; }
+  .service-row:hover { border-color: #a68c25; background: linear-gradient(125deg, #19170d, #10100b); }
+  .service-row:hover .service-title, .service-row:hover .service-symbol { color: #ffd000; }
+  .service-row:hover .service-arrow { color: #ffd000; border-color: #6c5c22; background: #24200f; }
 }
 .service-row:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
 @media (max-width: 600px) {
   .service-menu { --service-icon-size: 26px; }
-  .service-row { gap: 16px; min-height: 94px; padding: 16px 20px; }
-  .service-description { font-size: 14px; }
-  .service-arrow { font-size: 20px; }
+  .service-row { grid-template-columns: var(--service-icon-size) minmax(0, 1fr) 28px; gap: 14px; min-height: 94px; padding: 17px 18px; border-radius: 14px; }
   .service-title { font-size: 18px; }
+  .service-description { font-size: 13px; }
+  .service-arrow { width: 28px; height: 28px; font-size: 18px; }
 }
-@media (prefers-reduced-motion: reduce) { .service-row { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .service-row, .service-arrow { transition: none; } }
 </style>
