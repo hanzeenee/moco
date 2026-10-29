@@ -9,7 +9,8 @@
         class="service-row"
         @click="activate(item)"
       >
-        <span class="service-symbol mdi" :class="item.icon" aria-hidden="true"></span>
+        <img v-if="item.logo" class="service-logo" :src="item.logo" alt="" aria-hidden="true" />
+        <span v-else class="service-symbol mdi" :class="item.icon" aria-hidden="true"></span>
         <span class="service-copy"><span class="service-title">{{ item.title }}</span><span class="service-description">{{ item.description }}</span></span>
         <span class="service-arrow mdi" :class="item.external ? 'mdi-arrow-top-right' : 'mdi-arrow-right'" aria-hidden="true"></span>
       </component>
@@ -22,6 +23,9 @@
 <script>
 import ServiceActionDialog from './ServiceActionDialog.vue'
 import { serviceUrl } from '../data/serviceLinks'
+import kakaotalkLogo from '../assets/brand/kakaotalk-mark.png'
+import kmongLogo from '../assets/brand/kmong-mark.png'
+import infinoxLogo from '../assets/brand/infinox-mark.png'
 
 export default {
   name: 'ServiceMenu',
@@ -30,10 +34,10 @@ export default {
     return {
       notice: '',
       services: [
-        { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', icon: 'mdi-message-text-outline', external: true },
-        { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', icon: 'mdi-check-decagram-outline', external: true },
+        { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo, external: true },
+        { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo, external: true },
         { key: 'free', title: '무료 유틸리티 지표', description: '가입 확인 고객 전용', icon: 'mdi-chart-line', external: false },
-        { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 제공 조건 확인', icon: 'mdi-book-open-page-variant-outline', external: false },
+        { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 제공 조건 확인', logo: infinoxLogo, external: false },
         { key: 'business', title: '비즈니스 제안', description: '공동 개발 · 콘텐츠 협업 등', icon: 'mdi-handshake-outline', external: false },
       ],
     }
@@ -53,6 +57,7 @@ export default {
 .service-menu { width: 100%; max-width: 500px; min-width: 0; text-align: left; color: #fff; }
 .service-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 10px; }
 .service-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) 20px; align-items: center; gap: 17px; width: 100%; min-height: 80px; padding: 14px 20px; border: 1px solid #303030; border-radius: 10px; background: #0b0b0b; color: #fff; font: inherit; text-decoration: none; text-align: left; cursor: pointer; transition: background .16s, border-color .16s; }
+.service-logo { display: block; width: 22px; height: 22px; object-fit: contain; border-radius: 3px; }
 .service-symbol { color: #969ba3; font-size: 22px; }
 .service-copy { display: flex; flex-direction: column; min-width: 0; gap: 5px; word-break: keep-all; overflow-wrap: anywhere; }
 .service-title { font-size: 17px; font-weight: 600; line-height: 1.5; }

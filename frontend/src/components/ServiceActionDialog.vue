@@ -6,7 +6,7 @@
         <p v-for="paragraph in content.paragraphs" :key="paragraph">{{ paragraph }}</p>
         <div v-if="modelValue === 'business'" class="business-contacts">
           <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>이메일</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
-          <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-mark.svg" alt="" aria-hidden="true" /><span><strong>텔레그램</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
+          <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.png" alt="" aria-hidden="true" /><span><strong>텔레그램</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
         </div>
       </v-card-text>
       <v-card-actions class="service-dialog-actions">
