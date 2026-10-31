@@ -9,7 +9,7 @@
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
       <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다<svg class="ea-hint-arrow" viewBox="0 0 24 38" preserveAspectRatio="none" aria-hidden="true"><path d="M2 3 C3 23 10 31 21 28 M16 23 L21 28 L16 33" /></svg></span>
+        <span id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><span class="ea-hint-connector" aria-hidden="true"></span>
         <button class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
       </div></div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
@@ -176,13 +176,14 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .demo-badge { margin-left: auto; color: #abbed0; font-size: 10px; }
 .status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #70ed98; flex: 0 0 auto; }
 .status-dot.inactive { background: #7a8592; }
-.chart-heading { position: relative; height: 38px; min-height: 38px; box-sizing: border-box; align-items: center; display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: nowrap; }
+.chart-heading { --ea-hint-width: 220px; position: relative; height: 38px; min-height: 38px; box-sizing: border-box; align-items: center; display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: nowrap; }
 .chart-heading strong { color: #e1e9f2; font-size: 11px; }
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
 .ea-name { color: #9caebd; }
-.ea-activation { position: relative; display: inline-flex; align-items: center; max-width: 100%; margin-left: auto; }
-.ea-apply-hint { position: absolute; z-index: 1; top: -22px; right: calc(100% + 22px); width: max-content; min-width: 0; max-width: 210px; padding: 6px 8px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 10px; line-height: 1.5; text-wrap: balance; }
-.ea-hint-arrow { position: absolute; right: -23px; top: calc(50% - 7px); width: 23px; height: 38px; fill: none; stroke: #ffd000; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.ea-activation { position: static; display: inline-flex; align-items: center; max-width: 100%; margin-left: auto; }
+.ea-apply-hint { position: absolute; z-index: 1; top: calc(50% + 2px); left: 50%; transform: translate(-50%, -50%); width: var(--ea-hint-width); box-sizing: border-box; padding: 8px 10px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
+.ea-hint-connector { position: absolute; left: calc(50% + var(--ea-hint-width) / 2 + 2px); right: 92px; top: calc(50% + 2px); border-top: 1.5px solid #ffd000; pointer-events: none; }
+.ea-hint-connector::after { content: ''; position: absolute; right: 0; top: -0.75px; width: 5px; height: 5px; border-top: 1.5px solid #ffd000; border-right: 1.5px solid #ffd000; transform: translateY(-50%) rotate(45deg); }
 @keyframes ea-apply-glow { 0%, 100% { box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; } 50% { box-shadow: 0 0 10px #ffd000b0, 0 0 20px #ffd00050; } }
 .apply-ea-btn { flex: 0 0 auto; box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; animation: ea-apply-glow 2.8s ease-in-out -1.4s infinite; border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
 .apply-ea-btn:hover { background: #ffdf46; border-color: #ffdf46; }
@@ -245,11 +246,11 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .demo-badge { margin-left: 0; }
   .chart-heading { height: 38px; min-height: 38px; align-items: center; padding: 8px 6px 4px; }
   .ea-activation { flex: 0 0 auto; }
-  /* Fit the hint between the symbol and button without reserving any layout space. */
-  .ea-apply-hint { top: 50%; right: calc(100% + 14px); transform: translateY(-50%); max-width: calc(100vw - 240px); box-sizing: border-box; padding: 3px 4px; font-size: 9px; line-height: 1.25; background: #18212aee; pointer-events: none; }
-  .ea-hint-arrow { display: none; }
-  .ea-apply-hint::before { content: ''; position: absolute; right: -13px; top: 50%; width: 11px; border-top: 1.5px solid #ffd000; }
-  .ea-apply-hint::after { content: ''; position: absolute; right: -13px; top: 50%; width: 5px; height: 5px; border-top: 1.5px solid #ffd000; border-right: 1.5px solid #ffd000; transform: translateY(-50%) rotate(45deg); }
+  .ea-hint-connector { display: none; }
+  .ea-apply-hint::before { content: ''; position: absolute; right: -7px; top: 50%; width: 5px; border-top: 1.5px solid #ffd000; }
+  .ea-apply-hint::after { content: ''; position: absolute; right: -7px; top: 50%; width: 4px; height: 4px; border-top: 1.5px solid #ffd000; border-right: 1.5px solid #ffd000; transform: translateY(-50%) rotate(45deg); }
+  /* Center the compact mobile hint without changing the chart or button geometry. */
+  .ea-apply-hint { width: max-content; max-width: calc(100vw - 240px); padding: 3px 4px; font-size: 9px; line-height: 1.25; background: #18212aee; }
   .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
   .quote-label { font-size: 9px; }
   .lot-step { flex-basis: 16px; }
