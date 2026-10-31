@@ -8,9 +8,9 @@
     <div class="terminal">
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
-      <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0 0 L11 5 L0 10 Z" fill="#ffd000" /></marker></defs><line x1="0" y1="0" x2="100%" y2="100%" stroke="#ffd000" stroke-width="2.25" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
-        <button class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
+      <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
+        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" viewBox="0 0 11 10" :markerWidth="hintArrowSize" :markerHeight="hintArrowSize" refX="11" refY="5" orient="auto"><path d="M0 0 L11 5 L0 10 Z" fill="#ffd000" /></marker></defs><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize < 11 ? 2 : 2.25" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
+        <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
       </div></div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
         <span class="quote-label sell">SELL</span>
@@ -67,7 +67,7 @@ export default {
   name: 'EaSimulator',
   emits: ['exit'],
   data() {
-    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200 }
+    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200, hintArrowPath: '', hintArrowSize: 11 }
   },
   computed: {
     plotWidth() { return Math.max(80, this.chartWidth - 48) },
@@ -147,11 +147,34 @@ export default {
         : window.innerHeight - panelBounds.top
       const available = availableHeight - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom)
       this.chartHeight = Math.max(100, Math.min(440, Math.floor(available - fixedHeight - 4)))
+      this.updateHintArrow()
+    },
+    updateHintArrow() {
+      const heading = this.$refs.chartHeading
+      const hint = this.$refs.eaHint
+      const button = this.$refs.applyEaButton
+      if (!heading || !hint || !button) return
+      const origin = heading.getBoundingClientRect()
+      const box = hint.getBoundingClientRect()
+      const target = button.getBoundingClientRect()
+      const mobile = window.matchMedia('(max-width: 600px)').matches
+      const available = target.left - box.right
+      const gap = Math.min(mobile ? 4 : 8, Math.max(1, (available - 12) / 2))
+      const startX = box.right - origin.left + gap
+      const endX = target.left - origin.left - gap
+      const startY = box.top + box.height / 2 - origin.top
+      const endY = target.top + target.height / 2 - origin.top
+      const length = endX - startX
+      if (length <= 2) { this.hintArrowPath = ''; return }
+      const bend = Math.min(8, Math.max(5, length * 0.16))
+      this.hintArrowSize = Math.min(mobile ? 8 : 11, length * 0.55)
+      // Read actual element positions so the tail reaches the button on every phone/font.
+      this.hintArrowPath = `M ${startX} ${startY} C ${startX + length * 0.25} ${startY - bend}, ${endX - length * 0.35} ${endY - bend * 0.35}, ${endX} ${endY}`
     },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
     adjustLot(amount) { this.lotInput = normalizeLot(normalizeLot(this.lotInput) + amount); this.applyLot() },
     applyEa() { this.applyLot(); applyEa(this.state) },
-    reset() { this.state = createSimulation() },
+    reset() { this.state = createSimulation(); this.$nextTick(this.updateHintArrow) },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
     money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
     signed(value) { return `${value >= 0 ? '+' : '−'}$${this.money(Math.abs(value))}` },
@@ -182,7 +205,7 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .ea-name { color: #9caebd; }
 .ea-activation { position: static; display: inline-flex; align-items: center; max-width: 100%; margin-left: auto; }
 .ea-apply-hint { position: absolute; z-index: 1; top: 0; left: 50%; transform: translate(-50%, -50%); width: var(--ea-hint-width); box-sizing: border-box; padding: 8px 10px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
-.ea-hint-connector { position: absolute; left: calc(50% + var(--ea-hint-width) / 2 + 8px); right: 100px; top: 0; width: calc(50% - var(--ea-hint-width) / 2 - 108px); height: 21px; overflow: visible; pointer-events: none; }
+.ea-hint-connector { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 @keyframes ea-apply-glow { 0%, 100% { box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; } 50% { box-shadow: 0 0 10px #ffd000b0, 0 0 20px #ffd00050; } }
 .apply-ea-btn { flex: 0 0 auto; box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; animation: ea-apply-glow 2.8s ease-in-out -1.4s infinite; border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
 .apply-ea-btn:hover { background: #ffdf46; border-color: #ffdf46; }
@@ -239,7 +262,6 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 @media (min-width: 981px) and (max-width: 1150px) {
   .chart-heading { --ea-hint-width: 180px; }
   .ea-apply-hint { top: 10px; padding: 6px 8px; font-size: 11px; }
-  .ea-hint-connector { left: calc(50% + var(--ea-hint-width) / 2 + 4px); right: 96px; top: 10px; width: calc(50% - var(--ea-hint-width) / 2 - 100px); height: 11px; }
 }
 @media (max-width: 600px) {
   .panel-tab { grid-template-columns: minmax(0, 1fr); }
@@ -250,9 +272,6 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .demo-badge { margin-left: 0; }
   .chart-heading { height: 38px; min-height: 38px; align-items: center; padding: 8px 6px 4px; }
   .ea-activation { flex: 0 0 auto; }
-  .ea-hint-connector { display: none; }
-  .ea-apply-hint::before { content: ''; position: absolute; right: -5px; top: 50%; width: 4px; height: 2px; background: #ffd000; transform: translateY(-50%); }
-  .ea-apply-hint::after { content: ''; position: absolute; right: -6px; top: 50%; width: 0; height: 0; border-left: 3px solid #ffd000; border-top: 3px solid transparent; border-bottom: 3px solid transparent; transform: translateY(-50%); }
   /* Center the compact mobile hint without changing the chart or button geometry. */
   .ea-apply-hint { top: calc(50% + 2px); width: max-content; max-width: calc(100vw - 240px); padding: 3px 4px; font-size: 9px; line-height: 1.25; background: #18212aee; }
   .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
@@ -268,6 +287,7 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .account-stats span { margin: 0; }
   .ea-status { padding: 6px; }
 }
+@media (max-width: 400px) { .ea-apply-hint { left: calc(50% - 14px); } }
 @media (max-width: 360px) { .ea-apply-hint { font-size: 8px; line-height: 1.2; } }
 @media (prefers-reduced-motion: reduce) { .apply-ea-btn { animation: none; box-shadow: 0 0 7px #ffd00050; } }
 </style>
