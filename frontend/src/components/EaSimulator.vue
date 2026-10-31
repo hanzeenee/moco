@@ -9,7 +9,7 @@
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" viewBox="0 0 11 10" :markerWidth="hintArrowSize" :markerHeight="hintArrowSize" refX="11" refY="5" orient="auto"><path d="M0 0 L11 5 L0 10 Z" fill="#ffd000" /></marker></defs><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize < 11 ? 2 : 2.25" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
+        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" viewBox="0 0 6 10" :markerWidth="hintArrowSize * 6 / 11" :markerHeight="hintArrowSize * 10 / 11" refX="6" refY="5" orient="auto"><path d="M0 0 L6 5 L0 10 Z" fill="#ffd000" /></marker></defs><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize * 3.6 / 11" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
         <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
       </div></div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
@@ -166,10 +166,9 @@ export default {
       const endY = target.top + target.height / 2 - origin.top
       const length = endX - startX
       if (length <= 2) { this.hintArrowPath = ''; return }
-      const bend = Math.min(8, Math.max(5, length * 0.16))
       this.hintArrowSize = Math.min(mobile ? 8 : 11, length * 0.55)
       // Read actual element positions so the tail reaches the button on every phone/font.
-      this.hintArrowPath = `M ${startX} ${startY} C ${startX + length * 0.25} ${startY - bend}, ${endX - length * 0.35} ${endY - bend * 0.35}, ${endX} ${endY}`
+      this.hintArrowPath = `M ${startX} ${startY} L ${endX} ${endY}`
     },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
     adjustLot(amount) { this.lotInput = normalizeLot(normalizeLot(this.lotInput) + amount); this.applyLot() },
