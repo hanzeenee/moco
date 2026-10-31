@@ -9,7 +9,7 @@
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" viewBox="0 0 6 10" :markerWidth="hintArrowSize * 6 / 11" :markerHeight="hintArrowSize * 10 / 11" refX="6" refY="5" orient="auto"><path d="M0 0 L6 5 L0 10 Z" fill="#ffd000" /></marker></defs><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize * 3.6 / 11" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
+        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" viewBox="0 0 8.660254 10" :markerWidth="hintArrowSize * 8.660254 / 11" :markerHeight="hintArrowSize * 10 / 11" refX="8.660254" refY="5" orient="auto"><path d="M0 0 L8.660254 5 L0 10 Z" fill="#ffd000" /></marker></defs><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize * 3.6 / 11" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
         <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
       </div></div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
@@ -198,12 +198,12 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .demo-badge { margin-left: auto; color: #abbed0; font-size: 10px; }
 .status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: #70ed98; flex: 0 0 auto; }
 .status-dot.inactive { background: #7a8592; }
-.chart-heading { --ea-hint-width: 220px; position: relative; height: 38px; min-height: 38px; box-sizing: border-box; align-items: center; display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: nowrap; }
+.chart-heading { position: relative; height: 38px; min-height: 38px; box-sizing: border-box; align-items: center; display: flex; justify-content: space-between; gap: 6px; padding: 7px 10px 3px; font-size: 10px; flex-wrap: nowrap; }
 .chart-heading strong { color: #e1e9f2; font-size: 11px; }
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
 .ea-name { color: #9caebd; }
 .ea-activation { position: static; display: inline-flex; align-items: center; max-width: 100%; margin-left: auto; }
-.ea-apply-hint { position: absolute; z-index: 1; top: 0; left: 50%; transform: translate(-50%, -50%); width: var(--ea-hint-width); box-sizing: border-box; padding: 8px 10px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
+.ea-apply-hint { position: absolute; z-index: 1; top: 0; left: 50%; transform: translate(-50%, -50%); width: max-content; max-width: calc(100% - 180px); box-sizing: border-box; padding: 6px 8px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
 .ea-hint-connector { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 @keyframes ea-apply-glow { 0%, 100% { box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; } 50% { box-shadow: 0 0 10px #ffd000b0, 0 0 20px #ffd00050; } }
 .apply-ea-btn { flex: 0 0 auto; box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; animation: ea-apply-glow 2.8s ease-in-out -1.4s infinite; border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
@@ -259,7 +259,6 @@ td b { font-size: 9px; padding-left: 3px; font-weight: 400; }
 td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 .empty-position { height: 22px; color: #85929e; }
 @media (min-width: 981px) and (max-width: 1150px) {
-  .chart-heading { --ea-hint-width: 180px; }
   .ea-apply-hint { top: 10px; padding: 6px 8px; font-size: 11px; }
 }
 @media (max-width: 600px) {
@@ -270,9 +269,10 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .terminal-title strong { font-size: 10px; }
   .demo-badge { margin-left: 0; }
   .chart-heading { height: 38px; min-height: 38px; align-items: center; padding: 8px 6px 4px; }
+  .chart-heading strong { font-size: 10px; }
   .ea-activation { flex: 0 0 auto; }
   /* Center the compact mobile hint without changing the chart or button geometry. */
-  .ea-apply-hint { top: calc(50% + 2px); width: max-content; max-width: calc(100vw - 240px); padding: 3px 4px; font-size: 9px; line-height: 1.25; background: #18212aee; }
+  .ea-apply-hint { top: calc(50% + 2px); width: max-content; max-width: calc(100vw - 230px); padding: 4px 6px; font-size: 10px; line-height: 1.2; background: #18212aee; }
   .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
   .quote-label { font-size: 9px; }
   .lot-step { flex-basis: 16px; }
@@ -287,6 +287,6 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .ea-status { padding: 6px; }
 }
 @media (max-width: 400px) { .ea-apply-hint { left: calc(50% - 14px); } }
-@media (max-width: 360px) { .ea-apply-hint { font-size: 8px; line-height: 1.2; } }
+@media (max-width: 360px) { .ea-apply-hint { padding: 3px 5px; font-size: 9px; line-height: 1.15; } }
 @media (prefers-reduced-motion: reduce) { .apply-ea-btn { animation: none; box-shadow: 0 0 7px #ffd00050; } }
 </style>
