@@ -243,10 +243,11 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .terminal-title { padding: 6px; gap: 4px; }
   .terminal-title strong { font-size: 10px; }
   .demo-badge { margin-left: 0; }
-  .chart-heading { height: 76px; min-height: 76px; align-items: flex-end; padding: 8px 6px 4px; }
+  .chart-heading { height: 38px; min-height: 38px; align-items: center; padding: 8px 6px 4px; }
   .ea-activation { flex: 0 0 auto; }
-  .ea-apply-hint { top: -34px; right: calc(100% + 12px); max-width: min(164px, calc(100vw - 190px)); }
-  .ea-hint-arrow { right: -13px; width: 13px; height: 56px; }
+  /* Overlay the chart after the existing 63px quote strip; reserve no extra header space. */
+  .ea-apply-hint { top: calc(100% + 78px); right: 0; max-width: min(190px, calc(100vw - 84px)); padding: 4px 6px; font-size: 9px; background: #18212aee; pointer-events: none; }
+  .ea-hint-arrow { display: none; }
   .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
   .quote-label { font-size: 9px; }
   .lot-step { flex-basis: 16px; }
