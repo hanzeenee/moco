@@ -8,7 +8,10 @@
     <div class="terminal">
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
-      <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><button v-else class="apply-ea-btn" type="button" @click="applyEa">EA 적용하기</button></div>
+      <div class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
+        <span id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다<svg class="ea-hint-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3 C3 15 10 17 21 14 M16 9 L21 14 L16 19" /></svg></span>
+        <button class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
+      </div></div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
         <span class="quote-label sell">SELL</span>
         <div class="lot-control">
@@ -177,7 +180,11 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .chart-heading strong { color: #e1e9f2; font-size: 11px; }
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
 .ea-name { color: #9caebd; }
-.apply-ea-btn { border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
+.ea-activation { display: inline-flex; align-items: center; gap: 22px; max-width: 100%; margin-left: auto; }
+.ea-apply-hint { position: relative; min-width: 0; max-width: 210px; padding: 6px 8px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 10px; line-height: 1.5; text-wrap: balance; }
+.ea-hint-arrow { position: absolute; right: -23px; top: calc(50% - 7px); width: 23px; height: 23px; fill: none; stroke: #ffd000; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+@keyframes ea-apply-glow { 0%, 100% { box-shadow: 0 0 2px #ffd00020, 0 0 0 #ffd00000; } 50% { box-shadow: 0 0 7px #ffd00085, 0 0 15px #ffd00035; } }
+.apply-ea-btn { flex: 0 0 auto; animation: ea-apply-glow 2.8s ease-in-out infinite; border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
 .apply-ea-btn:hover { background: #ffdf46; border-color: #ffdf46; }
 .quote-strip { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; grid-template-rows: 23px 38px; width: min(260px, calc(100% - 20px)); box-sizing: border-box; margin: 4px 10px 0; border: 1px solid #7890aa; background: #26313d; box-shadow: inset 0 0 0 1px #ffffff12; font-family: Consolas, monospace; }
 .quote-label { display: grid; place-items: center; font-family: Arial, sans-serif; font-size: 10px; color: #e1e8f2; border-bottom: 1px solid #7890aa; }
@@ -237,6 +244,8 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .terminal-title strong { font-size: 10px; }
   .demo-badge { margin-left: 0; }
   .chart-heading { padding: 8px 6px 4px; }
+  .ea-activation { width: 100%; justify-content: flex-end; }
+  .ea-apply-hint { flex: 1; max-width: 210px; }
   .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
   .quote-label { font-size: 9px; }
   .lot-step { flex-basis: 16px; }
@@ -250,4 +259,5 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .account-stats span { margin: 0; }
   .ea-status { padding: 6px; }
 }
+@media (prefers-reduced-motion: reduce) { .apply-ea-btn { animation: none; box-shadow: 0 0 7px #ffd00050; } }
 </style>
