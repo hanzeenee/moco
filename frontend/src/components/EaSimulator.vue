@@ -245,9 +245,11 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .demo-badge { margin-left: 0; }
   .chart-heading { height: 38px; min-height: 38px; align-items: center; padding: 8px 6px 4px; }
   .ea-activation { flex: 0 0 auto; }
-  /* Overlay the chart after the existing 63px quote strip; reserve no extra header space. */
-  .ea-apply-hint { top: calc(100% + 78px); right: 0; max-width: min(190px, calc(100vw - 84px)); padding: 4px 6px; font-size: 9px; background: #18212aee; pointer-events: none; }
+  /* Fit the hint between the symbol and button without reserving any layout space. */
+  .ea-apply-hint { top: 50%; right: calc(100% + 14px); transform: translateY(-50%); max-width: calc(100vw - 240px); box-sizing: border-box; padding: 3px 4px; font-size: 9px; line-height: 1.25; background: #18212aee; pointer-events: none; }
   .ea-hint-arrow { display: none; }
+  .ea-apply-hint::before { content: ''; position: absolute; right: -13px; top: 50%; width: 11px; border-top: 1.5px solid #ffd000; }
+  .ea-apply-hint::after { content: ''; position: absolute; right: -13px; top: 50%; width: 5px; height: 5px; border-top: 1.5px solid #ffd000; border-right: 1.5px solid #ffd000; transform: translateY(-50%) rotate(45deg); }
   .quote-strip { grid-template-columns: 30px minmax(0, 1fr) 30px; width: min(260px, calc(100% - 10px)); margin: 4px 5px 0; }
   .quote-label { font-size: 9px; }
   .lot-step { flex-basis: 16px; }
@@ -261,5 +263,6 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .account-stats span { margin: 0; }
   .ea-status { padding: 6px; }
 }
+@media (max-width: 360px) { .ea-apply-hint { font-size: 8px; line-height: 1.2; } }
 @media (prefers-reduced-motion: reduce) { .apply-ea-btn { animation: none; box-shadow: 0 0 7px #ffd00050; } }
 </style>
