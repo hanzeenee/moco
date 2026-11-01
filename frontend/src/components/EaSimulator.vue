@@ -200,7 +200,7 @@ button, input { font: inherit; }
 .sim-action-btn:hover { filter: brightness(1.2); }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
-.terminal { overflow: hidden; border: 1px solid #37434b; background: #080b0d; box-shadow: 0 12px 36px #0006; }
+.terminal { overflow: hidden; border: 1px solid #37434b; background: #000; box-shadow: 0 12px 36px #0006; }
 .terminal-title { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; background: #102b3b; font-size: 11px; flex-wrap: wrap; }
 .terminal-icon { position: relative; display: inline-block; width: 28px; height: 14px; overflow: hidden; flex: 0 0 auto; }
 .terminal-icon img { position: absolute; width: 228%; max-width: none; height: auto; left: -64%; top: 50%; transform: translateY(-50%); }
