@@ -18,7 +18,7 @@
         <span class="quote-label sell">SELL</span>
         <div class="lot-control" :class="{ 'lot-guided': showLotGuidance }">
           <button class="lot-step" type="button" aria-label="거래량 줄이기" :disabled="Number(lotInput) <= 1" @click="adjustLot(-1)">▾</button>
-          <input id="simulation-lot" v-model.number="lotInput" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="거래량 (랏)" :aria-describedby="showLotGuidance ? 'lot-guidance' : undefined" title="거래량 1~100랏 (정수)" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
+          <input id="simulation-lot" v-model.number="lotInput" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="거래량 (랏)" :aria-describedby="showLotGuidance ? 'lot-guidance' : undefined" title="거래량 1~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
           <button class="lot-step" type="button" aria-label="거래량 늘리기" :disabled="Number(lotInput) >= 100" @click="adjustLot(1)">▴</button>
         </div>
         <span class="quote-label buy">BUY</span>
