@@ -34,6 +34,7 @@
               <rect :x="candle.x - candleWidth / 2" :y="priceY(Math.max(candle.open, candle.close))" :width="candleWidth" :height="Math.max(1, Math.abs(priceY(candle.open) - priceY(candle.close)))" />
             </g>
             <g v-if="displayOrder" class="order-lines" :class="{ 'closed-order': !state.position }"><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.entry)" :y2="priceY(displayOrder.entry)" stroke="#ffffff"/><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.stop)" :y2="priceY(displayOrder.stop)" stroke="#ff858c"/><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.target)" :y2="priceY(displayOrder.target)" stroke="#79c2ff"/><text x="7" :y="priceY(displayOrder.target) - 5" fill="#79c2ff">TP</text><text x="7" :y="priceY(displayOrder.stop) - 5" fill="#ff858c">SL</text></g>
+            <line v-for="connection in tradeConnections" :key="`trade-${connection.id}`" class="trade-connection" :x1="connection.x1" :y1="connection.y1" :x2="connection.x2" :y2="connection.y2" :stroke="connection.color" />
             <g v-for="marker in markers" :key="marker.key"><path :d="marker.path" :fill="marker.side === 'BUY' ? '#48aaff' : '#ff7b85'" /></g>
             <g v-for="marker in exitMarkers" :key="`exit-${marker.id}`" class="exit-marker"><circle :cx="marker.x" :cy="marker.y" r="3.5" :fill="marker.color" stroke="#000"/><text :x="marker.x - 6" :y="marker.y - 6" text-anchor="end" :fill="marker.color">{{ marker.label }}</text></g>
           </g>
@@ -98,6 +99,19 @@ export default {
         const y = this.priceY(position.side === 'BUY' ? candle.low : candle.high)
         const direction = position.side === 'BUY' ? 1 : -1
         return [{ key: position.openedAt, side: position.side, path: `M ${candle.x} ${y + direction * 4} l -4 ${direction * 7} h 8 Z` }]
+      })
+    },
+    tradeConnections() {
+      return this.state.trades.flatMap(trade => {
+        const entry = this.chartCandles.find(c => c.id === trade.candleId)
+        const exit = this.chartCandles.find(c => c.id === trade.exitCandleId)
+        if (!entry || !exit) return []
+        const buy = trade.side === 'BUY'
+        // Match the existing entry-arrow tip and exit-marker center exactly.
+        return [{
+          id: trade.id, x1: entry.x, y1: this.priceY(buy ? entry.low : entry.high) + (buy ? 4 : -4),
+          x2: exit.x, y2: this.priceY(trade.exitMid), color: buy ? '#48aaff' : '#ff7b85'
+        }]
       })
     },
     displayOrder() { return this.state.position || (this.state.cooldown > 0 ? this.state.trades[0] : null) },
@@ -243,6 +257,7 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .order-lines line { stroke-dasharray: 4 4; stroke-width: 0.8; }
 .order-lines text { font-size: 9px; }
 .closed-order { opacity: 0.65; }
+.trade-connection { fill: none; stroke-width: 1; stroke-dasharray: 4 3; pointer-events: none; }
 .exit-marker text { font: 9px Consolas, monospace; paint-order: stroke; stroke: #000; stroke-width: 3px; }
 .end-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: #0005; pointer-events: none; }
 .end-overlay span { background: #18222ee6; padding: 9px 15px; border: 1px solid #506173; color: #e9edf3; font-size: 13px; }
