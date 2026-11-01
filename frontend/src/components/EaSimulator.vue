@@ -29,9 +29,9 @@
           <defs><clipPath id="ea-chart-clip"><rect x="0" y="8" :width="plotWidth" :height="chartHeight - 28" /></clipPath></defs>
           <g v-for="line in gridLines" :key="line.value" class="chart-grid"><line x1="0" :x2="plotWidth" :y1="line.y" :y2="line.y"/><text :x="plotWidth + 5" :y="line.y + 3">{{ line.value.toFixed(1) }}</text></g>
           <g clip-path="url(#ea-chart-clip)">
-            <g v-for="candle in chartCandles" :key="candle.id" class="candle">
+            <g v-for="candle in chartCandles" :key="candle.id" class="candle" :style="{ color: candle.close >= candle.open ? '#00ff00' : '#ff0000' }">
               <line :x1="candle.x" :x2="candle.x" :y1="priceY(candle.high)" :y2="priceY(candle.low)" />
-              <rect :x="candle.x - candleWidth / 2" :y="priceY(Math.max(candle.open, candle.close))" :width="candleWidth" :height="Math.max(1, Math.abs(priceY(candle.open) - priceY(candle.close)))" :fill="candle.close >= candle.open ? '#050805' : '#62ff2b'" />
+              <rect :x="candle.x - candleWidth / 2" :y="priceY(Math.max(candle.open, candle.close))" :width="candleWidth" :height="Math.max(1, Math.abs(priceY(candle.open) - priceY(candle.close)))" />
             </g>
             <g v-if="displayOrder" class="order-lines" :class="{ 'closed-order': !state.position }"><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.entry)" :y2="priceY(displayOrder.entry)" stroke="#ffffff"/><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.stop)" :y2="priceY(displayOrder.stop)" stroke="#ff858c"/><line x1="0" :x2="plotWidth" :y1="priceY(displayOrder.target)" :y2="priceY(displayOrder.target)" stroke="#79c2ff"/><text x="7" :y="priceY(displayOrder.target) - 5" fill="#79c2ff">TP</text><text x="7" :y="priceY(displayOrder.stop) - 5" fill="#ff858c">SL</text></g>
             <g v-for="marker in markers" :key="marker.key"><path :d="marker.path" :fill="marker.side === 'BUY' ? '#48aaff' : '#ff7b85'" /></g>
@@ -239,7 +239,7 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .chart-grid line { stroke: #15221b; stroke-dasharray: 2 5; stroke-width: 0.6; }
 .chart-grid text, .time-label { fill: #8f9b9f; font-size: 9px; }
 .axis-label { font-size: 9px; }
-.candle { stroke: #62ff2b; stroke-width: 1; }
+.candle { fill: currentColor; stroke: currentColor; stroke-width: 1; }
 .order-lines line { stroke-dasharray: 4 4; stroke-width: 0.8; }
 .order-lines text { font-size: 9px; }
 .closed-order { opacity: 0.65; }
