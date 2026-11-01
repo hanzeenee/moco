@@ -11,7 +11,9 @@
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
         <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>
         <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
-      </div></div>
+      </div>
+        <span v-if="showLotGuidance" id="lot-guidance" class="ea-apply-hint lot-guidance" role="status" aria-atomic="true">거래량을 바꾸며 손익 변화를 확인해보세요</span>
+      </div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
         <span class="quote-label sell">SELL</span>
         <div class="lot-control" :class="{ 'lot-guided': showLotGuidance }">
@@ -19,7 +21,6 @@
           <input id="simulation-lot" v-model.number="lotInput" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="거래량 (랏)" :aria-describedby="showLotGuidance ? 'lot-guidance' : undefined" title="거래량 1~100랏 (정수)" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
           <button class="lot-step" type="button" aria-label="거래량 늘리기" :disabled="Number(lotInput) >= 100" @click="adjustLot(1)">▴</button>
         </div>
-        <span v-if="showLotGuidance" id="lot-guidance" class="lot-guidance" role="status" aria-atomic="true">거래량을 바꾸며 손익 변화를 확인해보세요</span>
         <span class="quote-label buy">BUY</span>
         <div class="quote-price sell" :aria-label="`SELL ${sellPrice.join('.')}`"><small>{{ sellPrice[0] }}</small><strong>{{ sellPrice[1] }}</strong></div>
         <div class="quote-price buy" :aria-label="`BUY ${buyPrice.join('.')}`"><small>{{ buyPrice[0] }}</small><strong>{{ buyPrice[1] }}</strong></div>
@@ -233,20 +234,19 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .chart-heading strong span { color: #8194a8; font-weight: 400; }
 .ea-name { color: #9caebd; }
 .ea-activation { position: static; display: inline-flex; align-items: center; max-width: 100%; margin-left: auto; }
-.ea-apply-hint { position: absolute; z-index: 1; top: 0; left: 50%; transform: translate(-50%, -50%); width: max-content; max-width: calc(100% - 180px); box-sizing: border-box; padding: 6px 8px; border: 1px solid #45515f; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
+.ea-apply-hint { position: absolute; z-index: 1; top: 0; left: 50%; transform: translate(-50%, -50%); width: max-content; max-width: calc(100% - 180px); box-sizing: border-box; padding: 6px 8px; border: 1px solid #ffd000; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
 .ea-hint-connector { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 @keyframes ea-apply-glow { 0%, 100% { box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; } 50% { box-shadow: 0 0 10px #ffd000b0, 0 0 20px #ffd00050; } }
 .apply-ea-btn { flex: 0 0 auto; box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; animation: ea-apply-glow 2.8s ease-in-out -1.4s infinite; border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
 .apply-ea-btn:hover { background: #ffdf46; border-color: #ffdf46; }
-.quote-strip { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; grid-template-rows: 23px 38px; width: min(260px, calc(100% - 20px)); box-sizing: border-box; margin: 4px 10px 0; border: 1px solid #7890aa; background: #26313d; box-shadow: inset 0 0 0 1px #ffffff12; font-family: Consolas, monospace; }
+.quote-strip { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; grid-template-rows: 23px 38px; width: min(260px, calc(100% - 20px)); box-sizing: border-box; margin: 4px 10px 0; border: 1px solid #7890aa; background: #26313d; box-shadow: inset 0 0 0 1px #ffffff12; font-family: Consolas, monospace; }
 .quote-label { display: grid; place-items: center; font-family: Arial, sans-serif; font-size: 10px; color: #e1e8f2; border-bottom: 1px solid #7890aa; }
 .quote-label.sell { background: linear-gradient(#78363e, #4b232b); }
 .quote-label.buy { background: linear-gradient(#294f88, #183459); }
 .lot-control { display: flex; min-width: 0; margin: 1px 0 2px; border: 1px solid #8e969f; background: #080b0d; }
 @keyframes lot-guide-glow { 0%, 100% { box-shadow: 0 0 3px #ffd00030; } 50% { box-shadow: 0 0 9px #ffd00080; } }
 .lot-control.lot-guided { border-color: #ffd000; box-shadow: 0 0 3px #ffd00030; animation: lot-guide-glow 2.8s ease-in-out 3; }
-.lot-guidance { position: absolute; z-index: 2; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); box-sizing: border-box; width: max-content; max-width: calc(100% - 8px); padding: 6px 9px; border: 1px solid #8a7629; border-radius: 5px; background: #181e25f2; color: #e7e9ed; font-family: Arial, 'Malgun Gothic', sans-serif; font-size: 11px; line-height: 1.4; text-align: center; text-wrap: balance; pointer-events: none; }
-.lot-guidance::before { content: ''; position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 5px solid #8a7629; }
+.lot-guidance { z-index: 2; font-size: 11px; }
 .lot-step { display: grid; place-items: center; flex: 0 0 20px; padding: 0; border: 0; color: #f0f3f7; background: linear-gradient(#515861, #30353d); font-size: 12px; line-height: 1; }
 .lot-step:first-child { border-right: 1px solid #8e969f; }
 .lot-step:last-child { border-left: 1px solid #8e969f; }
