@@ -49,7 +49,7 @@
       <div class="account-stats">
         <div><span>잔고</span><strong>${{ money(state.balance) }}</strong></div>
         <div><span>평가금</span><strong>${{ money(state.equity) }}</strong></div>
-        <div><span>수익</span><strong :class="profitClass(openProfit)">{{ openProfit === 0 ? '$0.00' : signed(openProfit) }}</strong></div>
+        <div><span>수익</span><strong :class="profitClass(openProfit)">{{ openProfit === 0 ? '$0' : signed(openProfit) }}</strong></div>
       </div>
       <div class="trade-panel">
         <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
@@ -198,7 +198,7 @@ export default {
     applyEa() { this.applyLot(); applyEa(this.state) },
     reset() { this.state = createSimulation(); this.$nextTick(this.updateHintArrow) },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
-    money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+    money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) },
     signed(value) { return `${value >= 0 ? '+' : '−'}$${this.money(Math.abs(value))}` },
     profitClass(value) { return value > 0 ? 'positive' : value < 0 ? 'negative' : '' },
     timeLabel(id = 0) { return `${String((9 + Math.floor(id * CANDLE_MINUTES / 60)) % 24).padStart(2, '0')}:${String(id * CANDLE_MINUTES % 60).padStart(2, '0')}` }
