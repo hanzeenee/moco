@@ -12,7 +12,7 @@
         <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>
         <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
       </div>
-        <span v-if="showLotGuidance" id="lot-guidance" class="ea-apply-hint lot-guidance" role="status" aria-atomic="true">거래량을 바꾸며 손익 변화를 확인해보세요</span>
+        <span v-if="showLotGuidance" id="lot-guidance" class="ea-apply-hint lot-guidance" role="status" aria-atomic="true">랏수에 따라 손익이 달라집니다</span>
       </div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
         <span class="quote-label sell">SELL</span>
