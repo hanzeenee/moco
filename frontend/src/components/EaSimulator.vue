@@ -9,7 +9,7 @@
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
 
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><defs><marker id="ea-hint-arrowhead" markerUnits="userSpaceOnUse" viewBox="0 0 8.660254 10" :markerWidth="hintArrowSize * 8.660254 / 11" :markerHeight="hintArrowSize * 10 / 11" refX="8.660254" refY="5" orient="auto"><path d="M0 0 L8.660254 5 L0 10 Z" fill="#ffd000" /></marker></defs><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize * 3.6 / 11" stroke-linecap="round" marker-end="url(#ea-hint-arrowhead)" /></svg>
+        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="none" stroke="#ffd000" :stroke-width="hintArrowSize * 3.6 / 11" stroke-linecap="butt" /><polygon :points="hintArrowHead" fill="#ffd000" /></svg>
         <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
       </div></div>
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
@@ -67,7 +67,7 @@ export default {
   name: 'EaSimulator',
   emits: ['exit'],
   data() {
-    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200, hintArrowPath: '', hintArrowSize: 11 }
+    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200, hintArrowPath: '', hintArrowHead: '', hintArrowSize: 11 }
   },
   computed: {
     plotWidth() { return Math.max(80, this.chartWidth - 48) },
@@ -165,10 +165,19 @@ export default {
       const startY = box.top + box.height / 2 - origin.top
       const endY = target.top + target.height / 2 - origin.top
       const length = endX - startX
-      if (length <= 2) { this.hintArrowPath = ''; return }
+      if (length <= 2) { this.hintArrowPath = ''; this.hintArrowHead = ''; return }
       this.hintArrowSize = Math.min(mobile ? 8 : 11, length * 0.55)
-      // Read actual element positions so the tail reaches the button on every phone/font.
-      this.hintArrowPath = `M ${startX} ${startY} L ${endX} ${endY}`
+      const distance = Math.hypot(length, endY - startY)
+      const ux = length / distance
+      const uy = (endY - startY) / distance
+      const side = this.hintArrowSize * 10 / 11
+      const altitude = side * Math.sqrt(3) / 2
+      const baseX = endX - ux * altitude
+      const baseY = endY - uy * altitude
+      // A separate equilateral polygon keeps all three edges straight and the tip sharp.
+      // Stop the shaft at the base so no stroke cap can protrude through the tip.
+      this.hintArrowPath = `M ${startX} ${startY} L ${baseX} ${baseY}`
+      this.hintArrowHead = `${endX},${endY} ${baseX - uy * side / 2},${baseY + ux * side / 2} ${baseX + uy * side / 2},${baseY - ux * side / 2}`
     },
     applyLot() { this.lot = normalizeLot(this.lotInput); this.lotInput = this.lot },
     adjustLot(amount) { this.lotInput = normalizeLot(normalizeLot(this.lotInput) + amount); this.applyLot() },
