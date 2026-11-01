@@ -55,7 +55,7 @@ function tradeScenePrice(position, tick, previousPrice, marketPrice) {
 export function normalizeLot(value) {
   const amount = Number(value)
   if (value === '' || value === null || !Number.isFinite(amount)) return DEFAULT_LOT
-  return round(Math.min(100, Math.max(0.01, amount)))
+  return Math.round(Math.min(100, Math.max(1, amount)))
 }
 
 export function floatingProfit(state) {

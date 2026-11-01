@@ -15,9 +15,9 @@
       <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
         <span class="quote-label sell">SELL</span>
         <div class="lot-control">
-          <button class="lot-step" type="button" aria-label="거래량 줄이기" :disabled="Number(lotInput) <= 0.01" @click="adjustLot(-0.01)">▾</button>
-          <input id="simulation-lot" v-model.number="lotInput" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="거래량 (랏)" title="거래량 0.01~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
-          <button class="lot-step" type="button" aria-label="거래량 늘리기" :disabled="Number(lotInput) >= 100" @click="adjustLot(0.01)">▴</button>
+          <button class="lot-step" type="button" aria-label="거래량 줄이기" :disabled="Number(lotInput) <= 1" @click="adjustLot(-1)">▾</button>
+          <input id="simulation-lot" v-model.number="lotInput" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="거래량 (랏)" title="거래량 1~100랏 (정수)" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
+          <button class="lot-step" type="button" aria-label="거래량 늘리기" :disabled="Number(lotInput) >= 100" @click="adjustLot(1)">▴</button>
         </div>
         <span class="quote-label buy">BUY</span>
         <div class="quote-price sell" :aria-label="`SELL ${sellPrice.join('.')}`"><small>{{ sellPrice[0] }}</small><strong>{{ sellPrice[1] }}</strong></div>
@@ -54,7 +54,7 @@
       <div class="trade-panel">
         <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
         <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
-          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot.toFixed(2) }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : state.eaApplied ? '다음 거래를 기다리고 있어요.' : 'EA 적용 후 거래가 시작돼요.' }}</td></tr></tbody></table>
+          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : state.eaApplied ? '다음 거래를 기다리고 있어요.' : 'EA 적용 후 거래가 시작돼요.' }}</td></tr></tbody></table>
         </div>
       </div>
     </div>

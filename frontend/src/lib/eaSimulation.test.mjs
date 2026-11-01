@@ -126,29 +126,27 @@ test('zero equity closes immediately before the four-second SL scene completes',
   }
 })
 
-test('manual lot range, default ten lots and input normalization stay intact', () => {
-  for (const amount of [0.01, 0.25, 1, 12.34, 100, undefined]) {
+test('entries accept only whole lots from one to 100 and default to ten', () => {
+  for (const [amount, expected] of [[0.01, 1], [0, 1], [-10, 1], [1, 1], [12.34, 12], [2.5, 3], [99.9, 100], [100, 100], [1000, 100], [undefined, 10]]) {
     const state = activeSimulation(() => 0.5)
     for (let tick = 0; tick < 4; tick++) advanceSimulation(state, amount, () => 0.5)
-    assert.equal(state.position.lot, amount ?? 10)
+    assert.equal(state.position.lot, expected)
+    assert.ok(Number.isInteger(state.position.lot))
   }
-  assert.equal(normalizeLot('2.37'), 2.37)
-  assert.equal(normalizeLot(0), 0.01)
-  assert.equal(normalizeLot(-10), 0.01)
-  assert.equal(normalizeLot(1000), 100)
-  assert.equal(normalizeLot(1.234), 1.23)
+  assert.equal(normalizeLot('2.37'), 2)
+  assert.equal(normalizeLot(1.234), 1)
   for (const value of ['', null, undefined, NaN, Infinity, 'invalid']) assert.equal(normalizeLot(value), 10)
 })
 
 test('cumulative entries increase on entry and persist through completed scenes', () => {
   const state = activeSimulation(() => 0.5)
-  for (let tick = 0; tick < 4; tick++) advanceSimulation(state, 0.01, () => 0.5)
+  for (let tick = 0; tick < 4; tick++) advanceSimulation(state, 1, () => 0.5)
   assert.equal(state.entryCount, 1)
-  for (let tick = 0; tick < MAX_HOLD_TICKS; tick++) advanceSimulation(state, 0.01, () => 0.5)
+  for (let tick = 0; tick < MAX_HOLD_TICKS; tick++) advanceSimulation(state, 1, () => 0.5)
   assert.equal(state.position, null)
   assert.equal(state.entryCount, 1)
   assert.equal(state.tradeCount, 1)
-  for (let tick = 0; tick < 10 && !state.position; tick++) advanceSimulation(state, 0.01, () => 0.5)
+  for (let tick = 0; tick < 10 && !state.position; tick++) advanceSimulation(state, 1, () => 0.5)
   assert.equal(state.entryCount, 2)
   assert.ok(state.position)
 })
@@ -156,7 +154,7 @@ test('cumulative entries increase on entry and persist through completed scenes'
 test('long runs preserve OHLC, accounting, bounded history and exact TP/SL prices', () => {
   const random = seededRandom(103)
   const state = activeSimulation(random)
-  for (let tick = 0; tick < 10000; tick++) advanceSimulation(state, 0.01, random)
+  for (let tick = 0; tick < 10000; tick++) advanceSimulation(state, 1, random)
   assert.ok(state.tradeCount > 20)
   assert.equal(state.entryCount, state.tradeCount + (state.position ? 1 : 0))
   assert.equal(state.winCount + state.lossCount, state.tradeCount)
@@ -185,11 +183,11 @@ test('independent starts vary history, directions, scene paths and win rates', (
     if (historyMove > 0) rising++
     if (historyMove < 0) falling++
     paths.add(state.candles.map(c => `${c.open}/${c.high}/${c.low}/${c.close}`).join(','))
-    for (let tick = 0; tick < 6 && !state.position; tick++) advanceSimulation(state, 0.01, random)
+    for (let tick = 0; tick < 6 && !state.position; tick++) advanceSimulation(state, 1, random)
     sides.add(state.position.side)
     bends.add(state.position.pathBend)
     outcomes.add(state.position.exitTarget)
-    for (let tick = 0; tick < 400; tick++) advanceSimulation(state, 0.01, random)
+    for (let tick = 0; tick < 400; tick++) advanceSimulation(state, 1, random)
     rates.add((state.winCount / state.tradeCount).toFixed(3))
   }
   assert.equal(paths.size, 80)
