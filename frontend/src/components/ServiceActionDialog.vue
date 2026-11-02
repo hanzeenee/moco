@@ -11,9 +11,11 @@
           <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.png" alt="" aria-hidden="true" /><span><strong>{{ $t('텔레그램') }}</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
         </div>
       </v-card-text>
-      <v-card-actions class="service-dialog-actions">
-        <v-btn v-if="modelValue === 'free'" class="service-dialog-primary" @click="$emit('update:modelValue', 'utility-login')">{{ $t('로그인') }}</v-btn>
-        <v-btn v-if="modelValue === 'free'" variant="text" @click="$emit('update:modelValue', 'infinox')">{{ $t('가입 안내 보기') }}</v-btn>
+      <v-card-actions class="service-dialog-actions" :class="{ 'free-dialog-actions': modelValue === 'free' }">
+        <div v-if="modelValue === 'free'" class="free-action-group">
+          <v-btn class="service-dialog-primary" @click="$emit('update:modelValue', 'utility-login')">{{ $t('로그인') }}</v-btn>
+          <v-btn variant="text" @click="$emit('update:modelValue', 'infinox')">{{ $t('가입 안내 보기') }}</v-btn>
+        </div>
         <v-btn variant="text" @click="close">{{ $t('닫기') }}</v-btn>
       </v-card-actions>
     </v-card>
@@ -69,7 +71,11 @@ export default {
 .service-dialog-text { color: #bdc1c8; font-size: 15px; line-height: 1.9; padding: 12px 18px !important; word-break: keep-all; overflow-wrap: anywhere; }
 .service-dialog-text p + p { margin-top: 12px; }
 .service-dialog-actions { justify-content: flex-end; flex-wrap: wrap; gap: 4px; padding: 10px; }
-.service-dialog-actions > .v-btn { margin-inline-start: 0 !important; }
+.service-dialog-actions > .v-btn, .free-action-group > .v-btn { margin-inline-start: 0 !important; }
+.free-dialog-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.free-action-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; }
+.free-action-group > .v-btn { min-width: 0; max-width: 100%; }
+.free-action-group :deep(.v-btn__content) { white-space: normal; text-align: center; }
 .service-dialog-primary { background: #ffd000; color: #000 !important; }
 .service-dialog.infinox-dialog { padding: 0; max-height: calc(100dvh - 48px); }
 .infinox-dialog .service-dialog-title { flex: 0 0 auto; padding: 23px 26px 12px; font-size: 24px; }
