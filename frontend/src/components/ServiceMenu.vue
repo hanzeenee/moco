@@ -23,11 +23,12 @@
 <script>
 import ServiceActionDialog from './ServiceActionDialog.vue'
 import { utilityRequest } from '../lib/utilityAccess'
-import { serviceUrl } from '../data/serviceLinks'
+import { businessContacts, serviceUrl } from '../data/serviceLinks'
 import kakaotalkLogo from '../assets/brand/kakaotalk-mark.png'
 import kmongLogo from '../assets/brand/kmong-mark.png'
 import infinoxLogo from '../assets/brand/infinox-mark.png'
 import utilityLogo from '../assets/brand/utility-indicator.png'
+import telegramLogo from '../assets/brand/telegram-color-mark.png'
 
 export default {
   name: 'ServiceMenu',
@@ -36,7 +37,7 @@ export default {
     return {
       notice: '',
       checkingLibrary: false,
-      services: [
+      baseServices: [
         { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo, external: true },
         { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo, external: true },
         { key: 'free', title: '무료 유틸리티 지표', description: '가입 확인 고객 전용', logo: utilityLogo, external: false },
@@ -45,14 +46,22 @@ export default {
       ],
     }
   },
+  computed: {
+    services() {
+      return this.baseServices.map(item => item.key === 'development' && this.$locale === 'en'
+        ? { ...item, description: '텔레그램으로 상담하기', logo: telegramLogo, href: businessContacts.telegram }
+        : item)
+    },
+  },
   methods: {
-    elementFor(item) { return serviceUrl(item.key) ? 'a' : 'button' },
+    urlFor(item) { return item.href || serviceUrl(item.key) },
+    elementFor(item) { return this.urlFor(item) ? 'a' : 'button' },
     attributesFor(item) {
-      const href = serviceUrl(item.key)
+      const href = this.urlFor(item)
       return href ? { href, target: '_blank', rel: 'noopener noreferrer' } : { type: 'button', disabled: item.key === 'free' && this.checkingLibrary, 'aria-busy': item.key === 'free' && this.checkingLibrary }
     },
     async activate(item) {
-      if (serviceUrl(item.key)) return
+      if (this.urlFor(item)) return
       if (item.key !== 'free') { this.notice = item.key; return }
       if (this.checkingLibrary) return
       this.checkingLibrary = true

@@ -11,6 +11,7 @@ export const english = {
   "서비스 바로가기": "Explore our services",
   "개발 의뢰": "Development inquiry",
   "카카오톡으로 상담하기": "Get in touch on KakaoTalk",
+  "텔레그램으로 상담하기": "Get in touch on Telegram",
   "개발 실적·후기": "Projects & reviews",
   "판매 내역과 고객 후기": "Sales history and customer reviews",
   "무료 유틸리티 지표": "Free utility indicators",
