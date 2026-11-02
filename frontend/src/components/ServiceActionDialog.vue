@@ -1,9 +1,10 @@
 <template>
-  <v-dialog :model-value="Boolean(modelValue)" max-width="460" theme="dark" aria-labelledby="service-dialog-title" @update:model-value="!$event && close()">
-    <v-card class="service-dialog">
+  <v-dialog :model-value="Boolean(modelValue)" :max-width="modelValue === 'infinox' ? 760 : 460" theme="dark" aria-labelledby="service-dialog-title" @update:model-value="!$event && close()">
+    <v-card class="service-dialog" :class="{ 'infinox-dialog': modelValue === 'infinox' }">
       <v-card-title id="service-dialog-title" class="service-dialog-title">{{ content.title }}</v-card-title>
       <v-card-text class="service-dialog-text">
-        <p v-for="paragraph in content.paragraphs" :key="paragraph">{{ paragraph }}</p>
+        <InfinoxGuide v-if="modelValue === 'infinox'" />
+        <p v-for="paragraph in modelValue === 'infinox' ? [] : content.paragraphs" :key="paragraph">{{ paragraph }}</p>
         <div v-if="modelValue === 'business'" class="business-contacts">
           <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>이메일</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
           <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.png" alt="" aria-hidden="true" /><span><strong>텔레그램</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
@@ -21,6 +22,7 @@
 <script>
 import { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn } from 'vuetify/components'
 import { businessContacts, serviceUrl } from '../data/serviceLinks'
+import InfinoxGuide from './InfinoxGuide.vue'
 
 const notices = {
   development: {
@@ -41,13 +43,13 @@ const notices = {
   },
   infinox: {
     title: '인피녹스 가입 안내',
-    paragraphs: ['인피녹스 가입 방법과 상세 안내를 준비 중입니다.', '가입 안내가 준비되면 이곳에서 확인할 수 있어요.'],
+    paragraphs: [],
   },
 }
 
 export default {
   name: 'ServiceActionDialog',
-  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn },
+  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn, InfinoxGuide },
   props: { modelValue: { type: String, default: '' } },
   emits: ['update:modelValue'],
   computed: {
@@ -67,6 +69,10 @@ export default {
 .service-dialog-actions { justify-content: flex-end; flex-wrap: wrap; gap: 4px; padding: 10px; }
 .service-dialog-actions > .v-btn { margin-inline-start: 0 !important; }
 .service-dialog-primary { background: #ffd000; color: #000 !important; }
+.service-dialog.infinox-dialog { padding: 0; max-height: calc(100dvh - 48px); }
+.infinox-dialog .service-dialog-title { flex: 0 0 auto; padding: 23px 26px 12px; font-size: 24px; }
+.infinox-dialog .service-dialog-text { min-height: 0; overflow-y: auto; padding: 4px 26px 22px !important; overscroll-behavior: contain; }
+.infinox-dialog .service-dialog-actions { flex: 0 0 auto; padding: 10px 20px; border-top: 1px solid #2c3036; background: #111; }
 .business-contacts { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .contact-link { display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px; gap: 12px; align-items: center; padding: 14px; border: 1px solid #383838; border-radius: 7px; color: #d4d8df; text-decoration: none; }
 .contact-link > span:nth-child(2) { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -76,6 +82,9 @@ export default {
 .contact-link:hover { background: #1a1a1a; border-color: #b6981d; }
 .contact-link:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
 @media (max-width: 480px) {
+  .infinox-dialog .service-dialog-title { padding: 18px 16px 12px; font-size: 21px; }
+  .infinox-dialog .service-dialog-text { padding: 4px 16px 18px !important; }
+  .infinox-dialog .service-dialog-actions { padding: 8px 12px; }
   .contact-link { grid-template-columns: 20px minmax(0, 1fr) 16px; gap: 8px; padding: 12px; }
   .contact-link > span:nth-child(2) { display: contents; }
   .gmail-icon, .telegram-icon { display: block; width: 20px; height: 20px; object-fit: contain; }
