@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../components/HomeView.vue'
+import UtilityLibrary from '../components/UtilityLibrary.vue'
 import LectureView from '../components/LectureView.vue'
 import EventView from '../components/EventView.vue'
 import ClassroomView from '../components/ClassroomView.vue'
 
 const routes = [
+  { path: '/utilities', name: 'utilities', component: UtilityLibrary },
   {
     path: '/',
     name: 'home',

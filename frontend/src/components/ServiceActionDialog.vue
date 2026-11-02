@@ -4,6 +4,7 @@
       <v-card-title id="service-dialog-title" class="service-dialog-title">{{ content.title }}</v-card-title>
       <v-card-text class="service-dialog-text">
         <InfinoxGuide v-if="modelValue === 'infinox'" />
+        <UtilityAccountLogin v-if="modelValue === 'utility-login'" @authenticated="close" />
         <p v-for="paragraph in modelValue === 'infinox' ? [] : content.paragraphs" :key="paragraph">{{ paragraph }}</p>
         <div v-if="modelValue === 'business'" class="business-contacts">
           <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>이메일</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
@@ -11,7 +12,7 @@
         </div>
       </v-card-text>
       <v-card-actions class="service-dialog-actions">
-        <v-btn v-if="modelValue === 'free'" class="service-dialog-primary" :href="contactUrl" target="_blank" rel="noopener noreferrer" @click="close">카카오톡으로 문의하기</v-btn>
+        <v-btn v-if="modelValue === 'free'" class="service-dialog-primary" @click="$emit('update:modelValue', 'utility-login')">로그인</v-btn>
         <v-btn v-if="modelValue === 'free'" variant="text" @click="$emit('update:modelValue', 'infinox')">가입 안내 보기</v-btn>
         <v-btn variant="text" @click="close">닫기</v-btn>
       </v-card-actions>
@@ -21,10 +22,12 @@
 
 <script>
 import { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn } from 'vuetify/components'
-import { businessContacts, serviceUrl } from '../data/serviceLinks'
+import { businessContacts } from '../data/serviceLinks'
+import UtilityAccountLogin from './UtilityAccountLogin.vue'
 import InfinoxGuide from './InfinoxGuide.vue'
 
 const notices = {
+  'utility-login': { title: '인피녹스 계좌번호', paragraphs: [] },
   development: {
     title: '개발 의뢰',
     paragraphs: ['MT5 EA, 인디케이터, TradingView 지표 제작을 상담할 수 있어요.', '카카오톡 상담 연결을 준비 중입니다.'],
@@ -35,7 +38,7 @@ const notices = {
   },
   free: {
     title: '무료 유틸리티 지표',
-    paragraphs: ['인피녹스 가입이 확인된 고객에게 제공되는 자료입니다.', '카카오톡에서 가입 확인 후 전용 그룹방으로 초대해 드립니다.'],
+    paragraphs: ['MOCONIX 추천 링크로 가입하고 계좌 등록이 확인된 고객을 위한 전용 자료실입니다.', '등록된 인피녹스 계좌번호로 로그인하면 자료실이 새 창으로 열립니다.'],
   },
   business: {
     title: '비즈니스 제안',
@@ -49,13 +52,12 @@ const notices = {
 
 export default {
   name: 'ServiceActionDialog',
-  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn, InfinoxGuide },
+  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn, InfinoxGuide, UtilityAccountLogin },
   props: { modelValue: { type: String, default: '' } },
   emits: ['update:modelValue'],
   computed: {
     content() { return notices[this.modelValue] || { title: '', paragraphs: [] } },
     contacts() { return businessContacts },
-    contactUrl() { return serviceUrl('freeInquiry') },
   },
   methods: { close() { this.$emit('update:modelValue', '') } },
 }

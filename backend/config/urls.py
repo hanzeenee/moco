@@ -3,10 +3,14 @@ from django.urls import path, re_path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from dashboard import views as dashboard_views
+from utilities import views as utility_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
+    path("api/utilities/", include("utilities.urls")),
+    path("utilities", utility_views.library_page, name="utility-library"),
+    path("utilities/", utility_views.library_page),
     path("api/", include("dashboard.urls")),
 
     path("", dashboard_views.dashboard_home, name="dashboard_home"),
