@@ -58,8 +58,8 @@
 </template>
 
 <script>
-import systemTradingKo from '../assets/guides/mt5-system-trading-ko.png'
-import algoTradingEn from '../assets/guides/mt5-algo-trading-en.png'
+import systemTradingKo from '../assets/guides/mt5-system-trading-ko.svg'
+import algoTradingEn from '../assets/guides/mt5-algo-trading-en.svg'
 
 export default {
   name: 'UtilityInstallGuide',
