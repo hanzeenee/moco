@@ -5,11 +5,10 @@
       <h2 id="infinox-signup-title">{{ $t('인피녹스 회원가입') }}</h2>
       <p class="signup-description">{{ $t('아래 전용 링크에서 가입을 진행해 주세요.') }}</p>
       <a class="signup-button" :href="links.signup" target="_blank" rel="noopener noreferrer" :aria-label="$t('INFINOX 가입하기 (새 탭)')"><span>{{ $t('INFINOX 가입하기') }}</span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
-      <div class="referral-meta"><span class="ib-id">IB ID {{ links.ibId }}</span><span>{{ $t('전용 링크 이용 시 추천인 코드 별도 입력 불필요') }}</span></div>
     </section>
 
     <section class="guide-section" aria-labelledby="infinox-process-title">
-      <div class="section-heading"><h3 id="infinox-process-title">{{ $t('가입 후 이용 안내') }}</h3><span>{{ $t('CS팀 전달 안내 기준') }}</span></div>
+      <div class="section-heading"><h3 id="infinox-process-title">{{ $t('가입 후 이용 안내') }}</h3></div>
       <div class="process-grid">
         <div class="process-card"><span class="process-label">{{ $t('가입 승인') }}</span><strong>{{ $t('평일 10:00부터') }}</strong><p>{{ $t('서류 심사 후 순차적으로 승인됩니다.') }}</p></div>
         <div class="process-card"><span class="process-label">{{ $t('거래계좌 개설') }}</span><strong>{{ $t('승인 후 즉시 개설') }}</strong><p>{{ $t('회원가입 승인이 완료된 뒤 개설할 수 있습니다.') }}</p></div>
@@ -60,8 +59,6 @@ export default {
 .signup-button { display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 56px; margin-top: 20px; padding: 12px 18px; border: 1px solid #ffd000; border-radius: 8px; background: #ffd000; color: #151515; font-size: 18px; font-weight: 700; text-decoration: none; transition: background .16s, box-shadow .16s; }
 .signup-button .mdi { font-size: 23px; }
 .signup-button:hover { background: #ffdf46; box-shadow: 0 0 18px #ffd00025; }
-.referral-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 12px; color: #aab0bb; font-size: 12px; }
-.ib-id { padding: 2px 7px; border: 1px solid #51482a; border-radius: 4px; color: #d1c7a1; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .guide-section { margin-top: 24px; }
 .infinox-guide h3 { margin: 0 0 10px; color: #edf0f4; font-size: 15px; font-weight: 600; line-height: 1.5; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; }
