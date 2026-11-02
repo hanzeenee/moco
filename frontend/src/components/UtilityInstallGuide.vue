@@ -23,11 +23,9 @@
       <ol class="guide-steps" role="list">
         <li v-for="(step, index) in steps" :key="`${activeType}-${index}`">
           <span class="step-number" aria-hidden="true">{{ index + 1 }}</span>
-          <div><h3>{{ $t(step.title) }}</h3><p>{{ $t(step.body) }}</p><code v-if="step.path">{{ step.path }}</code>
-            <figure v-if="step.toolbar" class="toolbar-example">
-              <img :src="$locale === 'en' ? algoTradingEn : systemTradingKo" :alt="$t('한국어 MT5 · 시스템트레이딩 버튼')" />
-              <figcaption>{{ $t('한국어 MT5 · 시스템트레이딩 버튼') }}</figcaption>
-            </figure>
+          <div><h3>{{ $t(step.title) }}</h3>
+            <p v-if="step.toolbar" class="toolbar-instruction">{{ toolbarInstruction[0] }}<img class="toolbar-inline-image" :src="$locale === 'en' ? algoTradingEn : systemTradingKo" :alt="$t('시스템트레이딩')" />{{ toolbarInstruction[1] }}</p>
+            <p v-else>{{ $t(step.body) }}</p><code v-if="step.path">{{ step.path }}</code>
       <aside v-if="step.license" class="license-settings" aria-labelledby="license-settings-title">
         <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t('온라인 인증이 필요한 EA') }}</h3>
         <p>{{ $t('차트에 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.') }}</p>
@@ -77,6 +75,7 @@ export default {
     }
   },
   computed: {
+    toolbarInstruction() { return this.$t('EA 설정에서 시스템트레이딩을 허용하고, MT5 상단의 {button} 버튼도 활성화해 주세요.').split('{button}') },
     steps() {
       const save = { title: 'EX5 파일 저장', body: 'MT5의 파일 → 데이터 폴더 열기에서 아래 폴더에 다운로드한 EX5 파일을 넣어주세요.', path: this.activeType === 'ea' ? 'MQL5 → Experts' : 'MQL5 → Indicators' }
       return this.activeType === 'ea' ? [
@@ -84,7 +83,7 @@ export default {
         { title: '탐색기에서 EA 확인', body: 'MT5 탐색기의 시스템트레이딩에서 마우스 오른쪽 버튼 → 새로고침을 선택해 주세요.' },
         { title: '온라인 인증 설정 확인', body: '온라인 인증을 사용하는 EA만 아래 설정을 추가해 주세요.', license: true },
         { title: '차트에 적용', body: '원하는 종목의 차트를 열고 EA를 끌어다 놓으세요. 해당 EA에 안내된 시간봉과 입력값을 확인해 주세요.' },
-        { title: '시스템트레이딩 허용', body: 'EA 설정에서 시스템트레이딩을 허용한 뒤, 아래 이미지와 같은 MT5 상단의 시스템트레이딩 버튼을 활성화해 주세요.', toolbar: true },
+        { title: '시스템트레이딩 허용', toolbar: true },
       ] : [
         save,
         { title: '탐색기에서 지표 확인', body: 'MT5 탐색기의 인디케이터에서 마우스 오른쪽 버튼 → 새로고침을 선택해 주세요.' },
@@ -129,9 +128,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
 .guide-steps h3 { margin: 2px 0 7px; color: #e7eaf0; font-size: 15px; font-weight: 600; }
 .guide-steps p { margin: 0; color: #a1acbc; font-size: 14px; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
 .guide-steps code { display: inline-block; margin-top: 10px; padding: 8px 13px; border: 1px solid #363e49; border-radius: 6px; background: #070809; color: #e3e8f0; font-size: 13px; }
-.toolbar-example { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 14px 0 0; padding: 14px 16px; border: 1px solid #343c47; border-radius: 8px; background: #080a0c; }
-.toolbar-example img { display: block; width: auto; height: 44px; max-width: 100%; object-fit: contain; }
-.toolbar-example figcaption { color: #9da9b8; font-size: 12px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.toolbar-inline-image { display: inline-block; width: auto; height: 28px; max-width: 100%; margin: 0 4px; vertical-align: middle; object-fit: contain; }
 .license-settings { margin-top: 13px; padding: 20px; border: 1px solid #625522; border-radius: 9px; background: #15140f; }
 .license-settings h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; color: #e8d885; font-size: 14px; font-weight: 600; }
 .license-settings h3 .mdi { font-size: 18px; }
@@ -174,7 +171,6 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
   .license-url { padding: 10px; gap: 9px; }
   .license-url code { font-size: 12px; }
   .indicator-note { padding: 14px 12px; }
-  .toolbar-example { gap: 10px; padding: 12px; }
-  .toolbar-example img { height: 40px; }
+  .toolbar-inline-image { height: 26px; }
 }
 </style>

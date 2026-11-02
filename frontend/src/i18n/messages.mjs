@@ -1,5 +1,6 @@
 export const english = {
-  "한국어 MT5 · 시스템트레이딩 버튼": "English MT5 \u00b7 Algo Trading button",
+  "EA 설정에서 시스템트레이딩을 허용하고, MT5 상단의 {button} 버튼도 활성화해 주세요.": "Allow Algo Trading in the EA settings, and enable the {button} button in the MT5 toolbar.",
+  "시스템트레이딩": "Algo Trading",
   "온라인 인증 설정 확인": "Check online authorization settings",
   "온라인 인증을 사용하는 EA만 아래 설정을 추가해 주세요.": "Complete the settings below only if your EA uses online authorization.",
   "무료 유틸리티 자료실": "Free utility library",
@@ -21,7 +22,6 @@ export const english = {
   "차트에 적용": "Attach to a chart",
   "원하는 종목의 차트를 열고 EA를 끌어다 놓으세요. 해당 EA에 안내된 시간봉과 입력값을 확인해 주세요.": "Open a chart for your instrument and drag the EA onto it. Check the timeframe and input settings specified for that EA.",
   "시스템트레이딩 허용": "Enable Algo Trading",
-  "EA 설정에서 시스템트레이딩을 허용한 뒤, 아래 이미지와 같은 MT5 상단의 시스템트레이딩 버튼을 활성화해 주세요.": "Allow Algo Trading in the EA settings, then enable the Algo Trading button in the MT5 toolbar as shown below.",
   "탐색기에서 지표 확인": "Find the indicator in Navigator",
   "MT5 탐색기의 인디케이터에서 마우스 오른쪽 버튼 → 새로고침을 선택해 주세요.": "In MT5 Navigator, right-click Indicators and select Refresh.",
   "원하는 차트에 인디케이터를 끌어다 놓고, 입력값·색상·알림 등 필요한 설정을 확인한 뒤 적용해 주세요.": "Drag the indicator onto your chart, review its inputs, colors and alert options, then apply it.",
