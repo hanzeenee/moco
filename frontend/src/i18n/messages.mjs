@@ -51,7 +51,7 @@ export const english = {
   "인피녹스 계좌번호를 숫자로 입력해 주세요.": "Enter your INFINOX account number using digits only.",
   "등록되지 않았거나 이용이 중지된 계좌번호입니다.": "This account number is not registered or access has been disabled.",
   "자료실 로그인이 필요합니다.": "Please log in to the library.",
-  "MOCONIX IB 추천 링크": "MOCONIX IB referral link",
+  "MOCONIX 제휴 브로커": "MOCONIX Partner Broker",
   "인피녹스 회원가입": "Sign up with INFINOX",
   "아래 전용 링크에서 가입을 진행해 주세요.": "Use the referral link below to sign up.",
   "INFINOX 가입하기": "Sign up with INFINOX",

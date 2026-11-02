@@ -1,7 +1,7 @@
 <template>
   <div class="infinox-guide">
     <section class="signup-panel" aria-labelledby="infinox-signup-title">
-      <div class="signup-brand"><img src="../assets/brand/infinox-mark.png" alt="" /><span>{{ $t('MOCONIX IB 추천 링크') }}</span></div>
+      <div class="signup-brand"><img src="../assets/brand/infinox-mark.png" alt="" /><span>{{ $t('MOCONIX 제휴 브로커') }}</span></div>
       <h2 id="infinox-signup-title">{{ $t('인피녹스 회원가입') }}</h2>
       <p class="signup-description">{{ $t('아래 전용 링크에서 가입을 진행해 주세요.') }}</p>
       <a class="signup-button" :href="links.signup" target="_blank" rel="noopener noreferrer" :aria-label="$t('INFINOX 가입하기 (새 탭)')"><span>{{ $t('INFINOX 가입하기') }}</span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
