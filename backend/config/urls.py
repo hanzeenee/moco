@@ -4,10 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from dashboard import views as dashboard_views
 from utilities import views as utility_views
+from utilities.licensing import check_license
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
+    path("api/licenses/check/", check_license, name="ea-license-check"),
     path("api/utilities/", include("utilities.urls")),
     path("utilities", utility_views.library_page, name="utility-library"),
     path("utilities/", utility_views.library_page),

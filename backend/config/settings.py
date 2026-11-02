@@ -136,3 +136,6 @@ LOGGING = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Native MT5 license checks: best-effort per-minute / IP / worker limit.
+MOCONIX_LICENSE_RATE_LIMIT = int(os.environ.get("MOCONIX_LICENSE_RATE_LIMIT", "600"))

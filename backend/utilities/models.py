@@ -1,11 +1,23 @@
 from django.core.validators import RegexValidator
 from django.db import models
 
+SERVER_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9 ._()@+:#/\-]{0,127}$"
+PROGRAM_PATTERN = r"^[a-z0-9][a-z0-9_-]{0,63}$"
+
 
 class UtilityAccessAccount(models.Model):
     account_number = models.CharField(
         "인피녹스 계좌번호", max_length=20, unique=True,
         validators=[RegexValidator(r"^[0-9]{1,20}$", "계좌번호는 숫자만 입력해 주세요.")],
+    )
+    server_name = models.CharField(
+        "MT5 거래 서버명", max_length=128, blank=True,
+        validators=[RegexValidator(SERVER_PATTERN, "MT5에 표시된 서버명을 정확히 입력해 주세요.")],
+        help_text="EA 인증에 필수입니다. 비어 있으면 자료실만 이용할 수 있습니다.",
+    )
+    ea_enabled = models.BooleanField(
+        "EA 이용 허용", default=True,
+        help_text="서버명이 등록된 활성 계좌는 활성화된 EA 프로그램을 이용할 수 있습니다.",
     )
     is_active = models.BooleanField("이용 허용", default=True)
     note = models.CharField("관리 메모", max_length=200, blank=True)
@@ -18,3 +30,18 @@ class UtilityAccessAccount(models.Model):
 
     def __str__(self):
         return "등록 계좌 · " + self.account_number[-4:]
+
+
+class EAProgram(models.Model):
+    code = models.CharField("프로그램 ID", max_length=64, unique=True, validators=[RegexValidator(PROGRAM_PATTERN)])
+    name = models.CharField("프로그램 이름", max_length=120)
+    is_active = models.BooleanField("실행 허용", default=True)
+    created_at = models.DateTimeField("등록일", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "EA 프로그램"
+        verbose_name_plural = "EA 프로그램"
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.name
