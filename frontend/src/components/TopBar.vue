@@ -2,20 +2,23 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="header-column">
-        <button class="brand" type="button" aria-label="MOCONIX 홈" @click="goHome">
+        <button class="brand" type="button" :aria-label="$t('MOCONIX 홈')" @click="goHome">
           <img class="brand-logo" src="@/assets/brand/moconix-wordmark.png" alt="MOCONIX" />
         </button>
       </div>
       <div class="header-column header-column-end">
-        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube 새 탭으로 열기"><img class="youtube-logo" src="../assets/brand/youtube-wordmark.png" alt="YouTube" /></a>
+        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" src="../assets/brand/youtube-wordmark.png" alt="YouTube" /></a>
+        <LanguagePicker />
       </div>
     </div>
   </header>
 </template>
 
 <script>
+import LanguagePicker from './LanguagePicker.vue'
 export default {
   name: 'TopBar',
+  components: { LanguagePicker },
   emits: ['go-home'],
   methods: {
     goHome() {
@@ -30,7 +33,7 @@ export default {
 /* Mirror the body columns so the visible header logos share their content edges. */
 .topbar-inner { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--page-gap); width: 100%; max-width: var(--page-width); margin: 0 auto; padding: 0 var(--page-gutter); box-sizing: border-box; }
 .header-column { display: flex; align-items: center; justify-self: center; width: 100%; max-width: var(--content-width); min-width: 0; }
-.header-column-end { justify-content: flex-end; }
+.header-column-end { justify-content: flex-end; gap: 20px; }
 .brand { position: relative; display: block; width: 184px; max-width: 100%; min-width: 0; flex: 0 1 184px; height: 38px; padding: 0; border: 0; background: transparent; cursor: pointer; overflow: hidden; }
 /* Frame the supplied wordmark without changing its proportions. */
 .brand-logo { position: absolute; top: 50%; left: -9%; display: block; width: 118%; max-width: none; height: auto; transform: translateY(-50%); }
@@ -47,9 +50,10 @@ export default {
 }
 @media (max-width: 600px) {
   .topbar { min-height: 72px; padding-top: 18px; padding-bottom: 18px; }
-  .topbar-inner { gap: 16px; }
-  .brand { width: 156px; flex-basis: 156px; height: 32px; }
-  .youtube-link { flex-basis: 96px; width: 96px; height: 24px; }
+  .topbar-inner { gap: 12px; }
+  .header-column-end { gap: 10px; }
+  .brand { width: 140px; flex-basis: 140px; height: 32px; }
+  .youtube-link { flex-basis: 80px; width: 80px; height: 24px; }
 }
 @media (prefers-reduced-motion: reduce) { .youtube-link { transition: none; } }
 </style>

@@ -85,5 +85,6 @@ def library_data(request):
 @require_GET
 def library_page(request):
     if registered_account(request) is None:
-        return render(request, "utilities/access_required.html", status=403)
+        language = "en" if request.COOKIES.get("moconix_language") == "en" else "ko"
+        return render(request, "utilities/access_required.html", {"english": language == "en", "language": language}, status=403)
     return render(request, "home.html")

@@ -1,6 +1,6 @@
 <template>
-  <section class="service-menu" aria-label="MOCONIX 서비스">
-    <nav class="service-list" aria-label="서비스 바로가기">
+  <section class="service-menu" :aria-label="$t('MOCONIX 서비스')">
+    <nav class="service-list" :aria-label="$t('서비스 바로가기')">
       <component
         :is="elementFor(item)"
         v-for="item in services"
@@ -11,7 +11,7 @@
       >
         <span v-if="item.logo" class="service-logo-frame" aria-hidden="true"><img class="service-logo" :class="{ 'service-logo--mt5': item.key === 'free' }" :src="item.logo" alt="" /></span>
         <span v-else class="service-symbol mdi" :class="item.icon" aria-hidden="true"></span>
-        <span class="service-copy"><span class="service-title">{{ item.title }}</span><span class="service-description">{{ item.description }}</span></span>
+        <span class="service-copy"><span class="service-title">{{ $t(item.title) }}</span><span class="service-description">{{ $t(item.description) }}</span></span>
         <span class="service-arrow mdi" :class="item.external ? 'mdi-arrow-top-right' : 'mdi-arrow-right'" aria-hidden="true"></span>
       </component>
     </nav>
@@ -22,6 +22,7 @@
 
 <script>
 import ServiceActionDialog from './ServiceActionDialog.vue'
+import { utilityRequest } from '../lib/utilityAccess'
 import { serviceUrl } from '../data/serviceLinks'
 import kakaotalkLogo from '../assets/brand/kakaotalk-mark.png'
 import kmongLogo from '../assets/brand/kmong-mark.png'
@@ -34,6 +35,7 @@ export default {
   data() {
     return {
       notice: '',
+      checkingLibrary: false,
       services: [
         { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo, external: true },
         { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo, external: true },
@@ -47,9 +49,20 @@ export default {
     elementFor(item) { return serviceUrl(item.key) ? 'a' : 'button' },
     attributesFor(item) {
       const href = serviceUrl(item.key)
-      return href ? { href, target: '_blank', rel: 'noopener noreferrer' } : { type: 'button' }
+      return href ? { href, target: '_blank', rel: 'noopener noreferrer' } : { type: 'button', disabled: item.key === 'free' && this.checkingLibrary, 'aria-busy': item.key === 'free' && this.checkingLibrary }
     },
-    activate(item) { if (!serviceUrl(item.key)) this.notice = item.key },
+    async activate(item) {
+      if (serviceUrl(item.key)) return
+      if (item.key !== 'free') { this.notice = item.key; return }
+      if (this.checkingLibrary) return
+      this.checkingLibrary = true
+      try {
+        const session = await utilityRequest('session')
+        if (session.authenticated) { await this.$router.push('/utilities'); return }
+      } catch { /* Keep the sign-in entry available if the session check cannot complete. */ }
+      finally { this.checkingLibrary = false }
+      this.notice = 'free'
+    },
   },
 }
 </script>

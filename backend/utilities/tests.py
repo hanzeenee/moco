@@ -91,3 +91,24 @@ class UtilityAccessTests(TestCase):
                 call_command("register_utility_account", stdout=StringIO())
         self.assertEqual(UtilityAccessAccount.objects.count(), 1)
         self.assertEqual(self.client.get("/admin/utilities/utilityaccessaccount/").status_code, 302)
+
+    def test_language_preference_translates_denial_without_granting_access(self):
+        self.client.cookies["moconix_language"] = "en"
+        response = self.client.get("/utilities")
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Library login required", status_code=403)
+        self.assertContains(response, 'lang="en"', status_code=403)
+        self.assertFalse(self.client.get(reverse("utility-session")).json()["authenticated"])
+        self.client.cookies["moconix_language"] = "unsupported"
+        response = self.client.get("/utilities")
+        self.assertContains(response, "자료실 로그인이 필요합니다", status_code=403)
+
+    def test_home_revisit_and_language_changes_preserve_original_eight_hour_grant(self):
+        self.login()
+        expires = self.client.session[EXPIRY_KEY]
+        self.assertAlmostEqual(expires - time.time(), 8 * 60 * 60, delta=2)
+        self.client.get("/")
+        self.client.cookies["moconix_language"] = "en"
+        self.assertTrue(self.client.get(reverse("utility-session")).json()["authenticated"])
+        self.assertEqual(self.client.get("/utilities").status_code, 200)
+        self.assertEqual(self.client.session[EXPIRY_KEY], expires)

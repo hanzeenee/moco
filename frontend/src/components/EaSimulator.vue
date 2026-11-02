@@ -1,25 +1,25 @@
 <template>
-  <section ref="simulator" class="simulator" aria-label="가상 EA 트레이딩 체험">
+  <section ref="simulator" class="simulator" :class="{ 'simulator-en': $locale === 'en' }" :aria-label="$t('가상 EA 트레이딩 체험')">
     <header class="sim-heading">
-      <button class="sim-action-btn" type="button" aria-label="돌아가기" @click="$emit('exit')">↶ 돌아가기</button>
-      <button class="sim-action-btn" type="button" aria-label="다시 시작" @click="reset">↻ 다시 시작</button>
+      <button class="sim-action-btn" type="button" :aria-label="$t('돌아가기')" @click="$emit('exit')">↶ {{ $t('돌아가기') }}</button>
+      <button class="sim-action-btn" type="button" :aria-label="$t('다시 시작')" @click="reset">↻ {{ $t('다시 시작') }}</button>
     </header>
 
     <div class="terminal">
-      <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">가상 체험</span></div>
+      <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">{{ $t('가상 체험') }}</span></div>
 
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">클릭하면 자동매매가 시작됩니다</span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>
-        <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">EA 적용하기</button>
+        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">{{ $t('클릭하면 자동매매가 시작됩니다') }}</span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>
+        <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">{{ $t('EA 적용하기') }}</button>
       </div>
-        <span v-if="showLotGuidance" id="lot-guidance" class="ea-apply-hint lot-guidance" role="status" aria-atomic="true">랏수에 따라 손익이 달라집니다</span>
+        <span v-if="showLotGuidance" id="lot-guidance" class="ea-apply-hint lot-guidance" role="status" aria-atomic="true">{{ $t('랏수에 따라 손익이 달라집니다') }}</span>
       </div>
-      <div class="quote-strip" role="group" aria-label="매도·거래량·매수 호가">
+      <div class="quote-strip" role="group" :aria-label="$t('매도·거래량·매수 호가')">
         <span class="quote-label sell">SELL</span>
         <div class="lot-control" :class="{ 'lot-guided': showLotGuidance }">
-          <button class="lot-step" type="button" aria-label="거래량 줄이기" :disabled="Number(lotInput) <= 1" @click="adjustLot(-1)">▾</button>
-          <input id="simulation-lot" v-model.number="lotInput" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="거래량 (랏)" :aria-describedby="showLotGuidance ? 'lot-guidance' : undefined" title="거래량 1~100랏" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
-          <button class="lot-step" type="button" aria-label="거래량 늘리기" :disabled="Number(lotInput) >= 100" @click="adjustLot(1)">▴</button>
+          <button class="lot-step" type="button" :aria-label="$t('거래량 줄이기')" :disabled="Number(lotInput) <= 1" @click="adjustLot(-1)">▾</button>
+          <input id="simulation-lot" v-model.number="lotInput" type="number" min="1" max="100" step="1" inputmode="numeric" :aria-label="$t('거래량 (랏)')" :aria-describedby="showLotGuidance ? 'lot-guidance' : undefined" :title="$t('거래량 1~100랏')" @change="applyLot" @blur="applyLot" @keydown.enter="$event.target.blur()" />
+          <button class="lot-step" type="button" :aria-label="$t('거래량 늘리기')" :disabled="Number(lotInput) >= 100" @click="adjustLot(1)">▴</button>
         </div>
         <span class="quote-label buy">BUY</span>
         <div class="quote-price sell" :aria-label="`SELL ${sellPrice.join('.')}`"><small>{{ sellPrice[0] }}</small><strong>{{ sellPrice[1] }}</strong></div>
@@ -27,7 +27,7 @@
       </div>
 
       <div ref="chart" class="chart">
-        <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" :style="{ height: chartHeight + 'px' }" role="img" aria-label="자동으로 움직이는 가상 금 시세 캔들 차트">
+        <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" :style="{ height: chartHeight + 'px' }" role="img" :aria-label="$t('자동으로 움직이는 가상 금 시세 캔들 차트')">
           <defs><clipPath id="ea-chart-clip"><rect x="0" y="8" :width="plotWidth" :height="chartHeight - 28" /></clipPath></defs>
           <g v-for="line in gridLines" :key="line.value" class="chart-grid"><line x1="0" :x2="plotWidth" :y1="line.y" :y2="line.y"/><text :x="plotWidth + 5" :y="line.y + 3">{{ line.value.toFixed(1) }}</text></g>
           <g clip-path="url(#ea-chart-clip)">
@@ -44,19 +44,19 @@
           <rect :x="plotWidth" :y="priceY(state.price) - 8" width="46" height="16" fill="#173142"/><text :x="plotWidth + 4" :y="priceY(state.price) + 3" fill="#e3f2ff" class="axis-label">{{ state.price.toFixed(2) }}</text>
           <text x="6" :y="chartHeight - 8" class="time-label">{{ timeLabel(chartCandles[0]?.id) }}</text><text :x="plotWidth - 2" :y="chartHeight - 8" text-anchor="end" class="time-label">{{ timeLabel(state.candles[state.candles.length - 1].id) }}</text>
         </svg>
-        <div v-if="state.bankrupt" class="end-overlay"><span>체험 종료</span></div>
+        <div v-if="state.bankrupt" class="end-overlay"><span>{{ $t('체험 종료') }}</span></div>
       </div>
 
-      <div class="ea-status"><span class="status-dot" :class="{ inactive: !state.eaApplied || state.bankrupt }"></span>{{ state.status }}</div>
+      <div class="ea-status"><span class="status-dot" :class="{ inactive: !state.eaApplied || state.bankrupt }"></span>{{ $t(state.status) }}</div>
       <div class="account-stats">
-        <div><span>잔고</span><strong>${{ money(state.balance) }}</strong></div>
-        <div><span>평가금</span><strong>${{ money(state.equity) }}</strong></div>
-        <div><span>수익</span><strong :class="profitClass(openProfit)">{{ openProfit === 0 ? '$0' : signed(openProfit) }}</strong></div>
+        <div><span>{{ $t('잔고') }}</span><strong>${{ money(state.balance) }}</strong></div>
+        <div><span>{{ $t('평가금') }}</span><strong>${{ money(state.equity) }}</strong></div>
+        <div><span>{{ $t('수익') }}</span><strong :class="profitClass(openProfit)">{{ openProfit === 0 ? '$0' : signed(openProfit) }}</strong></div>
       </div>
       <div class="trade-panel">
-        <div class="panel-tab"><span class="trade-label">거래 <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">익절 {{ state.winCount }}회</span><span class="negative">손절 {{ state.lossCount }}회</span></span></div>
-        <div class="trade-scroll" tabindex="0" aria-label="현재 거래 내역">
-          <table><thead><tr><th>종목 / 유형</th><th>거래량</th><th>진입가</th><th>SL</th><th>TP</th><th>현재가</th><th>손익</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : state.eaApplied ? '다음 거래를 기다리고 있어요.' : 'EA 적용 후 거래가 시작돼요.' }}</td></tr></tbody></table>
+        <div class="panel-tab"><span class="trade-label">{{ $t('거래') }} <span>{{ state.entryCount }}</span></span><span class="trade-counts"><span class="positive">{{ $t('익절 {count}회', { count: state.winCount }) }}</span><span class="negative">{{ $t('손절 {count}회', { count: state.lossCount }) }}</span></span></div>
+        <div class="trade-scroll" tabindex="0" :aria-label="$t('현재 거래 내역')">
+          <table><thead><tr><th>{{ $t('종목 / 유형') }}</th><th>{{ $t('거래량') }}</th><th>{{ $t('진입가') }}</th><th>SL</th><th>TP</th><th>{{ $t('현재가') }}</th><th>{{ $t('손익') }}</th></tr></thead><tbody><tr v-if="state.position"><td>XAUUSD <b :class="state.position.side.toLowerCase()">{{ state.position.side }}</b></td><td>{{ state.position.lot }}</td><td>{{ state.position.entry.toFixed(2) }}</td><td>{{ state.position.stop.toFixed(2) }}</td><td>{{ state.position.target.toFixed(2) }}</td><td>{{ state.price.toFixed(2) }}</td><td :class="profitClass(openProfit)">{{ signed(openProfit) }}</td></tr><tr v-else><td colspan="7" class="empty-position">{{ $t(state.bankrupt ? '다시 시작하면 새 잔고로 체험할 수 있어요.' : state.eaApplied ? '다음 거래를 기다리고 있어요.' : 'EA 적용 후 거래가 시작돼요.') }}</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -121,13 +121,14 @@ export default {
     exitMarkers() {
       return this.state.trades.flatMap(trade => {
         const candle = this.chartCandles.find(c => c.id === trade.exitCandleId)
-        return candle ? [{ id: trade.id, x: candle.x, y: this.priceY(trade.exitMid), label: trade.exitTarget === 'OUT' ? '종료' : trade.exitTarget, color: trade.exitTarget === 'TP' ? '#79c2ff' : '#ff858c' }] : []
+        return candle ? [{ id: trade.id, x: candle.x, y: this.priceY(trade.exitMid), label: trade.exitTarget === 'OUT' ? this.$t('종료') : trade.exitTarget, color: trade.exitTarget === 'TP' ? '#79c2ff' : '#ff858c' }] : []
       })
     },
     sellPrice() { return (this.state.price - 0.1).toFixed(2).split('.') },
     buyPrice() { return (this.state.price + 0.1).toFixed(2).split('.') },
     openProfit() { return floatingProfit(this.state) }
   },
+  watch: { $locale() { this.$nextTick(this.fitChartHeight) } },
   mounted() {
     this.resizeObserver = new ResizeObserver(() => {
       this.chartWidth = Math.max(128, Math.floor(this.$refs.chart.getBoundingClientRect().width))
@@ -323,5 +324,7 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
 }
 @media (max-width: 400px) { .ea-apply-hint { left: calc(50% - 14px); } }
 @media (max-width: 360px) { .ea-apply-hint { padding: 3px 5px; font-size: 9px; line-height: 1.15; } }
+.simulator-en .ea-apply-hint { max-width: calc(100% - 180px); }
+@media (max-width: 600px) { .simulator-en .ea-apply-hint { max-width: calc(100vw - 230px); font-size: 9px; } }
 @media (prefers-reduced-motion: reduce) { .lot-control.lot-guided { animation: none; } .apply-ea-btn { animation: none; box-shadow: 0 0 7px #ffd00050; } }
 </style>

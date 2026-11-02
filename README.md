@@ -140,4 +140,12 @@ Back up the database before this irreversible data migration. Keep the accounts 
 
 ## Home Service Menu
 
-The right-hand home panel uses the list layout: a featured development inquiry card, followed by reviews, free utilities, INFINOX guidance, and business proposals. Confirmed external destinations are centralized in frontend/src/data/serviceLinks.js. Development/reviews open KakaoTalk/Kmong in a new tab; free utilities, INFINOX, and business proposals open accessible dialogs. The INFINOX signup URL is pending and no referral URL is guessed. Free utility access is arranged through KakaoTalk verification and group invitation, without restoring site membership. Business contacts are email and Telegram. On narrow screens the service menu stacks below the existing introduction/EA simulator.
+The right-hand home panel has five equal service cards. Confirmed external destinations are centralized in frontend/src/data/serviceLinks.js. Development/reviews open KakaoTalk/Kmong in a new tab; INFINOX and business details use dialogs. The INFINOX referral URL is maintained separately in frontend/src/data/infinoxGuide.js, so its card continues to open the guide.
+
+## Utility Library and Languages
+
+Free utilities use the backend registered-account allowlist described in backend/utilities/README.md. Logging in opens /utilities in the same tab. Returning home does not log out: authenticated clients can reopen the service directly for the remainder of their original eight-hour grant. A small logout control remains in the library. This verifies an allowlisted account number, not actual ownership through INFINOX.
+
+The header's KR/EN capsule and its dropdown align with the right edge of the home service list; YouTube sits immediately to its left. Korean is the default. An explicit choice is kept in localStorage and the non-sensitive moconix_language cookie, and updates html[lang]. No automatic browser-language selection or external translation service is used. Public frontend copy is maintained in frontend/src/i18n/messages.mjs. The protected Django denial page honors the same explicit cookie; admin pages and external platform pages keep their own language settings. Switching languages does not restart the EA demo or change library authorization.
+
+Run npm run test:language and npm run test:simulation from frontend; run python manage.py test utilities accounts from backend.

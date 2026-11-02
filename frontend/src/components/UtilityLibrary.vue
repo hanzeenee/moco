@@ -1,12 +1,12 @@
 <template>
   <section class="utility-library" aria-labelledby="utility-library-title">
-    <div class="library-heading"><div><p class="library-eyebrow">MOCONIX · 등록 고객 전용</p><h1 id="utility-library-title">무료 유틸리티 지표</h1></div><button v-if="authorized" type="button" :disabled="loggingOut" @click="logout">로그아웃</button></div>
+    <div class="library-heading"><div><p class="library-eyebrow">{{ $t('MOCONIX · 등록 고객 전용') }}</p><h1 id="utility-library-title">{{ $t('무료 유틸리티 지표') }}</h1></div><button v-if="authorized" type="button" :disabled="loggingOut" @click="logout">{{ $t('로그아웃') }}</button></div>
     <div class="library-empty" role="status">
-      <template v-if="loading"><p>자료실 접속을 확인하고 있습니다.</p></template>
-      <template v-else-if="authorized"><span class="mdi mdi-file-outline" aria-hidden="true"></span><h2>자료를 준비하고 있습니다</h2><p>유틸리티 지표가 준비되면 이곳에서 안내해 드립니다.</p></template>
-      <template v-else><h2>자료실에 접속할 수 없습니다</h2><p>{{ error }}</p><a href="/">홈으로 돌아가기</a></template>
+      <template v-if="loading"><p>{{ $t('자료실 접속을 확인하고 있습니다.') }}</p></template>
+      <template v-else-if="authorized"><span class="mdi mdi-file-outline" aria-hidden="true"></span><h2>{{ $t('자료를 준비하고 있습니다') }}</h2><p>{{ $t('유틸리티 지표가 준비되면 이곳에서 안내해 드립니다.') }}</p></template>
+      <template v-else><h2>{{ $t('자료실에 접속할 수 없습니다') }}</h2><p>{{ $t(error) }}</p><a href="/">{{ $t('홈으로 돌아가기') }}</a></template>
     </div>
-    <p v-if="logoutError" class="logout-error" role="alert">{{ logoutError }}</p>
+    <p v-if="logoutError" class="logout-error" role="alert">{{ $t(logoutError) }}</p>
   </section>
 </template>
 
@@ -25,7 +25,7 @@ export default {
     async logout() {
       this.loggingOut = true
       this.logoutError = ''
-      try { await utilityRequest('logout', { method: 'POST', headers: { 'X-CSRFToken': csrfToken() } }); window.location.replace('/') }
+      try { await utilityRequest('logout', { method: 'POST', headers: { 'X-CSRFToken': csrfToken() } }); this.authorized = false; await this.$router.replace('/') }
       catch (error) { this.logoutError = error.message; this.loggingOut = false }
     },
   },

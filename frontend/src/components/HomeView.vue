@@ -5,16 +5,16 @@
       <div v-else class="main-content">
         <div class="intro-brand">
           <span class="intro-mark" aria-hidden="true"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span>
-          <p class="intro-eyebrow"><strong>MOCONIX</strong> | MT5 · TradingView 맞춤 개발</p>
+          <p class="intro-eyebrow"><strong>MOCONIX</strong> | {{ $t('MT5 · TradingView 맞춤 개발') }}</p>
         </div>
 
         <h1 class="intro-title">
-          <span class="intro-lead">원하는 매매 전략과 기능을 그대로 구현하는,</span>
-          <span class="intro-main">MT5 EA·인디케이터 및 TradingView 지표 개발 서비스</span>
+          <span class="intro-lead">{{ $t('원하는 매매 전략과 기능을 그대로 구현하는,') }}</span>
+          <span class="intro-main">{{ $t('MT5 EA·인디케이터 및 TradingView 지표 개발 서비스') }}</span>
         </h1>
 
-        <p class="intro-services">신규 개발 · 기존 프로그램 수정 및 개선</p>
-        <button class="game-start-btn" type="button" aria-label="EA 체험하기" @click="gameOpen = true"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /><img class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /></button>
+        <p class="intro-services">{{ $t('신규 개발 · 기존 프로그램 수정 및 개선') }}</p>
+        <button class="game-start-btn" type="button" :aria-label="$t('EA 체험하기')" @click="gameOpen = true"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /><span v-if="$locale === 'en'" class="game-start-english">Try the EA <span class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></span></span><img v-else class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /></button>
       </div>
     </div>
 
@@ -54,6 +54,8 @@ export default {
 .game-start-frame { mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='268' height='88' viewBox='0 0 268 88'%3E%3Cdefs%3E%3Cmask id='rim'%3E%3Crect width='268' height='88' fill='white'/%3E%3Crect x='12' y='18' width='235' height='60' rx='30' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='268' height='88' fill='white' mask='url(%23rim)'/%3E%3C/svg%3E"); mask-size: 100% 100%; }
 /* Retain the original lettering and complete pointer, excluding the surrounding inward rim glow. */
 .game-start-content { transform: translateX(-4.664179%); mix-blend-mode: screen; mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='268' height='88' viewBox='0 0 268 88'%3E%3Crect x='54' y='32' width='132' height='30' fill='white'/%3E%3Cg fill='white'%3E%3Crect x='205' y='27' width='5' height='10'/%3E%3Cpolygon points='196,31 205,37 203,40 194,34'/%3E%3Cpolygon points='218,31 222,34 214,40 211,37'/%3E%3Crect x='193' y='40' width='12' height='5'/%3E%3Cpolygon points='201,43 205,46 199,53 195,50'/%3E%3Cpolygon points='205,39 229,57 222,60 226,68 218,72 213,65 206,69'/%3E%3C/g%3E%3C/svg%3E"); mask-size: 100% 100%; }
+.game-start-english { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 16px; color: #ffdc00; font-size: 23px; font-weight: 700; }
+.game-start-english .mdi { font-size: 30px; }
 @media (hover: hover) {
   .game-start-btn:hover { transform: scale(1.045); }
   .game-start-btn:hover .game-start-art { filter: brightness(1.25); }

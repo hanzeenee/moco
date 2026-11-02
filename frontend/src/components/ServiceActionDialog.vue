@@ -1,20 +1,20 @@
 <template>
   <v-dialog :model-value="Boolean(modelValue)" :max-width="modelValue === 'infinox' ? 760 : 460" theme="dark" aria-labelledby="service-dialog-title" @update:model-value="!$event && close()">
     <v-card class="service-dialog" :class="{ 'infinox-dialog': modelValue === 'infinox' }">
-      <v-card-title id="service-dialog-title" class="service-dialog-title">{{ content.title }}</v-card-title>
+      <v-card-title id="service-dialog-title" class="service-dialog-title">{{ $t(content.title) }}</v-card-title>
       <v-card-text class="service-dialog-text">
         <InfinoxGuide v-if="modelValue === 'infinox'" />
         <UtilityAccountLogin v-if="modelValue === 'utility-login'" @authenticated="close" />
-        <p v-for="paragraph in modelValue === 'infinox' ? [] : content.paragraphs" :key="paragraph">{{ paragraph }}</p>
+        <p v-for="paragraph in modelValue === 'infinox' ? [] : content.paragraphs" :key="paragraph">{{ $t(paragraph) }}</p>
         <div v-if="modelValue === 'business'" class="business-contacts">
-          <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>이메일</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
-          <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.png" alt="" aria-hidden="true" /><span><strong>텔레그램</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
+          <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>{{ $t('이메일') }}</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
+          <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.png" alt="" aria-hidden="true" /><span><strong>{{ $t('텔레그램') }}</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
         </div>
       </v-card-text>
       <v-card-actions class="service-dialog-actions">
-        <v-btn v-if="modelValue === 'free'" class="service-dialog-primary" @click="$emit('update:modelValue', 'utility-login')">로그인</v-btn>
-        <v-btn v-if="modelValue === 'free'" variant="text" @click="$emit('update:modelValue', 'infinox')">가입 안내 보기</v-btn>
-        <v-btn variant="text" @click="close">닫기</v-btn>
+        <v-btn v-if="modelValue === 'free'" class="service-dialog-primary" @click="$emit('update:modelValue', 'utility-login')">{{ $t('로그인') }}</v-btn>
+        <v-btn v-if="modelValue === 'free'" variant="text" @click="$emit('update:modelValue', 'infinox')">{{ $t('가입 안내 보기') }}</v-btn>
+        <v-btn variant="text" @click="close">{{ $t('닫기') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -38,7 +38,7 @@ const notices = {
   },
   free: {
     title: '무료 유틸리티 지표',
-    paragraphs: ['MOCONIX 추천 링크로 가입하고 계좌 등록이 확인된 고객을 위한 전용 자료실입니다.', '등록된 인피녹스 계좌번호로 로그인하면 자료실이 새 창으로 열립니다.'],
+    paragraphs: ['MOCONIX 추천 링크로 가입하고 계좌 등록이 확인된 고객을 위한 전용 자료실입니다.', '등록된 인피녹스 계좌번호로 로그인하면 자료실로 이동합니다.'],
   },
   business: {
     title: '비즈니스 제안',

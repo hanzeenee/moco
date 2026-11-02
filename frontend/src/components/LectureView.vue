@@ -4,12 +4,12 @@
       <div class="lecture-left">
         <div class="lecture-left-content">
           <div class="lecture-text">
-            <div>MOCO - 해외선물 자동매매 MT5 EA</div>
+            <div>{{ $t('MOCO - 해외선물 자동매매 MT5 EA') }}</div>
             <div>Money Copier</div>
           </div>
 
           <button class="go-classroom-btn" type="button" @click="goToClassroom">
-            강의실 바로가기
+            {{ $t('강의실 바로가기') }}
           </button>
         </div>
       </div>

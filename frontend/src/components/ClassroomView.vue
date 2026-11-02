@@ -3,7 +3,7 @@
     <div class="top-section">
       <div class="classroom-layout">
         <div class="video-panel">
-          <div class="video-title">{{ currentLecture.title }}</div>
+          <div class="video-title">{{ $t(currentLecture.title) }}</div>
 
           <div class="video-wrapper">
             <iframe
@@ -15,11 +15,11 @@
             ></iframe>
           </div>
 
-          <div class="video-description">{{ currentLecture.description }}</div>
+          <div class="video-description">{{ $t(currentLecture.description) }}</div>
         </div>
 
         <div class="list-panel">
-          <div class="list-title">강의 목록</div>
+          <div class="list-title">{{ $t('강의 목록') }}</div>
 
           <button
             v-for="lecture in lectures"
@@ -29,8 +29,8 @@
             type="button"
             @click="selectLecture(lecture)"
           >
-            <div class="lecture-item-title">{{ lecture.title }}</div>
-            <div class="lecture-item-desc">{{ lecture.shortText }}</div>
+            <div class="lecture-item-title">{{ $t(lecture.title) }}</div>
+            <div class="lecture-item-desc">{{ $t(lecture.shortText) }}</div>
           </button>
         </div>
       </div>
@@ -39,29 +39,29 @@
     <div class="bottom-section">
       <div class="bottom-tabs">
         <button class="tab-btn" :class="{ active: activeTab === 'material' }" type="button" @click="activeTab = 'material'">
-          강의자료
+          {{ $t('강의자료') }}
         </button>
         <button class="tab-btn" :class="{ active: activeTab === 'quiz' }" type="button" @click="activeTab = 'quiz'">
-          퀴즈
+          {{ $t('퀴즈') }}
         </button>
         <button class="tab-btn" :class="{ active: activeTab === 'comment' }" type="button" @click="changeToCommentTab">
-          댓글
+          {{ $t('댓글') }}
         </button>
       </div>
 
       <div class="tab-content">
         <div v-if="activeTab === 'material'" class="content-box">
-          <div class="content-title">강의자료</div>
-          <div class="content-text">추후 강의 PDF, 이미지, 설명 자료 등을 이 영역에 표시합니다.</div>
+          <div class="content-title">{{ $t('강의자료') }}</div>
+          <div class="content-text">{{ $t('추후 강의 PDF, 이미지, 설명 자료 등을 이 영역에 표시합니다.') }}</div>
         </div>
 
         <div v-else-if="activeTab === 'quiz'" class="content-box">
-          <div class="content-title">퀴즈</div>
-          <div class="content-text">추후 문제, 정답 선택, 제출 버튼 등을 이 영역에 표시합니다.</div>
+          <div class="content-title">{{ $t('퀴즈') }}</div>
+          <div class="content-text">{{ $t('추후 문제, 정답 선택, 제출 버튼 등을 이 영역에 표시합니다.') }}</div>
         </div>
 
         <div v-else-if="activeTab === 'comment'" class="comment-box">
-          <div class="content-title">댓글</div>
+          <div class="content-title">{{ $t('댓글') }}</div>
 
           <div class="comment-list">
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
@@ -73,16 +73,16 @@
             </div>
 
             <div v-if="comments.length === 0" class="empty-comment">
-              아직 댓글이 없습니다.
+              {{ $t('아직 댓글이 없습니다.') }}
             </div>
           </div>
 
           <div class="comment-input-wrap">
-            <textarea v-model="newComment" class="comment-textarea" placeholder="댓글을 입력하세요"></textarea>
+            <textarea v-model="newComment" class="comment-textarea" :placeholder="$t('댓글을 입력하세요')"></textarea>
 
             <div class="comment-action">
               <button class="comment-submit-btn" type="button" @click="submitComment">
-                입력
+                {{ $t('입력') }}
               </button>
             </div>
           </div>
