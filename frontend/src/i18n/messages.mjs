@@ -34,7 +34,6 @@ export const english = {
   "복사 완료": "Copied",
   "주소가 복사되었습니다.": "URL copied.",
   "복사하지 못했습니다. 위 주소를 직접 복사해 주세요.": "Copy failed. Please copy the address above manually.",
-  "표시·알림용 인디케이터는 시스템트레이딩 버튼을 켤 필요가 없습니다. 추가 설정이 있는 자료는 해당 파일의 안내를 따라주세요.": "Display and alert indicators do not require the Algo Trading button to be enabled. Follow the file-specific instructions for any additional setup.",
   "파일이 보이지 않거나 실행되지 않나요?": "File missing or not running?",
   "파일 종류에 맞는 폴더에 저장했는지 확인하고, 탐색기를 새로고침하거나 MT5를 다시 실행해 주세요.": "Check that the file is in the correct folder for its type, then refresh Navigator or restart MT5.",
   "EA는 개별 설정과 MT5 상단의 시스템트레이딩이 모두 허용되어야 거래할 수 있습니다.": "Both the EA-specific permission and the Algo Trading button at the top of MT5 must be enabled for the EA to trade.",

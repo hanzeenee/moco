@@ -37,11 +37,6 @@
         </li>
       </ol>
 
-      <aside v-if="activeType === 'indicator'" class="indicator-note">
-        <span class="mdi mdi-information-outline" aria-hidden="true"></span>
-        <p>{{ $t('표시·알림용 인디케이터는 시스템트레이딩 버튼을 켤 필요가 없습니다. 추가 설정이 있는 자료는 해당 파일의 안내를 따라주세요.') }}</p>
-      </aside>
-
       <details class="guide-help">
         <summary>{{ $t('파일이 보이지 않거나 실행되지 않나요?') }}<span class="mdi mdi-chevron-down" aria-hidden="true"></span></summary>
         <ul>
@@ -139,9 +134,6 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
 .license-url button:hover { background: #26220f; }
 .license-settings .copy-feedback { min-height: 20px; margin-top: 5px; color: #d9c878; font-size: 12px; }
 .license-settings .license-note { margin-top: 6px; font-size: 12px; }
-.indicator-note { display: flex; align-items: flex-start; gap: 10px; padding: 17px 19px; border: 1px solid #34404b; border-radius: 9px; background: #10151a; }
-.indicator-note .mdi { color: #a4bacf; font-size: 20px; }
-.indicator-note p { margin: 0; color: #aebccc; font-size: 13px; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
 .guide-help { margin-top: 23px; padding-top: 18px; border-top: 1px solid #292f37; }
 .guide-help summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #c3cbd7; font-size: 13px; cursor: pointer; list-style: none; }
 .guide-help summary::-webkit-details-marker { display: none; }
@@ -170,7 +162,6 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
   .license-settings { margin-top: 13px; padding: 15px 13px; }
   .license-url { padding: 10px; gap: 9px; }
   .license-url code { font-size: 12px; }
-  .indicator-note { padding: 14px 12px; }
   .toolbar-inline-image { height: 26px; }
 }
 </style>
