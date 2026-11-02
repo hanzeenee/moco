@@ -1,20 +1,23 @@
 <template>
   <section class="utility-library" aria-labelledby="utility-library-title">
-    <div class="library-heading"><div><p class="library-eyebrow">{{ $t('MOCONIX · 등록 고객 전용') }}</p><h1 id="utility-library-title">{{ $t('무료 유틸리티 지표') }}</h1></div><button v-if="authorized" type="button" :disabled="loggingOut" @click="logout">{{ $t('로그아웃') }}</button></div>
-    <div class="library-empty" role="status">
+    <div class="library-heading"><div><p class="library-eyebrow">{{ $t('MOCONIX · 등록 고객 전용') }}</p><h1 id="utility-library-title">{{ $t('무료 유틸리티 자료실') }}</h1></div><button v-if="authorized" type="button" :disabled="loggingOut" @click="logout">{{ $t('로그아웃') }}</button></div>
+    <div class="library-empty" :class="{ 'library-waiting': authorized && !loading }" role="status">
       <template v-if="loading"><p>{{ $t('자료실 접속을 확인하고 있습니다.') }}</p></template>
-      <template v-else-if="authorized"><span class="mdi mdi-file-outline" aria-hidden="true"></span><h2>{{ $t('자료를 준비하고 있습니다') }}</h2><p>{{ $t('유틸리티 지표가 준비되면 이곳에서 안내해 드립니다.') }}</p></template>
+      <template v-else-if="authorized"><span class="mdi mdi-file-outline" aria-hidden="true"></span><h2>{{ $t('자료를 준비하고 있습니다') }}</h2><p>{{ $t('EA와 인디케이터가 등록되면 이곳에서 다운로드할 수 있습니다.') }}</p></template>
       <template v-else><h2>{{ $t('자료실에 접속할 수 없습니다') }}</h2><p>{{ $t(error) }}</p><a href="/">{{ $t('홈으로 돌아가기') }}</a></template>
     </div>
+    <UtilityInstallGuide v-if="authorized && !loading" />
     <p v-if="logoutError" class="logout-error" role="alert">{{ $t(logoutError) }}</p>
   </section>
 </template>
 
 <script>
 import { csrfToken, utilityRequest } from '../lib/utilityAccess'
+import UtilityInstallGuide from './UtilityInstallGuide.vue'
 
 export default {
   name: 'UtilityLibrary',
+  components: { UtilityInstallGuide },
   data() { return { loading: true, authorized: false, error: '', loggingOut: false, logoutError: '' } },
   async mounted() {
     try { await utilityRequest('library'); this.authorized = true }
@@ -44,6 +47,9 @@ export default {
 .library-empty h2 { margin: 0 0 10px; font-size: 20px; font-weight: 500; }
 .library-empty p { margin: 0; color: #949eae; font-size: 14px; line-height: 1.8; }
 .library-empty a { margin-top: 18px; color: #ffd000; }
+.library-empty.library-waiting { min-height: 160px; padding: 25px 20px; }
+.library-waiting > .mdi { margin-bottom: 10px; font-size: 28px; }
+.library-waiting h2 { font-size: 18px; }
 .logout-error { margin-top: 15px; color: #ff959a; font-size: 13px; }
 @media (max-width: 600px) { .utility-library { padding-top: 32px; } .library-empty { min-height: 280px; } }
 </style>
