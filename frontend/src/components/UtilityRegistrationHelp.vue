@@ -12,7 +12,7 @@
 import { businessContacts, serviceUrl } from '../data/serviceLinks'
 export default {
   name: 'UtilityRegistrationHelp',
-  computed: { contactUrl() { return this.$locale === 'en' ? businessContacts.telegram : serviceUrl('freeInquiry') } },
+  computed: { contactUrl() { return this.$locale === 'en' ? businessContacts.telegram : serviceUrl('development') } },
 }
 </script>
 
