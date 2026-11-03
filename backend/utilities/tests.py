@@ -11,7 +11,7 @@ from .models import UtilityAccessAccount
 from .views import ACCOUNT_KEY, EXPIRY_KEY
 
 
-@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["testserver"])
+@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["testserver"], MOCONIX_UTILITY_DOWNLOAD_DIR="")
 class UtilityAccessTests(TestCase):
     def setUp(self):
         self.account = UtilityAccessAccount.objects.create(account_number="77112233")
