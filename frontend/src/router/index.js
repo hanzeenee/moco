@@ -1,12 +1,8 @@
 import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import HomeView from '../components/HomeView.vue'
-import UtilityLibrary from '../components/UtilityLibrary.vue'
-import LectureView from '../components/LectureView.vue'
-import EventView from '../components/EventView.vue'
-import ClassroomView from '../components/ClassroomView.vue'
 
 const routes = [
-  { path: '/utilities', name: 'utilities', component: UtilityLibrary },
+  { path: '/utilities', name: 'utilities', component: () => import(/* webpackChunkName: "utility-library" */ '../components/UtilityLibrary.vue') },
   {
     path: '/',
     name: 'home',
@@ -15,17 +11,17 @@ const routes = [
   {
     path: '/lecture',
     name: 'lecture',
-    component: LectureView,
+    component: () => import(/* webpackChunkName: "lecture" */ '../components/LectureView.vue'),
   },
   {
     path: '/event',
     name: 'event',
-    component: EventView,
+    component: () => import(/* webpackChunkName: "event" */ '../components/EventView.vue'),
   },
   {
     path: '/classroom',
     name: 'classroom',
-    component: ClassroomView,
+    component: () => import(/* webpackChunkName: "classroom" */ '../components/ClassroomView.vue'),
   },
 ]
 

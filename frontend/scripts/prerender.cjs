@@ -40,7 +40,7 @@ async function generate() {
       .replace('<html lang="ko">', `<html lang="${locale}">`)
       .replace(/<title>[^<]*<\/title>/, `<title>${escape(page.title)}</title>`)
       .replace(/(<meta name="description" content=")[^"]*(")/, (_, before, after) => before + escape(page.description) + after)
-      .replace('</head>', `<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&amp;display=swap"><script id="moconix-website-data" type="application/ld+json">${structured}</script></head>`)
+      .replace('</head>', `<script id="moconix-website-data" type="application/ld+json">${structured}</script></head>`)
       .replace(app, `<div id="app" data-prerendered="${locale}">${page.html}</div>`)
     fs.writeFileSync(path.join(templates, `home-${locale}.html`), html, 'utf8')
     console.log(`Generated initial ${locale} homepage HTML from current Vue components.`)

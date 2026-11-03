@@ -7,6 +7,8 @@
         :key="item.key"
         v-bind="attributesFor(item)"
         class="service-row"
+        @pointerenter="prepareAction(item)"
+        @focus="prepareAction(item)"
         @click="activate(item)"
       >
         <span v-if="item.logo" class="service-logo-frame" aria-hidden="true"><img class="service-logo" :class="{ 'service-logo--mt5': item.key === 'free' }" :src="item.logo" alt="" /></span>
@@ -16,12 +18,12 @@
       </component>
     </nav>
 
-    <ServiceActionDialog v-model="notice" />
+    <component :is="dialogComponent" v-if="dialogComponent" v-model="notice" />
   </section>
 </template>
 
 <script>
-import ServiceActionDialog from './ServiceActionDialog.vue'
+import { markRaw } from 'vue'
 import { utilityRequest } from '../lib/utilityAccess'
 import { businessContacts, serviceUrl } from '../data/serviceLinks'
 import kakaotalkLogo from '../assets/brand/kakaotalk-mark.webp'
@@ -29,13 +31,22 @@ import kmongLogo from '../assets/brand/kmong-mark.webp'
 import infinoxLogo from '../assets/brand/infinox-mark.webp'
 import utilityLogo from '../assets/brand/utility-indicator.webp'
 import telegramLogo from '../assets/brand/telegram-color-mark.webp'
+let dialogLoad
+function loadDialog() {
+  if (!dialogLoad) {
+    dialogLoad = import(/* webpackChunkName: "service-dialog" */ './ServiceActionDialog.vue')
+      .catch(error => { dialogLoad = null; throw error })
+  }
+  return dialogLoad
+}
 
 export default {
   name: 'ServiceMenu',
-  components: { ServiceActionDialog },
   data() {
     return {
       notice: '',
+      dialogComponent: null,
+      noticeRequest: 0,
       checkingLibrary: false,
       baseServices: [
         { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo, external: true },
@@ -54,6 +65,23 @@ export default {
     },
   },
   methods: {
+    prepareAction(item) {
+      if (!this.urlFor(item)) loadDialog().catch(() => {})
+    },
+    async openNotice(key) {
+      const request = ++this.noticeRequest
+      try {
+        const dialog = await loadDialog()
+        if (request !== this.noticeRequest) return
+        if (!this.dialogComponent) {
+          this.dialogComponent = markRaw(dialog.default)
+          // Mount the closed dialog first, preserving its existing opening transition.
+          await this.$nextTick()
+        }
+        if (request !== this.noticeRequest) return
+        this.notice = key
+      } catch { /* Keep the service list usable and allow a later click to retry. */ }
+    },
     urlFor(item) { return item.href || serviceUrl(item.key) },
     elementFor(item) { return this.urlFor(item) ? 'a' : 'button' },
     attributesFor(item) {
@@ -62,7 +90,7 @@ export default {
     },
     async activate(item) {
       if (this.urlFor(item)) return
-      if (item.key !== 'free') { this.notice = item.key; return }
+      if (item.key !== 'free') { await this.openNotice(item.key); return }
       if (this.checkingLibrary) return
       this.checkingLibrary = true
       try {
@@ -70,7 +98,7 @@ export default {
         if (session.authenticated) { await this.$router.push('/utilities'); return }
       } catch { /* Keep the sign-in entry available if the session check cannot complete. */ }
       finally { this.checkingLibrary = false }
-      this.notice = 'free'
+      await this.openNotice('free')
     },
   },
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="main-area">
     <div class="main-panel main-panel-left" :class="{ 'game-open': gameOpen }">
-      <EaSimulator v-if="gameOpen" @exit="gameOpen = false" />
+      <component :is="simulatorComponent" v-if="gameOpen" @exit="gameOpen = false" />
       <div v-else class="main-content">
         <div class="intro-brand">
           <span class="intro-mark" aria-hidden="true"><img src="../assets/brand/moconix-mark-transparent.webp" alt="" /></span>
@@ -14,7 +14,7 @@
         </h1>
 
         <p class="intro-services">{{ $t('신규 개발 · 기존 프로그램 수정 및 개선') }}</p>
-        <button class="game-start-btn" type="button" :aria-label="$t('EA 체험하기')" @click="gameOpen = true"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.webp" alt="" aria-hidden="true" /><span v-if="$locale === 'en'" class="game-start-english">Try the EA <span class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></span></span><img v-else class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.webp" alt="" aria-hidden="true" /></button>
+        <button class="game-start-btn" type="button" :aria-label="$t('EA 체험하기')" :aria-busy="openingGame" @pointerenter="prepareGame" @focus="prepareGame" @click="openGame"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.webp" alt="" aria-hidden="true" /><span v-if="$locale === 'en'" class="game-start-english">Try the EA <span class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></span></span><img v-else class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.webp" alt="" aria-hidden="true" /></button>
       </div>
     </div>
 
@@ -23,13 +23,37 @@
 </template>
 
 <script>
-import EaSimulator from './EaSimulator.vue'
+import { markRaw } from 'vue'
 import ServiceMenu from './ServiceMenu.vue'
+
+// Cache only successful loads so a failed connection remains retryable.
+let simulatorLoad
+function loadSimulator() {
+  if (!simulatorLoad) {
+    simulatorLoad = import(/* webpackChunkName: "ea-simulator" */ './EaSimulator.vue')
+      .catch(error => { simulatorLoad = null; throw error })
+  }
+  return simulatorLoad
+}
 
 export default {
   name: 'HomeView',
-  components: { EaSimulator, ServiceMenu },
-  data() { return { gameOpen: false } }
+  components: { ServiceMenu },
+  data() { return { gameOpen: false, openingGame: false, simulatorComponent: null } },
+  methods: {
+    prepareGame() { loadSimulator().catch(() => {}) },
+    async openGame() {
+      if (this.openingGame) return
+      this.openingGame = true
+      try {
+        const simulator = await loadSimulator()
+        // Keep the introduction visible until both the component and its CSS are ready.
+        this.simulatorComponent = markRaw(simulator.default)
+        this.gameOpen = true
+      } catch { /* Leave the current screen in place; another click retries the download. */ }
+      finally { this.openingGame = false }
+    },
+  },
 }
 </script>
 
