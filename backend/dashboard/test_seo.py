@@ -40,6 +40,49 @@ class PublicSeoTests(SimpleTestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, 'id="app"')
 
+    def test_legacy_pages_remain_accessible_but_noindex_for_both_languages(self):
+        for locale in ("ko", "en"):
+            self.client.cookies["moconix_language"] = locale
+            for path in ("/lecture", "/event", "/classroom"):
+                for trailing in ("", "/"):
+                    for query in ("", "?utm_source=shared-link"):
+                        url = path + trailing + query
+                        for method in ("get", "head"):
+                            with self.subTest(locale=locale, url=url, method=method):
+                                response = getattr(self.client, method)(url)
+                                self.assertEqual(response.status_code, 200)
+                                self.assertEqual(response["X-Robots-Tag"], "noindex")
+                                self.assertNotIn("Link", response)
+                                if method == "get":
+                                    self.assertContains(response, 'id="app"')
+                                else:
+                                    self.assertEqual(response.content, b"")
+
+    def test_home_remains_indexable_for_both_languages_and_request_methods(self):
+        for locale in ("ko", "en"):
+            self.client.cookies["moconix_language"] = locale
+            for url in ("/", "/?utm_source=youtube"):
+                for method in ("get", "head"):
+                    with self.subTest(locale=locale, url=url, method=method):
+                        response = getattr(self.client, method)(url)
+                        self.assertEqual(response.status_code, 200)
+                        self.assertNotIn("X-Robots-Tag", response)
+                        self.assertEqual(response["Link"], '<https://moconix.com/>; rel="canonical"')
+
+    def test_unused_dashboard_api_is_retired_without_removing_comments(self):
+        for method in ("get", "head"):
+            with self.subTest(method=method):
+                response = getattr(self.client, method)("/api/dashboard/?source=old-client")
+                self.assertEqual(response.status_code, 404)
+                self.assertEqual(response["X-Robots-Tag"], "noindex")
+        self.assertEqual(resolve("/api/comments/").func, dashboard_views.comments_api)
+        for method in ("get", "post"):
+            for payload, detail in (({}, "lecture_id is required."), ({"lecture_id": "invalid"}, "lecture_id must be an integer.")):
+                with self.subTest(method=method, payload=payload):
+                    response = getattr(self.client, method)("/api/comments/", payload)
+                    self.assertEqual(response.status_code, 400)
+                    self.assertEqual(response.json(), {"detail": detail})
+
     def test_unknown_and_reserved_paths_are_real_404_responses(self):
         for url in ("/seo-missing-page", "/lecture/missing", "/api/seo-missing", "/accounts/login/", "/static/seo-missing", "/media/seo-missing"):
             with self.subTest(url=url):

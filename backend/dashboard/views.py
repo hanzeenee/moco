@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.cache import patch_vary_headers
 
@@ -7,7 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import NavLink, Lecture, Event, Comment
+from .models import Lecture, Comment
 from .serializers import CommentSerializer
 
 
@@ -21,21 +20,10 @@ def dashboard_home(request):
     if request.path == "/":
         response["Link"] = '<https://moconix.com/>; rel="canonical"'
         patch_vary_headers(response, ("Cookie",))
+    elif request.path.rstrip("/") in ("/lecture", "/event", "/classroom"):
+        # Keep older shared links functional without indexing retired service pages.
+        response["X-Robots-Tag"] = "noindex"
     return response
-
-
-def dashboard_data(request):
-    nav_links = list(NavLink.objects.values())
-    lectures = list(Lecture.objects.values())
-    events = list(Event.objects.values())
-
-    data = {
-        "nav_links": nav_links,
-        "lectures": lectures,
-        "events": events,
-    }
-
-    return JsonResponse(data)
 
 
 @api_view(["GET", "POST"])
