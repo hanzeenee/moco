@@ -27,6 +27,11 @@
             <p v-if="step.toolbar" class="toolbar-instruction">{{ toolbarInstruction[0] }}<img class="toolbar-inline-image" :src="$locale === 'en' ? algoTradingEn : systemTradingKo" :alt="$t('시스템트레이딩')" />{{ toolbarInstruction[1] }}</p>
             <p v-else>{{ $t(step.body) }}</p><code v-if="step.path">{{ step.path }}</code>
             <div v-if="step.paths" class="install-paths"><div v-for="path in step.paths" :key="path.value"><span>{{ $t(path.label) }}</span><code>{{ path.value }}</code></div></div>
+            <aside v-if="activeType === 'indicator' && index === 0 && authBridge" class="auth-bridge-download" :aria-label="$t('MOCONIX 인증 도우미')">
+              <h4><span class="mdi mdi-shield-check-outline" aria-hidden="true"></span>{{ $t(authBridge.title) }}</h4>
+              <p>{{ $t(authBridge.description) }}</p>
+              <div><code>{{ authBridge.filename }}</code><a :href="authBridge.download_url" download><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a></div>
+            </aside>
       <aside v-if="step.license" class="license-settings" aria-labelledby="license-settings-title">
         <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t(activeType === 'indicator' ? '인증 도우미 WebRequest 설정' : '온라인 인증이 필요한 EA') }}</h3>
         <p>{{ $t(activeType === 'indicator' ? '인증 도우미를 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.' : '차트에 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.') }}</p>
@@ -59,9 +64,10 @@ import algoTradingEn from '../assets/guides/mt5-algo-trading-en.svg'
 
 export default {
   name: 'UtilityInstallGuide',
+  props: { authBridge: { type: Object, default: null } },
   data() {
     return {
-      activeType: 'indicator',
+      activeType: 'ea',
       systemTradingKo,
       algoTradingEn,
       copyState: '',
@@ -132,6 +138,14 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
 .install-paths > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .install-paths span { min-width: 90px; color: #b0bbc9; font-size: 12px; }
 .install-paths code { margin-top: 0; }
+.auth-bridge-download { margin-top: 16px; padding: 18px; border: 1px solid #625522; border-radius: 9px; background: #15140f; }
+.auth-bridge-download h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #e8d885; font-size: 14px; font-weight: 600; }
+.auth-bridge-download h4 .mdi { font-size: 19px; }
+.auth-bridge-download > div { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.auth-bridge-download code { min-width: 0; max-width: 100%; margin-top: 0; box-sizing: border-box; overflow-wrap: anywhere; }
+.auth-bridge-download a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 12px; border: 1px solid #71601e; border-radius: 6px; color: #f1d365; font-size: 12px; font-weight: 600; text-decoration: none; }
+.auth-bridge-download a:hover { border-color: #d3b72d; background: #30290d; }
+.auth-bridge-download a:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
 .toolbar-inline-image { display: inline-block; width: auto; height: 28px; max-width: 100%; margin: 0 4px; vertical-align: middle; object-fit: contain; }
 .license-settings { margin-top: 13px; padding: 20px; border: 1px solid #625522; border-radius: 9px; background: #15140f; }
 .license-settings h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; color: #e8d885; font-size: 14px; font-weight: 600; }
@@ -168,6 +182,8 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
   .guide-steps h3 { font-size: 14px; }
   .guide-steps p { font-size: 13px; }
   .guide-steps code { padding: 7px 9px; font-size: 12px; }
+  .auth-bridge-download { padding: 15px 13px; }
+  .auth-bridge-download h4 { gap: 6px; font-size: 13px; }
   .license-settings { margin-top: 13px; padding: 15px 13px; }
   .license-url { padding: 10px; gap: 9px; }
   .license-url code { font-size: 12px; }

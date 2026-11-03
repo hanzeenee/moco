@@ -1,23 +1,22 @@
 <template>
   <section class="utility-library" aria-labelledby="utility-library-title">
     <div class="library-heading"><div><p class="library-eyebrow">{{ $t('MOCONIX · 등록 고객 전용') }}</p><h1 id="utility-library-title">{{ $t('무료 유틸리티 자료실') }}</h1></div><button v-if="authorized" type="button" :disabled="loggingOut" @click="logout">{{ $t('로그아웃') }}</button></div>
-    <div v-if="loading || !authorized || items.length === 0" class="library-empty" :class="{ 'library-waiting': authorized && !loading }" role="status">
+    <div v-if="loading || !authorized || libraryItems.length === 0" class="library-empty" :class="{ 'library-waiting': authorized && !loading }" role="status">
       <template v-if="loading"><p>{{ $t('자료실 접속을 확인하고 있습니다.') }}</p></template>
       <template v-else-if="authorized"><span class="mdi mdi-file-outline" aria-hidden="true"></span><h2>{{ $t('자료를 준비하고 있습니다') }}</h2><p>{{ $t('EA와 인디케이터가 등록되면 이곳에서 다운로드할 수 있습니다.') }}</p></template>
       <template v-else><h2>{{ $t('자료실에 접속할 수 없습니다') }}</h2><p>{{ $t(error) }}</p><a href="/">{{ $t('홈으로 돌아가기') }}</a></template>
     </div>
-    <section v-if="authorized && !loading && items.length" class="library-downloads" :aria-label="$t('다운로드 파일')">
-      <p class="downloads-intro">{{ $t('인증 도우미를 다운로드하고 아래 설치 안내를 확인해 주세요.') }}</p>
+    <section v-if="authorized && !loading && libraryItems.length" class="library-downloads" :aria-label="$t('다운로드 파일')">
       <div class="download-grid">
-        <article v-for="item in items" :key="item.id" class="resource-card">
-          <div class="resource-type"><span :class="['mdi', item.type === 'helper' ? 'mdi-shield-check-outline' : 'mdi-chart-line']" aria-hidden="true"></span>{{ $t(item.type === 'helper' ? '인증 도우미' : '인디케이터') }}</div>
+        <article v-for="item in libraryItems" :key="item.id" class="resource-card">
+          <div class="resource-type"><span :class="['mdi', item.type === 'ea' ? 'mdi-robot' : 'mdi-chart-line']" aria-hidden="true"></span>{{ $t(item.type === 'ea' ? 'EA' : '인디케이터') }}</div>
           <h2>{{ $t(item.title) }}</h2><p>{{ $t(item.description) }}</p>
           <code>{{ item.filename }}</code>
           <a :href="item.download_url" download><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a>
         </article>
       </div>
     </section>
-    <UtilityInstallGuide v-if="authorized && !loading" />
+    <UtilityInstallGuide v-if="authorized && !loading" :auth-bridge="authBridge" />
     <p v-if="logoutError" class="logout-error" role="alert">{{ $t(logoutError) }}</p>
   </section>
 </template>
@@ -30,6 +29,10 @@ export default {
   name: 'UtilityLibrary',
   components: { UtilityInstallGuide },
   data() { return { loading: true, authorized: false, items: [], error: '', loggingOut: false, logoutError: '' } },
+  computed: {
+    libraryItems() { return this.items.filter(item => item.type !== 'helper') },
+    authBridge() { return this.items.find(item => item.id === 'auth-bridge') || null },
+  },
   async mounted() {
     try { const data = await utilityRequest('library'); this.items = data.items || []; this.authorized = true }
     catch (error) { this.error = error.status === 401 ? '홈 화면에서 등록된 계좌번호로 다시 로그인해 주세요.' : error.message }
@@ -62,7 +65,6 @@ export default {
 .library-waiting > .mdi { margin-bottom: 10px; font-size: 28px; }
 .library-waiting h2 { font-size: 18px; }
 .library-downloads { margin-top: 29px; }
-.downloads-intro { margin: 0 0 16px; color: #9ba6b6; font-size: 14px; line-height: 1.8; }
 .download-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .resource-card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid #343b45; border-radius: 13px; background: #0b0d10; }
 .resource-type { display: flex; align-items: center; gap: 8px; color: #cbb65c; font-size: 12px; }
@@ -73,7 +75,7 @@ export default {
 .resource-card a { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 43px; padding: 9px 12px; border: 1px solid #71601e; border-radius: 7px; background: #211d0d; color: #f1d365; text-decoration: none; font-size: 13px; font-weight: 600; }
 .resource-card a:hover { border-color: #d3b72d; background: #30290d; }
 .resource-card a:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
-@media (max-width: 600px) { .download-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; } .resource-card { padding: 21px; } .downloads-intro { font-size: 13px; } }
+@media (max-width: 600px) { .download-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; } .resource-card { padding: 21px; } }
 .logout-error { margin-top: 15px; color: #ff959a; font-size: 13px; }
 @media (max-width: 600px) { .utility-library { padding-top: 32px; } .library-empty { min-height: 280px; } }
 </style>

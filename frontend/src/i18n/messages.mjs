@@ -1,6 +1,5 @@
 export const english = {
   "다운로드 파일": "Downloads",
-  "인증 도우미를 다운로드하고 아래 설치 안내를 확인해 주세요.": "Download AuthBridge and review the installation guide below.",
   "인증 도우미": "Authorization helper",
   "MOCONIX 인증 도우미": "MOCONIX AuthBridge",
   "지표 실행에 필요한 계좌 인증 프로그램입니다. 주문 기능은 없습니다.": "Verifies account access for indicators. It does not place orders.",
