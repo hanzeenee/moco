@@ -5,7 +5,7 @@
 class CMoconixIndicatorLicense
 {
 private:
-   bool m_authorized,m_sent,m_finished;
+   bool m_authorized,m_sent,m_finished,m_transport_reported,m_transport_queued;
    long m_login;
    string m_server,m_product,m_nonce,m_expected,m_label;
 
@@ -21,6 +21,13 @@ private:
       ObjectSetInteger(0,m_label,OBJPROP_HIDDEN,true);
       ObjectSetString(0,m_label,OBJPROP_TEXT,"MOCONIX: "+message);
       ChartRedraw();
+   }
+
+   void WaitForTransport(const string operation,const int error)
+   {
+      if(m_transport_reported) return;
+      m_transport_reported=true;
+      Print("MOCONIX auth 1.02: ",operation,"; waiting and retrying local delivery. error=",error);
    }
 
    void CleanupFiles()
@@ -39,11 +46,11 @@ private:
    }
 
 public:
-   CMoconixIndicatorLicense(void):m_authorized(false),m_sent(false),m_finished(false),m_login(0) {}
+   CMoconixIndicatorLicense(void):m_authorized(false),m_sent(false),m_finished(false),m_transport_reported(false),m_transport_queued(false),m_login(0) {}
 
    bool Start(const string product)
    {
-      m_authorized=false; m_sent=false; m_finished=false;
+      m_authorized=false; m_sent=false; m_finished=false; m_transport_reported=false; m_transport_queued=false;
       m_login=AccountInfoInteger(ACCOUNT_LOGIN);
       m_server=AccountInfoString(ACCOUNT_SERVER);
       m_product=product;
@@ -60,6 +67,7 @@ public:
          Deny("온라인 인증 계좌가 필요합니다 / Online authorization requires a trading account, outside Strategy Tester.");
          return false;
       }
+      Print("MOCONIX auth 1.02: waiting for AuthBridge; local delivery retries enabled.");
       Status("인증 도우미 확인 중 / Waiting for AuthBridge");
       return true;
    }
@@ -75,12 +83,31 @@ public:
          // Wait locally without a deadline. Do not contact the server until a helper exists.
          if(bridge<0) return;
          const string request=(string)m_login+"|"+m_server+"|"+m_product+"|"+m_nonce;
-         if(!MocoWriteText(MocoAuthPath(m_nonce,"request"),request)
-            || !EventChartCustom(bridge,MOCO_AUTH_REQUEST,ChartID(),0,m_nonce))
-         { Deny("인증 요청 전달 실패 / Could not submit authorization request."); return; }
+         ResetLastError();
+         if(!MocoWriteText(MocoAuthPath(m_nonce,"request"),request))
+         { WaitForTransport("request mailbox not ready",GetLastError()); return; }
+         // This means published locally, not delivered or authorized. Never rewrite
+         // it after the helper consumes it; consumption precedes the one HTTP check.
          m_sent=true;
-         Status("등록 계좌 확인 중 / Checking registered account");
       }
+      const string request_path=MocoAuthPath(m_nonce,"request");
+      if(FileIsExist(request_path))
+      {
+         const long bridge=MocoFindBridge();
+         if(bridge>=0)
+         {
+            ResetLastError();
+            if(!EventChartCustom(bridge,MOCO_AUTH_REQUEST,ChartID(),0,m_nonce))
+               WaitForTransport("AuthBridge event queue not ready",GetLastError());
+            else if(!m_transport_queued)
+            {
+               m_transport_queued=true;
+               Status("등록 계좌 확인 중 / Checking registered account");
+            }
+         }
+      }
+      // An event accepted while the EA is attaching can be lost before its handler
+      // is ready. Wake it again only while the same unconsumed request still exists.
       const string path=MocoAuthPath(m_nonce,"reply");
       if(!FileIsExist(path)) return;
       string reply;
