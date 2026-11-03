@@ -12,8 +12,10 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from .indicator_signing import sign_indicator_grant
-from .models import EAProgram, PROGRAM_PATTERN, SERVER_PATTERN, UtilityAccessAccount
+from .models import EAProgram, PROGRAM_PATTERN, UtilityAccessAccount
 
+# Legacy EX5 sends the server as response-binding metadata, never an allowlist criterion.
+WIRE_SERVER_CONTEXT_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9 ._()@+:#/\-]{0,127}$"
 MAX_BODY_BYTES = 1024
 MAX_ACCOUNT_NUMBER = 9223372036854775807
 REQUEST_FIELDS = {"protocol", "account_number", "server", "product", "nonce"}
@@ -108,7 +110,7 @@ def _license_payload(request, protocol):
     number, server, product, nonce = (payload[key] for key in ("account_number", "server", "product", "nonce"))
     if (type(payload["protocol"]) is not int or payload["protocol"] != protocol
             or not valid_account(number)
-            or not isinstance(server, str) or re.fullmatch(SERVER_PATTERN, server) is None
+            or not isinstance(server, str) or re.fullmatch(WIRE_SERVER_CONTEXT_PATTERN, server) is None
             or not isinstance(product, str) or re.fullmatch(PROGRAM_PATTERN, product) is None
             or not isinstance(nonce, str) or re.fullmatch(r"[a-fA-F0-9]{32}", nonce) is None):
         return None, deny("invalid_request", 400)
@@ -118,7 +120,7 @@ def _license_payload(request, protocol):
 def _authorized(payload, program_type):
     return (EAProgram.objects.filter(code=payload["product"], program_type=program_type, is_active=True).exists()
             and UtilityAccessAccount.objects.filter(account_number=payload["account_number"],
-                server_name=payload["server"], is_active=True, ea_enabled=True).exists())
+                is_active=True, ea_enabled=True).exists())
 
 
 @csrf_exempt  # Native MT5 has no browser session authority.

@@ -34,7 +34,7 @@ class SignedIndicatorTests(TestCase):
 
     def setUp(self):
         cache.clear()
-        self.account = UtilityAccessAccount.objects.create(account_number="77112233", server_name="Example-Live")
+        self.account = UtilityAccessAccount.objects.create(account_number="77112233")
         self.program = EAProgram.objects.create(code="moconix-rsi-arrow-v1", name="Example indicator", program_type="indicator")
         self.payload = {"protocol": 2, "account_number": "77112233", "server": "Example-Live", "product": self.program.code, "nonce": "AB" * 16}
         self.url = reverse("indicator-license-check")
@@ -62,7 +62,7 @@ class SignedIndicatorTests(TestCase):
         self.assertEqual(native.get("/utilities").status_code, 403)
 
     def test_wrong_identity_flags_and_program_kind_never_receive_signature(self):
-        for field, value in [("account_number", "77112234"), ("server", "Other-Live"), ("product", "unknown-indicator")]:
+        for field, value in [("account_number", "77112234"), ("product", "unknown-indicator")]:
             self.assertEqual(self.post({**self.payload, field: value}).status_code, 403)
         for field in ["is_active", "ea_enabled"]:
             setattr(self.account, field, False)
@@ -77,6 +77,16 @@ class SignedIndicatorTests(TestCase):
         self.program.is_active = False
         self.program.save()
         self.assertEqual(self.post().status_code, 403)
+
+    def test_number_only_registration_signs_grants_for_any_valid_server(self):
+        self.assertNotIn("server_name", {field.name for field in UtilityAccessAccount._meta.fields})
+        verifier = padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=32)
+        for server in ["Example-Live", "OtherBroker-Live", "Example-Demo"]:
+            response = self.post({**self.payload, "server": server})
+            self.assertEqual(response.status_code, 200)
+            message, signature = response.content.decode("ascii").split("\n")
+            self.assertEqual(message, "MOCONIX-INDICATOR-1|" + "|".join([self.account.account_number, server, self.program.code, self.payload["nonce"]]))
+            self.key.public_key().verify(bytes.fromhex(signature), message.encode(), verifier, hashes.SHA256())
 
     def test_protocol_separation_and_transport_validation(self):
         self.assertEqual(self.post({**self.payload, "protocol": 1}).status_code, 400)

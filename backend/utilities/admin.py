@@ -4,9 +4,9 @@ from .models import EAProgram, UtilityAccessAccount
 
 @admin.register(UtilityAccessAccount)
 class UtilityAccessAccountAdmin(admin.ModelAdmin):
-    list_display = ("account_number", "server_name", "ea_enabled", "is_active", "note", "created_at")
-    list_filter = ("is_active", "ea_enabled", "server_name")
-    search_fields = ("account_number", "server_name", "note")
+    list_display = ("account_number", "ea_enabled", "is_active", "note", "created_at")
+    list_filter = ("is_active", "ea_enabled")
+    search_fields = ("account_number", "note")
     readonly_fields = ("created_at",)
     actions = ("enable_ea", "disable_ea")
 

@@ -1,12 +1,12 @@
 # MOCONIX MT5 startup licensing
 
-This integration checks a compiled EA's actual MT5 login and server against the existing utility access database. It does not connect MT5 directly to the database and does not require a website login.
+This integration checks a compiled EA's actual MT5 account number against the existing utility access database. It does not connect MT5 directly to the database and does not require a website login.
 
 ## Flow and scope
 
 1. `OnInit` reads `ACCOUNT_LOGIN` and `ACCOUNT_SERVER` and makes one HTTPS POST to `https://moconix.com/api/licenses/check/`.
-2. The backend requires an active utility account with an exact server match, `ea_enabled=True`, and an active `EAProgram` matching the compiled product ID.
-3. A successful response binds protocol, account, server, product and nonce. The MQL5 module compares the complete canonical JSON response.
+2. The backend requires an active utility account matching the account number, `ea_enabled=True`, and an active `EAProgram` matching the compiled product ID.
+3. A successful response binds protocol, account, server, product and nonce. The MQL5 module compares the complete canonical JSON response. The automatically supplied server value stays in the unchanged wire protocol and local session-binding checks for compatibility with existing EX5 files; any valid server name can authorize the same registered account number. Operators do not collect or store server names, and existing EX5 files do not need replacement for this policy change.
 4. Failure, malformed responses, timeout, missing MT5 URL permission and unavailable infrastructure fail initialization. No offline grace period or cross-run authorization cache exists.
 5. Subsequent ticks and trade sends use memory-only account/server guards. There are no periodic network checks. Revoking an account or product affects its next initialization, not an already-running authorized instance.
 
@@ -16,17 +16,17 @@ The reusable `MoconixLicense.mqh` contains licensing only. The customer's upload
 
 ## Owner administration / 관리자 운영
 
-- Open `/admin/utilities/utilityaccessaccount/` (existing Django administrator login). Set the customer's exact account number and **MT5 거래 서버명**, enable **이용 허용** and **MT5 프로그램 이용 허용**. A blank server allows the existing web library only, never EA startup.
+- Open `/admin/utilities/utilityaccessaccount/` (existing Django administrator login). Enter only the customer's exact account number; **이용 허용** and **MT5 프로그램 이용 허용** default to enabled. There is no server-name database field, registration requirement or server allowlist. The single-number registration command enables both permissions.
 - Open `/admin/utilities/eaprogram/` to enable/disable program IDs. The supplied private EA uses `moconix-grid-ea-v1`. All MT5-enabled accounts can use all active programs of the matching type; this version does not implement per-product customer entitlements.
 - Confirm the customer belongs to your IB through your existing business process before registering. This service does not automatically access INFINOX's IB portal or verify account ownership/IB affiliation.
 - Account flags and metadata are private database data. Do not commit customer exports, real customer account numbers, passwords or private EA sources.
 
-For thousands of customers, prepare a private UTF-8 CSV with required columns `account_number,server_name`; optional columns are `is_active,ea_enabled,note`. Use full exact account numbers as text and exact MT5 server names. Boolean values: `true/false/1/0`. Example **fictional** data:
+For thousands of customers, prepare a private UTF-8 CSV with required column `account_number`; optional columns are `is_active,ea_enabled,note`. Use full exact account numbers as text. No server name is required. Boolean values: `true/false/1/0`. Example **fictional** data:
 
 ```csv
-account_number,server_name,is_active,ea_enabled,note
-77112233,Example-MT5Live,true,true,IB checked
-77112234,Example-MT5Live,true,false,EA temporarily disabled
+account_number,is_active,ea_enabled,note
+77112233,true,true,IB checked
+77112234,true,false,EA temporarily disabled
 ```
 
 From `backend/` with the configured server environment and virtualenv, feed the private CSV through standard input:
@@ -38,14 +38,14 @@ python manage.py import_utility_accounts < /private/customers.csv
 
 Dry-run validates without writing. Invalid/duplicate rows reject the whole batch before saving. Import adds/updates listed accounts, preserves optional fields absent from the CSV and leaves unlisted customers unchanged. Limit: 20,000 rows / 2 million text characters per batch. Review CSV flags before import; there is no automatic IB verification. Administration requires server access, not a public upload endpoint.
 
-`configure_ea_license` accepts exactly `account_number,server_name,program_code,program_name` as a JSON object on stdin. It configures an already-active account and creates missing program metadata. It never re-enables a program that an administrator disabled.
+`configure_ea_license` accepts exactly `account_number,program_code,program_name` as a JSON object on stdin. It configures an already-active account and creates missing program metadata. It never re-enables a program that an administrator disabled.
 
 ## Customer MT5 setup / 고객 설정
 
 1. Copy the supplied `.ex5` to MT5's **File > Open Data Folder > MQL5 > Experts**.
 2. Open **Tools > Options > Expert Advisors**. Enable **Allow WebRequest for listed URL** and add `https://moconix.com`.
-3. Log in to the registered account on its registered server. Attach the EA to a chart and enable Algo Trading as required by the original strategy.
-4. Check the Experts log for `Startup authorization complete`. If rejected, check account/server registration, URL permission and connectivity, then attach again. A successful license does not establish strategy profitability or enable trading permissions by itself.
+3. Log in to the registered MT5 account number. Attach the EA to a chart and enable Algo Trading as required by the original strategy.
+4. Check the Experts log for `Startup authorization complete`. If rejected, check account registration, URL permission and connectivity, then attach again. A successful license does not establish strategy profitability or enable trading permissions by itself.
 
 This online-licensed build does **not** work in Strategy Tester, where MT5 does not support WebRequest. No tester bypass is included. For strategy testing, the owner retains the original private source separately. Ordinary MQL5 indicators cannot directly use WebRequest. The separate signed AuthBridge flow below supports indicator initialization without adding networking or DLLs to the indicator.
 
@@ -63,7 +63,7 @@ Success is HTTP 200 with **exact field order, compact separators, ASCII JSON enc
 {"protocol":1,"allowed":true,"account_number":"77112233","server":"Example-MT5Live","product":"example-ea-v1","nonce":"ABCDEF0123456789ABCDEF0123456789"}
 ```
 
-The response contract is intentionally strict for MQL5. Changing formatting/order requires coordinated client changes or a new protocol version. Account numbers are canonical positive signed 64-bit decimal strings; server matches are case-sensitive ASCII, maximum 128 characters. Nonce: 32 hex characters. Product: lowercase slug, maximum 64 characters. Rejection returns generic HTTP 403 without disclosing which record failed. Invalid input: 400/413/415; method: 405; rate limit: 429 with Retry-After; cache failure: 503. All responses are no-store.
+The response contract is intentionally strict for MQL5. Changing formatting/order requires coordinated client changes or a new protocol version. Account numbers are canonical positive signed 64-bit decimal strings; the legacy server field is bounded ASCII response-binding metadata (maximum 128 characters), not a database permission or registration criterion. Nonce: 32 hex characters. Product: lowercase slug, maximum 64 characters. Rejection returns generic HTTP 403 without disclosing which record failed. Invalid input: 400/413/415; method: 405; rate limit: 429 with Retry-After; cache failure: 503. All responses are no-store.
 
 HTTPS supplies server authenticity. The nonce prevents accepting an unrelated successful response; it is not a secret or proof of terminal ownership. There is no shared master secret embedded in the EX5. As with compiled-client licensing generally, this is access control for the distributed application, not hardware attestation or an absolute anti-tamper guarantee.
 
@@ -89,7 +89,7 @@ Official platform references: [WebRequest](https://www.mql5.com/en/docs/network/
 1. Each indicator initialization reads the actual terminal account/server and creates a fresh 32-hex nonce, including an atomic terminal-local initialization sequence.
 2. The indicator writes a bounded, atomic request in its own terminal's `MQL5/Files/MoconixAuth/` sandbox. A custom chart event contains only the nonce; MT5 limits string event parameters to 63 characters. While the helper is attaching, a failed or lost local event does not deny authorization. The indicator retries only local notification while the same unconsumed request exists. The helper consumes that file before its one HTTPS check; the indicator never republishes a consumed request or treats event delivery as a grant.
 3. The helper checks the actual account/server, consumes the request once, and sends one HTTPS POST to `/api/licenses/indicator/`. Its timeout is 5 seconds, with no HTTP retries or periodic checks.
-4. The backend requires an active registered account with exact server match and MT5 permission, plus an active `indicator` program. It signs an initialization-bound grant using RSA-PSS/SHA256, 2048-bit RSA, exponent 65537 and a 32-byte salt.
+4. The backend requires an active registered account number with MT5 permission, plus an active `indicator` program. It signs an initialization-bound grant using RSA-PSS/SHA256, 2048-bit RSA, exponent 65537 and a 32-byte salt.
 5. The indicator independently verifies the full message and signature using its embedded public key. Unsigned, altered, replayed, wrong-account, wrong-server and wrong-product responses are rejected. The helper cannot manufacture a grant. The chart becoming visible as an EA host is not proof that its initialization or event handler is ready. Mailboxes are removed after resolution/deinitialization; authorization is not cached across runs.
 6. A local startup timer waits for the helper without a deadline and without HTTP requests. The indicator and helper may be attached in either order; a later helper automatically triggers the single initialization request. The timer stops after authorization and initial local chart-data preparation, or denial. Subsequent calculations use a memory-only account/server guard. An account change latches denial until reinitialization.
 
@@ -112,7 +112,7 @@ There is one LF between the message and signature, with no trailing newline. All
 
 ### Owner test indicator setup (not published)
 
-Copy `MOCONIX_RSIArrow.ex5` to `MQL5/Indicators` and `MOCONIX_AuthBridge.ex5` to `MQL5/Experts`. Keep file names unchanged. Allow `https://moconix.com` under Tools > Options > Expert Advisors > WebRequest. Sign in to the registered account/server, refresh Navigator and attach the helper to a separate chart and the indicator to the desired chart, in either order. An indicator attached first waits locally for the helper without a time limit. Keep the helper chart open. No DLLs, orders or Algo Trading trading permission are required by the helper. This online indicator build does not run in Strategy Tester.
+Copy `MOCONIX_RSIArrow.ex5` to `MQL5/Indicators` and `MOCONIX_AuthBridge.ex5` to `MQL5/Experts`. Keep file names unchanged. Allow `https://moconix.com` under Tools > Options > Expert Advisors > WebRequest. Sign in to the registered account number, refresh Navigator and attach the helper to a separate chart and the indicator to the desired chart, in either order. An indicator attached first waits locally for the helper without a time limit. Keep the helper chart open. No DLLs, orders or Algo Trading trading permission are required by the helper. This online indicator build does not run in Strategy Tester.
 
 The owner tests the private indicator using the locally supplied two EX5 files. No indicator is currently published on the website. When the owner explicitly publishes a product later, customer accounts can use the same EX5 build; only the server database changes when customers are added. Account/program revocation affects the next initialization, not an already-authorized running instance. The database is operator managed; there is no automatic broker/IB portal integration or proof of account ownership in the account-number website login.
 

@@ -17,10 +17,10 @@ from .views import ACCOUNT_KEY
 class LicenseTests(TestCase):
     def setUp(self):
         cache.clear()
-        self.account = UtilityAccessAccount.objects.create(account_number="77112233", server_name="Example-MT5Live")
+        self.account = UtilityAccessAccount.objects.create(account_number="77112233")
         self.program = EAProgram.objects.create(code="example-ea-v1", name="Example EA")
         self.payload = {"protocol": 1, "account_number": self.account.account_number,
-                        "server": self.account.server_name, "product": self.program.code, "nonce": "ABCDEF0123456789" * 2}
+                        "server": "Example-MT5Live", "product": self.program.code, "nonce": "ABCDEF0123456789" * 2}
         self.url = reverse("ea-license-check")
 
     def post(self, payload=None, client=None, **extra):
@@ -39,17 +39,27 @@ class LicenseTests(TestCase):
         self.assertNotIn(ACCOUNT_KEY, native.session)
         self.assertEqual(native.get("/utilities").status_code, 403)
 
-    def test_unknown_account_server_and_program_share_generic_denial(self):
+    def test_unknown_account_and_program_share_generic_denial(self):
         denials = []
-        for key, value in [("account_number", "77112234"), ("server", "Example-MT5Demo"), ("server", "example-MT5Live"), ("product", "missing-ea")]:
+        for key, value in [("account_number", "77112234"), ("product", "missing-ea")]:
             response = self.post({**self.payload, key: value})
             self.assertEqual(response.status_code, 403)
             denials.append(response.content)
             self.assertNotIn(self.account.account_number.encode(), response.content)
         self.assertEqual(len(set(denials)), 1)
 
+    def test_number_only_registration_authorizes_ea_from_any_valid_server(self):
+        self.assertNotIn("server_name", {field.name for field in UtilityAccessAccount._meta.fields})
+        for server in ["Example-MT5Live", "OtherBroker-Live", "Example-MT5Demo", "example-MT5Live"]:
+            response = self.post({**self.payload, "server": server})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["server"], server)
+        response = self.client.post(reverse("utility-login"), json.dumps({"account_number": self.account.account_number}), content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 200)
+
     def test_account_and_program_flags_are_enforced_independently(self):
-        for field, value in [("is_active", False), ("ea_enabled", False), ("server_name", "")]:
+        for field, value in [("is_active", False), ("ea_enabled", False)]:
             previous = getattr(self.account, field)
             setattr(self.account, field, value)
             self.account.save()
@@ -105,11 +115,12 @@ class LicenseTests(TestCase):
         with patch("utilities.licensing.cache.add", side_effect=RuntimeError("offline")):
             self.assertEqual(self.post().status_code, 503)
 
-    def test_authenticated_admin_can_manage_server_flags_and_program(self):
+    def test_authenticated_admin_can_register_account_without_server_and_manage_flags(self):
         owner = get_user_model().objects.create_superuser(username="license-test-admin", password="test-password-only")
         self.client.force_login(owner)
         response = self.client.get(reverse("admin:utilities_utilityaccessaccount_change", args=[self.account.pk]))
-        self.assertContains(response, 'name="server_name"')
+        self.assertNotContains(response, 'name="server_name"')
+        self.assertContains(response, 'name="account_number"')
         self.assertContains(response, 'name="ea_enabled"')
         self.assertEqual(self.client.get(reverse("admin:utilities_eaprogram_changelist")).status_code, 200)
 
@@ -122,27 +133,26 @@ class LicenseImportTests(TestCase):
 
     def test_bulk_import_updates_preserves_unspecified_fields_and_is_idempotent(self):
         existing = UtilityAccessAccount.objects.create(account_number="77112233", note="keep", ea_enabled=False)
-        csv = "\ufeffaccount_number,server_name\n77112233,Example-Live\n77112234,Example-Live\n"
+        csv = "\ufeffaccount_number\n77112233\n77112234\n"
         self.run_import(csv, dry_run=True)
         self.assertEqual(UtilityAccessAccount.objects.count(), 1)
         for _ in range(2):
             self.run_import(csv)
         existing.refresh_from_db()
-        self.assertEqual(existing.server_name, "Example-Live")
         self.assertEqual(existing.note, "keep")
         self.assertFalse(existing.ea_enabled)
         self.assertEqual(UtilityAccessAccount.objects.count(), 2)
 
     def test_invalid_duplicate_or_malformed_csv_rolls_back_entire_batch(self):
-        for rows in ["77112233,Example-Live\n77112233,Example-Live\n", "77112233,Example-Live\ninvalid,Example-Live\n", '77112233,"unterminated', "77112233,\n"]:
+        for rows in ["77112233\n77112233\n", "77112233\ninvalid\n", '"unterminated', "77112233,unexpected\n"]:
             with self.subTest(rows=rows), self.assertRaises(CommandError):
-                self.run_import("account_number,server_name\n" + rows)
+                self.run_import("account_number\n" + rows)
             self.assertEqual(UtilityAccessAccount.objects.count(), 0)
         with self.assertRaises(CommandError):
             self.run_import('"unterminated')
 
     def test_configure_requires_existing_active_customer_and_preserves_disabled_program(self):
-        payload = {"account_number": "77112233", "server_name": "Example-Live", "program_code": "example-ea", "program_name": "Example EA"}
+        payload = {"account_number": "77112233", "program_code": "example-ea", "program_name": "Example EA"}
         with patch("sys.stdin", StringIO(json.dumps(payload))), self.assertRaises(CommandError):
             call_command("configure_ea_license", stdout=StringIO())
         self.assertEqual(EAProgram.objects.count(), 0)
@@ -156,7 +166,7 @@ class LicenseImportTests(TestCase):
             call_command("configure_ea_license", stdout=StringIO())
         self.assertFalse(EAProgram.objects.get().is_active)
         customer.refresh_from_db()
-        self.assertEqual(customer.server_name, payload["server_name"])
-        payload["server_name"] = ""
+        self.assertTrue(customer.ea_enabled)
+        payload["program_name"] = ""
         with patch("sys.stdin", StringIO(json.dumps(payload))), self.assertRaises(CommandError):
             call_command("configure_ea_license", stdout=StringIO())

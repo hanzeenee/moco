@@ -92,6 +92,17 @@ class UtilityAccessTests(TestCase):
         self.assertEqual(UtilityAccessAccount.objects.count(), 1)
         self.assertEqual(self.client.get("/admin/utilities/utilityaccessaccount/").status_code, 302)
 
+    def test_number_only_registration_command_enables_both_library_and_mt5(self):
+        self.account.is_active = False
+        self.account.ea_enabled = False
+        self.account.save()
+        with patch("sys.stdin", StringIO(self.account.account_number)):
+            call_command("register_utility_account", stdout=StringIO())
+        self.account.refresh_from_db()
+        self.assertTrue(self.account.is_active)
+        self.assertTrue(self.account.ea_enabled)
+        self.assertEqual(self.login().status_code, 200)
+
     def test_language_preference_translates_denial_without_granting_access(self):
         self.client.cookies["moconix_language"] = "en"
         response = self.client.get("/utilities")

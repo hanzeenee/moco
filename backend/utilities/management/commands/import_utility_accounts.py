@@ -24,8 +24,8 @@ class Command(BaseCommand):
             fields = set(reader.fieldnames or [])
         except csv.Error:
             raise CommandError("CSV 헤더 형식을 확인해 주세요.") from None
-        if not {"account_number", "server_name"} <= fields or fields - {"account_number", "server_name", "is_active", "ea_enabled", "note"}:
-            raise CommandError("CSV 헤더에 account_number,server_name이 필요합니다.")
+        if "account_number" not in fields or fields - {"account_number", "is_active", "ea_enabled", "note"}:
+            raise CommandError("CSV 헤더에 account_number가 필요합니다. 선택 열은 is_active,ea_enabled,note입니다.")
         if len(reader.fieldnames) != len(fields):
             raise CommandError("CSV 헤더가 중복되었습니다.")
         rows = {}
@@ -37,9 +37,7 @@ class Command(BaseCommand):
                 number = row["account_number"].strip()
                 if not valid_account(number) or number in rows:
                     raise ValueError()
-                updates = {"server_name": row["server_name"].strip()}
-                if not updates["server_name"]:
-                    raise ValueError()
+                updates = {}
                 for field in ("is_active", "ea_enabled"):
                     if field in fields and row[field].strip():
                         value = row[field].strip().lower()
@@ -69,5 +67,5 @@ class Command(BaseCommand):
                 else:
                     additions.append(UtilityAccessAccount(account_number=number, **updates))
             UtilityAccessAccount.objects.bulk_create(additions, batch_size=250)
-            UtilityAccessAccount.objects.bulk_update(changes, ["server_name", "is_active", "ea_enabled", "note"], batch_size=100)
+            UtilityAccessAccount.objects.bulk_update(changes, ["is_active", "ea_enabled", "note"], batch_size=100)
         self.stdout.write(f"일괄 등록 완료: 추가 {len(additions)}개, 갱신 {len(changes)}개.")
