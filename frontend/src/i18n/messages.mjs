@@ -3,7 +3,7 @@ export const english = {
   "자동매매가": "start",
   "손익이": "affects",
   "달라집니다": "P/L",
-  "MT5 EA | MOCONIX": "MT5 EA | MOCONIX",
+  "MOCONIX | MT5 EA·인디케이터 맞춤 개발": "MOCONIX | Custom MT5 EA & Indicator Development",
   "클릭하면 자동매매가": "Click to start",
   "시작됩니다": "the EA",
   "랏수에 따라": "Lot size",
