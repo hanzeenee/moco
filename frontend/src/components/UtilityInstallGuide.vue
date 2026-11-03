@@ -27,14 +27,14 @@
             <p v-if="step.toolbar" class="toolbar-instruction">{{ toolbarInstruction[0] }}<img class="toolbar-inline-image" :src="$locale === 'en' ? algoTradingEn : systemTradingKo" :alt="$t('시스템트레이딩')" />{{ toolbarInstruction[1] }}</p>
             <p v-else>{{ $t(step.body) }}</p><code v-if="step.path">{{ step.path }}</code>
             <div v-if="step.paths" class="install-paths"><div v-for="path in step.paths" :key="path.value"><span>{{ $t(path.label) }}</span><code>{{ path.value }}</code></div></div>
-            <aside v-if="activeType === 'indicator' && index === 0 && authBridge" class="auth-bridge-download" :aria-label="$t('MOCONIX 인증 도우미')">
+            <aside v-if="activeType === 'indicator' && index === 0 && authBridge" class="auth-bridge-download" :aria-label="$t('인디케이터 인증 EA')">
               <h4><span class="mdi mdi-shield-check-outline" aria-hidden="true"></span>{{ $t(authBridge.title) }}</h4>
               <p>{{ $t(authBridge.description) }}</p>
               <div><code>{{ authBridge.filename }}</code><a :href="authBridge.download_url" download><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a></div>
             </aside>
       <aside v-if="step.license" class="license-settings" aria-labelledby="license-settings-title">
-        <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t(activeType === 'indicator' ? '인증 도우미 WebRequest 설정' : '온라인 인증이 필요한 EA') }}</h3>
-        <p>{{ $t(activeType === 'indicator' ? '인증 도우미를 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.' : '차트에 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.') }}</p>
+        <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t(activeType === 'indicator' ? '인증 EA WebRequest 설정' : '온라인 인증이 필요한 EA') }}</h3>
+        <p>{{ $t(activeType === 'indicator' ? '인증 EA를 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.' : '차트에 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.') }}</p>
         <div class="license-url"><code>{{ licenseUrl }}</code><button type="button" @click="copyLicenseUrl">{{ $t(copyState === 'copied' ? '복사 완료' : '주소 복사') }}</button></div>
         <p class="copy-feedback" role="status">{{ copyState === 'copied' ? $t('주소가 복사되었습니다.') : copyState === 'failed' ? $t('복사하지 못했습니다. 위 주소를 직접 복사해 주세요.') : '' }}</p>
         <p class="license-note">{{ $t(activeType === 'indicator' ? '등록된 계좌로 로그인해 주세요. 인증이 완료되기 전에는 지표가 표시되지 않습니다.' : '등록된 계좌로 로그인한 상태에서 적용해 주세요. 인증에 실패하면 EA가 시작되지 않습니다.') }}</p>
@@ -49,7 +49,7 @@
           <li>{{ $t('파일 종류에 맞는 폴더에 저장했는지 확인하고, 탐색기를 새로고침하거나 MT5를 다시 실행해 주세요.') }}</li>
           <li v-if="activeType === 'ea'">{{ $t('EA는 개별 설정과 MT5 상단의 시스템트레이딩이 모두 허용되어야 거래할 수 있습니다.') }}</li>
           <li v-if="activeType === 'ea'">{{ $t('온라인 인증 EA는 인터넷 연결과 WebRequest 설정이 필요하며, 전략 테스터에서는 사용할 수 없습니다.') }}</li>
-          <li v-if="activeType === 'indicator'">{{ $t('인증 대기가 계속되면 AuthBridge가 별도 차트에서 실행 중인지 확인해 주세요. 인증 오류가 표시되면 WebRequest 주소와 계좌 등록을 확인한 뒤 지표를 다시 적용해 주세요.') }}</li>
+          <li v-if="activeType === 'indicator'">{{ $t('인증 대기가 계속되면 인디케이터 인증 EA가 별도 차트에서 실행 중인지 확인해 주세요. 인증 오류가 표시되면 WebRequest 주소와 계좌 등록을 확인한 뒤 인디케이터를 다시 적용해 주세요.') }}</li>
           <li v-if="activeType === 'indicator'">{{ $t('온라인 인증 지표는 전략 테스터에서 사용할 수 없습니다.') }}</li>
           <li>{{ $t('문제가 계속되면 MT5 하단 로그의 오류 내용과 적용 화면을 함께 문의해 주세요.') }}</li>
         </ul>
@@ -89,9 +89,9 @@ export default {
         { title: '차트에 적용', body: '원하는 종목의 차트를 열고 EA를 끌어다 놓으세요. 해당 EA에 안내된 시간봉과 입력값을 확인해 주세요.' },
         { title: '시스템트레이딩 허용', toolbar: true },
       ] : [
-        { title: '두 파일을 각 폴더에 저장', body: '파일 → 데이터 폴더 열기에서 지표와 인증 도우미 EX5 파일을 각각 아래 폴더에 넣어주세요.', paths: [{ label: '인디케이터', value: 'MQL5 → Indicators' }, { label: '인증 도우미', value: 'MQL5 → Experts' }] },
-        { title: '온라인 인증 연결 설정', body: '인증 도우미가 계좌 등록 여부를 확인할 수 있도록 아래 주소를 허용해 주세요.', license: true },
-        { title: '인증 도우미 적용', body: '다른 EA가 없는 별도 차트에 MOCONIX_AuthBridge를 적용하고 해당 차트를 열어두세요. 지표를 먼저 적용했더라도 도우미가 실행되면 자동으로 인증됩니다. 도우미는 주문 없이 계좌 인증만 처리합니다.' },
+        { title: '두 파일을 각 폴더에 저장', body: '파일 → 데이터 폴더 열기에서 인디케이터와 인증 EA의 EX5 파일을 각각 아래 폴더에 넣어주세요.', paths: [{ label: '인디케이터', value: 'MQL5 → Indicators' }, { label: '인증 EA', value: 'MQL5 → Experts' }] },
+        { title: '온라인 인증 연결 설정', body: '인증 EA가 계좌 등록 여부를 확인할 수 있도록 아래 주소를 허용해 주세요.', license: true },
+        { title: '인디케이터 인증 EA 적용', body: '탐색기의 시스템트레이딩에서 MOCONIX_AuthBridge를 찾아 다른 EA가 없는 별도 차트에 적용하고, 해당 차트를 열어두세요. 인디케이터를 먼저 적용했더라도 인증 EA가 실행되면 자동으로 인증됩니다. 인증 EA는 주문 없이 계좌 인증만 처리합니다.' },
         { title: '탐색기에서 지표 확인', body: 'MT5 탐색기의 인디케이터에서 마우스 오른쪽 버튼 → 새로고침을 선택해 주세요.' },
         { title: '지표를 원하는 차트에 적용', body: '사용할 인디케이터를 원하는 차트에 끌어다 놓고 입력값을 확인해 주세요. 처음 적용할 때 등록된 계좌인지 확인합니다.' },
         { title: '인증 완료 후 표시 확인', body: '인증이 완료되면 지표가 표시됩니다. 계좌가 등록되지 않았거나 인증에 실패하면 신호를 표시하지 않습니다.' },

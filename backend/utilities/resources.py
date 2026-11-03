@@ -17,11 +17,11 @@ RESOURCES = {
         "title": "UT Bot 시그널 인디케이터", "type": "indicator", "filename": "MOCONIX_UTBot.ex5",
         "program": "moconix-utbot-v1",
         "description": "ATR 기반 매수·매도 신호를 차트에 표시합니다.",
-        "note": "인증 도우미 필요 · 현재 봉의 신호는 시세에 따라 바뀔 수 있습니다.",
+        "note": "인증 EA 필요 · 현재 봉의 신호는 시세에 따라 바뀔 수 있습니다.",
     },
     "auth-bridge": {
-        "title": "MOCONIX 인증 도우미", "type": "helper", "filename": "MOCONIX_AuthBridge.ex5",
-        "description": "지표 실행에 필요한 계좌 인증 프로그램입니다. 주문 기능은 없습니다.",
+        "title": "인디케이터 인증 EA", "type": "helper", "filename": "MOCONIX_AuthBridge.ex5",
+        "description": "인디케이터 실행을 위한 계좌 인증용 EA입니다. 주문 기능은 없습니다.",
     },
 }
 
