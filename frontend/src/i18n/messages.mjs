@@ -1,4 +1,5 @@
 export const english = {
+  "MT5 EA·인디케이터와 TradingView 지표를 맞춤 개발합니다. 매매 전략과 필요한 기능을 구현하고, 기존 프로그램의 수정 및 개선도 지원합니다.": "Custom MT5 EA, indicator and TradingView indicator development. We implement your trading strategies and required features, and support updates and improvements to existing programs.",
   "클릭하면": "Click to",
   "자동매매가": "start",
   "손익이": "affects",

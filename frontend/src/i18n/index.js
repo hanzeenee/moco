@@ -12,6 +12,8 @@ export const t = (message, params) => translate(message, languageState.locale, p
 function updatePageLanguage() {
   document.documentElement.lang = languageState.locale
   document.title = t('MOCONIX | MT5 EA·인디케이터 맞춤 개발')
+  const description = document.querySelector('meta[name="description"]')
+  if (description) description.setAttribute('content', t('MT5 EA·인디케이터와 TradingView 지표를 맞춤 개발합니다. 매매 전략과 필요한 기능을 구현하고, 기존 프로그램의 수정 및 개선도 지원합니다.'))
 }
 export function setLanguage(value) {
   languageState.locale = normalizeLocale(value)
