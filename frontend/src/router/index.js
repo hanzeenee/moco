@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import HomeView from '../components/HomeView.vue'
 import UtilityLibrary from '../components/UtilityLibrary.vue'
 import LectureView from '../components/LectureView.vue'
@@ -30,7 +30,7 @@ const routes = [
 ]
 
 // Preserve existing shared hash links while switching to clean history URLs.
-if (window.location.pathname === '/' && window.location.hash.startsWith('#/')) {
+if (typeof window !== 'undefined' && window.location.pathname === '/' && window.location.hash.startsWith('#/')) {
   try {
     const legacyUrl = new URL(window.location.hash.slice(1), window.location.origin)
     if (legacyUrl.origin === window.location.origin) {
@@ -46,9 +46,13 @@ if (window.location.pathname === '/' && window.location.hash.startsWith('#/')) {
   }
 }
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes,
-})
+export function createAppRouter({ memory = typeof window === 'undefined' } = {}) {
+  return createRouter({
+    history: memory ? createMemoryHistory() : createWebHistory(),
+    routes,
+  })
+}
+
+const router = createAppRouter()
 
 export default router

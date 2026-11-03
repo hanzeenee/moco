@@ -66,3 +66,8 @@ backend_old/
 *.mov
 *.m3u8
 *.ts
+
+# Locale homepage output and build-only SSR bundle
+backend/templates/home-ko.html
+backend/templates/home-en.html
+frontend/.prerender/

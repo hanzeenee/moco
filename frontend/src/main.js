@@ -8,9 +8,11 @@ import router from './router'
 
 loadFonts()
 
-createApp(App)
+const app = createApp(App)
   .use(installLanguage)
   .use(store)
   .use(vuetify)
   .use(router)
-  .mount('#app')
+
+// Keep the build-time homepage visible until the current route is ready.
+router.isReady().then(() => app.mount('#app'))

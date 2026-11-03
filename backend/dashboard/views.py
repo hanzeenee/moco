@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.cache import patch_vary_headers
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -12,9 +13,14 @@ from .serializers import CommentSerializer
 
 @ensure_csrf_cookie
 def dashboard_home(request):
-    response = render(request, "home.html")
+    template = "home.html"
+    if request.path == "/":
+        language = "en" if request.COOKIES.get("moconix_language") == "en" else "ko"
+        template = f"home-{language}.html"
+    response = render(request, template)
     if request.path == "/":
         response["Link"] = '<https://moconix.com/>; rel="canonical"'
+        patch_vary_headers(response, ("Cookie",))
     return response
 
 

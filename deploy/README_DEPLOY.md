@@ -316,3 +316,30 @@ Advisor accounts. Verify `https://moconix.com/`, then submit
 account-side step; publishing robots.txt or a sitemap does not itself register
 the website. Keep any genuine verification file or meta tag permanently after
 verification. Never invent a verification token or submit under another account.
+
+
+## Localized homepage initial HTML
+
+`npm run build` produces the regular Vue client bundle and then renders the same
+App/HomeView components into `backend/templates/home-ko.html` and `home-en.html`.
+These generated templates include the existing public homepage and one WebSite
+JSON-LD object identifying MOCONIX / 모코닉스. Both templates reuse the same
+client CSS and image assets; do not hand-edit generated snapshots.
+
+Django uses the existing `moconix_language` cookie to choose the initial homepage
+HTML (Korean by default), and varies the response by Cookie. Other routes,
+including the protected utility library, continue to use the regular app shell.
+The browser mounts the existing interactive Vue application after its router is
+ready. No Node rendering service runs for visitor requests.
+
+Always run the complete frontend build before restarting Gunicorn so both locale
+templates and the client assets are updated together. A normal deployment's build
+command already includes this step. The HTML verification tags for Google and
+Naver are retained in every generated template.
+
+Additional regression check after the build:
+
+```bash
+cd backend
+python manage.py test dashboard.test_home_prerender dashboard.test_seo --noinput
+```
