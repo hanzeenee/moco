@@ -7,7 +7,7 @@
       <template v-else><h2>{{ $t('자료실에 접속할 수 없습니다') }}</h2><p>{{ $t(error) }}</p><a href="/">{{ $t('홈으로 돌아가기') }}</a></template>
     </div>
     <section v-if="authorized && !loading && items.length" class="library-downloads" :aria-label="$t('다운로드 파일')">
-      <p class="downloads-intro">{{ $t('두 파일을 모두 다운로드한 뒤 아래 설치 안내를 따라주세요.') }}</p>
+      <p class="downloads-intro">{{ $t('인증 도우미를 다운로드하고 아래 설치 안내를 확인해 주세요.') }}</p>
       <div class="download-grid">
         <article v-for="item in items" :key="item.id" class="resource-card">
           <div class="resource-type"><span :class="['mdi', item.type === 'helper' ? 'mdi-shield-check-outline' : 'mdi-chart-line']" aria-hidden="true"></span>{{ $t(item.type === 'helper' ? '인증 도우미' : '인디케이터') }}</div>

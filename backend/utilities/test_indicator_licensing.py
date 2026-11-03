@@ -105,9 +105,11 @@ class PrivateDownloadTests(TestCase):
         self.addCleanup(self.settings.disable)
         self.account = UtilityAccessAccount.objects.create(account_number="77112233")
         self.program = EAProgram.objects.create(code="moconix-rsi-arrow-v1", name="Test indicator", program_type="indicator")
-        self.path = Path(self.directory.name) / "MOCONIX_RSIArrow.ex5"
+        self.path = Path(self.directory.name) / "MOCONIX_AuthBridge.ex5"
+        # A private test indicator must stay unpublished even if its binary exists.
+        (Path(self.directory.name) / "MOCONIX_RSIArrow.ex5").write_bytes(b"private-test-indicator")
         self.path.write_bytes(b"test-compiled-resource")
-        self.url = reverse("utility-download", args=["rsi-arrow"])
+        self.url = reverse("utility-download", args=["auth-bridge"])
 
     def login(self):
         return self.client.post(reverse("utility-login"), json.dumps({"account_number": self.account.account_number}), content_type="application/json")
@@ -122,11 +124,11 @@ class PrivateDownloadTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(b"".join(response.streaming_content), self.path.read_bytes())
-        self.assertIn('attachment; filename="MOCONIX_RSIArrow.ex5"', response["Content-Disposition"])
+        self.assertIn('attachment; filename="MOCONIX_AuthBridge.ex5"', response["Content-Disposition"])
         self.assertIn("no-store", response["Cache-Control"])
         self.assertEqual(response["X-Content-Type-Options"], "nosniff")
 
-    def test_logout_account_disable_and_program_disable_protect_direct_links(self):
+    def test_logout_account_disable_and_unpublished_indicator_protect_direct_links(self):
         self.login()
         self.client.post(reverse("utility-logout"))
         self.assertEqual(self.client.get(self.url).status_code, 401)
@@ -139,11 +141,18 @@ class PrivateDownloadTests(TestCase):
         self.login()
         self.program.is_active = False
         self.program.save()
-        self.assertEqual(self.client.get(self.url).status_code, 404)
+        # AuthBridge is shared infrastructure, independent of the private test product.
+        self.program.delete()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        response.close()
+        items = self.client.get(reverse("utility-library-data")).json()["items"]
+        self.assertEqual([item["id"] for item in items], ["auth-bridge"])
+        self.assertEqual(self.client.get(reverse("utility-download", args=["rsi-arrow"])).status_code, 404)
 
     def test_missing_unknown_and_source_files_are_not_exposed(self):
         self.login()
-        for slug in ["missing", "MOCONIX_RSIArrow.mq5", "test-signing-key.pem"]:
+        for slug in ["missing", "rsi-arrow", "MOCONIX_RSIArrow.ex5", "MOCONIX_RSIArrow.mq5", "test-signing-key.pem"]:
             self.assertEqual(self.client.get("/api/utilities/download/" + slug + "/").status_code, 404)
         self.path.unlink()
         self.assertEqual(self.client.get(self.url).status_code, 404)

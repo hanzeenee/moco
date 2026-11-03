@@ -106,15 +106,15 @@ There is one LF between the message and signature, with no trailing newline. All
 
 - Install `backend/requirements.txt`, including `cryptography>=46,<47`; run migrations.
 - `MOCONIX_INDICATOR_SIGNING_KEY` points to an RSA-2048 PEM private key outside the repository/static/media roots. Restrict its directory to the service owner (0700) and key to 0600. The corresponding public modulus is compiled into `MoconixAuthProtocol.mqh`. Rotating the key requires coordinated recompilation/distribution; never export the private key to clients or commit it.
-- `MOCONIX_UTILITY_DOWNLOAD_DIR` points to an owner-only private directory containing `MOCONIX_AuthBridge.ex5` and `MOCONIX_RSIArrow.ex5`. Do not serve that directory through nginx, Django static or media. Only fixed catalog IDs are accepted by the session-guarded download endpoint; no source/key files are cataloged. Inactive indicator programs hide and block their downloads.
+- `MOCONIX_UTILITY_DOWNLOAD_DIR` points to an owner-only private directory containing the shared `MOCONIX_AuthBridge.ex5`. Do not serve that directory through nginx, Django static or media. Only fixed catalog IDs are accepted by the session-guarded download endpoint; no source/key files are cataloged. RSIArrow is an owner-only test artifact, not a published library item: its catalog entry and download route are intentionally unavailable. Publishing an indicator later requires explicit owner instruction. The shared helper download does not depend on the private test product being enabled.
 - Register `moconix-rsi-arrow-v1` as type `indicator`, active. Existing program rows default to type `ea`. Do not overwrite an administrator's disabled program or customer flags.
 - Website library access still uses its existing registered-account session. File download permission does not grant MT5 authorization; the EX5 verifies the terminal's actual account/server on initialization.
 
-### Customer indicator setup
+### Owner test indicator setup (not published)
 
 Copy `MOCONIX_RSIArrow.ex5` to `MQL5/Indicators` and `MOCONIX_AuthBridge.ex5` to `MQL5/Experts`. Keep file names unchanged. Allow `https://moconix.com` under Tools > Options > Expert Advisors > WebRequest. Sign in to the registered account/server, refresh Navigator, attach the helper to a separate chart, then attach the indicator to the desired chart. Keep the helper chart open. No DLLs, orders or Algo Trading trading permission are required by the helper. This online indicator build does not run in Strategy Tester.
 
-Customers receive the same two EX5 files regardless of account; only the server database changes when customers are added. Account/program revocation affects the next initialization, not an already-authorized running instance. The database is operator managed; there is no automatic broker/IB portal integration or proof of account ownership in the account-number website login.
+The owner tests the private indicator using the locally supplied two EX5 files. No indicator is currently published on the website. When the owner explicitly publishes a product later, customer accounts can use the same EX5 build; only the server database changes when customers are added. Account/program revocation affects the next initialization, not an already-authorized running instance. The database is operator managed; there is no automatic broker/IB portal integration or proof of account ownership in the account-number website login.
 
 ### Additional validation
 
