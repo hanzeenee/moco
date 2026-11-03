@@ -35,7 +35,7 @@ class PublishedReleaseTests(TestCase):
         self.assertNotIn('program', items[0])
         for item in items:
             self.assertTrue(item['filename'].endswith('.ex5'))
-            self.assertEqual(item['version'], '1.00')
+            self.assertNotIn('version', item)
             response = self.client.get(item['download_url'])
             self.assertEqual(response.status_code, 200)
             self.assertEqual(b''.join(response.streaming_content), ('private-ex5-' + item['id']).encode())

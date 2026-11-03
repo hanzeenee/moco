@@ -1,4 +1,9 @@
 export const english = {
+  "사용 안내": "Usage notes",
+  "자료실 페이지": "Library pages",
+  "이전 페이지": "Previous page",
+  "다음 페이지": "Next page",
+  "{page}페이지": "Page {page}",
   "전체": "All",
   "프로그램 종류": "Program type",
   "등록된 계좌로 로그인한 MT5에서만 실행됩니다.": "These programs run only in MT5 signed in to a registered account.",

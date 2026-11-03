@@ -9,13 +9,13 @@ from .models import EAProgram
 RESOURCES = {
     "breakout-martingale": {
         "title": "양방향 돌파·마틴게일 EA", "type": "ea", "filename": "MOCONIX_BreakoutMartingale.ex5",
-        "program": "moconix-breakout-martingale-v1", "version": "1.00",
+        "program": "moconix-breakout-martingale-v1",
         "description": "양방향 예약주문으로 진입하고, 마틴게일 추가 진입과 바스켓 익절을 관리합니다.",
         "note": "헤징 계좌 전용 · 같은 종목의 기존 포지션과 예약주문도 관리합니다.",
     },
     "ut-bot": {
         "title": "UT Bot 시그널 인디케이터", "type": "indicator", "filename": "MOCONIX_UTBot.ex5",
-        "program": "moconix-utbot-v1", "version": "1.00",
+        "program": "moconix-utbot-v1",
         "description": "ATR 기반 추적 기준선의 돌파에 따라 매수·매도 신호를 차트에 표시합니다.",
         "note": "인증 도우미 필요 · 현재 봉의 신호는 시세에 따라 바뀔 수 있습니다.",
     },

@@ -14,15 +14,22 @@
         </button>
       </div>
       <div v-if="filteredItems.length" class="download-grid">
-        <article v-for="item in filteredItems" :key="item.id" class="resource-card">
-          <div class="resource-meta"><div class="resource-type"><span :class="['mdi', item.type === 'ea' ? 'mdi-robot' : 'mdi-chart-line']" aria-hidden="true"></span>{{ $t(item.type === 'ea' ? 'EA' : '인디케이터') }}</div><span v-if="item.version" class="resource-version">v{{ item.version }}</span></div>
-          <h2>{{ $t(item.title) }}</h2><p>{{ $t(item.description) }}</p>
-          <p v-if="item.note" class="resource-note">{{ $t(item.note) }}</p>
-          <code>{{ item.filename }}</code>
+        <article v-for="item in pagedItems" :key="item.id" class="resource-card">
+          <div class="resource-meta"><div class="resource-type"><span :class="['mdi', item.type === 'ea' ? 'mdi-robot' : 'mdi-chart-line']" aria-hidden="true"></span>{{ $t(item.type === 'ea' ? 'EA' : '인디케이터') }}</div></div>
+          <h2>{{ $t(item.title) }}</h2><p class="resource-description">{{ $t(item.description) }}</p>
+          <details class="resource-details"><summary>{{ $t('사용 안내') }}</summary><p>{{ $t(item.description) }}</p><p v-if="item.note">{{ $t(item.note) }}</p><code>{{ item.filename }}</code></details>
           <a :href="item.download_url" download><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a>
         </article>
       </div>
-      <p v-else class="category-empty" role="status">{{ $t('이 종류의 자료를 준비하고 있습니다.') }}</p>
+      <nav v-if="pageCount > 1" class="library-pagination" :aria-label="$t('자료실 페이지')">
+        <button type="button" :disabled="activePage === 1" :aria-label="$t('이전 페이지')" @click="changePage(activePage - 1)"><span class="mdi mdi-chevron-left" aria-hidden="true"></span></button>
+        <template v-for="(page, index) in pageLinks" :key="index">
+          <span v-if="page === null" class="page-ellipsis" aria-hidden="true">…</span>
+          <button v-else type="button" :aria-label="$t('{page}페이지', { page })" :aria-current="page === activePage ? 'page' : undefined" @click="changePage(page)">{{ page }}</button>
+        </template>
+        <button type="button" :disabled="activePage === pageCount" :aria-label="$t('다음 페이지')" @click="changePage(activePage + 1)"><span class="mdi mdi-chevron-right" aria-hidden="true"></span></button>
+      </nav>
+      <p v-if="!filteredItems.length" class="category-empty" role="status">{{ $t('이 종류의 자료를 준비하고 있습니다.') }}</p>
     </section>
     <UtilityInstallGuide v-if="authorized && !loading" :auth-bridge="authBridge" />
     <p v-if="logoutError" class="logout-error" role="alert">{{ $t(logoutError) }}</p>
@@ -31,21 +38,29 @@
 
 <script>
 import { csrfToken, utilityRequest } from '../lib/utilityAccess'
+import { libraryPage, libraryPageLinks } from '../lib/utilityLibrary.mjs'
 import UtilityInstallGuide from './UtilityInstallGuide.vue'
 
 export default {
   name: 'UtilityLibrary',
   components: { UtilityInstallGuide },
-  data() { return { loading: true, authorized: false, items: [], selectedType: 'all', error: '', loggingOut: false, logoutError: '' } },
+  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', currentPage: 1, error: '', loggingOut: false, logoutError: '' } },
   computed: {
     libraryItems() { return this.items.filter(item => item.type !== 'helper') },
-    filteredItems() { return this.selectedType === 'all' ? this.libraryItems : this.libraryItems.filter(item => item.type === this.selectedType) },
+    pageState() { return libraryPage(this.libraryItems, this.selectedType, this.currentPage) },
+    filteredItems() { return this.pageState.filteredItems },
+    pagedItems() { return this.pageState.items },
+    pageCount() { return this.pageState.pageCount },
+    activePage() { return this.pageState.page },
+    pageLinks() { return libraryPageLinks(this.activePage, this.pageCount) },
     categories() { return [
-      { value: 'all', label: '전체', count: this.libraryItems.length },
       { value: 'ea', label: 'EA', count: this.libraryItems.filter(item => item.type === 'ea').length },
       { value: 'indicator', label: '인디케이터', count: this.libraryItems.filter(item => item.type === 'indicator').length },
     ] },
     authBridge() { return this.items.find(item => item.id === 'auth-bridge') || null },
+  },
+  watch: {
+    selectedType() { this.currentPage = 1 },
   },
   async mounted() {
     try { const data = await utilityRequest('library'); this.items = data.items || []; this.authorized = true }
@@ -53,6 +68,7 @@ export default {
     finally { this.loading = false }
   },
   methods: {
+    changePage(page) { this.currentPage = page },
     async logout() {
       this.loggingOut = true
       this.logoutError = ''
@@ -88,19 +104,32 @@ export default {
 .filter-count { display: inline-grid; place-items: center; min-width: 19px; height: 19px; padding: 0 3px; box-sizing: border-box; border-radius: 5px; background: #ffffff0b; font-size: 11px; }
 .category-empty { padding: 40px 20px; border: 1px solid #2b3038; border-radius: 12px; color: #949eae; text-align: center; font-size: 14px; }
 .resource-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.resource-version { color: #8d98a8; font-size: 11px; }
-.resource-card .resource-note { padding-top: 12px; border-top: 1px solid #252b33; color: #949eae; font-size: 12px; }
-.download-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.resource-card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid #343b45; border-radius: 13px; background: #0b0d10; }
-.resource-type { display: flex; align-items: center; gap: 8px; color: #cbb65c; font-size: 12px; }
-.resource-type .mdi { font-size: 21px; }
-.resource-card h2 { margin: 14px 0 10px; color: #edf0f4; font-size: 20px; }
-.resource-card p { margin: 0 0 16px; color: #a4afbf; font-size: 13px; line-height: 1.8; }
-.resource-card code { margin: auto 0 18px; color: #7f8c9e; font-size: 12px; overflow-wrap: anywhere; }
-.resource-card a { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 43px; padding: 9px 12px; border: 1px solid #71601e; border-radius: 7px; background: #211d0d; color: #f1d365; text-decoration: none; font-size: 13px; font-weight: 600; }
+.download-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.resource-card { display: flex; flex-direction: column; min-width: 0; padding: 18px; border: 1px solid #343b45; border-radius: 13px; background: #0b0d10; }
+.resource-type { display: flex; align-items: center; gap: 8px; color: #cbb65c; font-size: 11px; }
+.resource-type .mdi { font-size: 18px; }
+.resource-card h2 { margin: 12px 0 8px; color: #edf0f4; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+.resource-card p { margin: 0 0 12px; color: #a4afbf; font-size: 12px; line-height: 1.7; }
+.resource-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.resource-details { margin: auto 0 14px; font-size: 11px; }
+.resource-details summary { width: fit-content; color: #a6afbd; cursor: pointer; }
+.resource-details summary:hover { color: #f1d365; }
+.resource-details summary:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
+.resource-details[open] summary { margin-bottom: 9px; }
+.resource-details p { font-size: 11px; }
+.resource-details code { display: block; color: #7f8c9e; font-size: 10px; overflow-wrap: anywhere; }
+.resource-card a { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 36px; padding: 8px 10px; border: 1px solid #71601e; border-radius: 7px; background: #211d0d; color: #f1d365; text-decoration: none; font-size: 12px; font-weight: 600; }
 .resource-card a:hover { border-color: #d3b72d; background: #30290d; }
 .resource-card a:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
-@media (max-width: 600px) { .download-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; } .resource-card { padding: 21px; } }
+.library-pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 24px 0 0; }
+.library-pagination button, .page-ellipsis { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; color: #a4afbf; font: inherit; font-size: 12px; }
+.library-pagination button { border: 1px solid #30353d; border-radius: 6px; background: #0b0d10; cursor: pointer; }
+.library-pagination button[aria-current="page"] { border-color: #b49b31; background: #201c0d; color: #f1d365; }
+.library-pagination button:hover:not(:disabled) { border-color: #b49b31; color: #f1d365; }
+.library-pagination button:disabled { opacity: .35; cursor: default; }
+.library-pagination button:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
+@media (max-width: 900px) { .download-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .download-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; } .resource-card { padding: 18px; } .library-pagination { gap: 3px; } .library-pagination button, .page-ellipsis { width: 28px; height: 34px; } }
 .logout-error { margin-top: 15px; color: #ff959a; font-size: 13px; }
 @media (max-width: 600px) { .utility-library { padding-top: 32px; } .library-empty { min-height: 280px; } }
 </style>
