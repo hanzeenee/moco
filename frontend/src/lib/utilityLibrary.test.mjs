@@ -51,7 +51,7 @@ test('page navigation stays compact while retaining the first, current and last 
 })
 
 
-test('search matches titles and descriptions, case and spacing, within the selected kind', () => {
+test('search matches titles and descriptions across both kinds without helpers', () => {
   const items = [
     { id: 'ea', type: 'ea', title: '양방향 돌파 EA', description: '마틴게일과 바스켓 익절', filename: 'secret-name.ex5' },
     { id: 'ut', type: 'indicator', title: 'UT Bot 시그널', description: 'ATR 기반 매수 신호' },
@@ -63,7 +63,8 @@ test('search matches titles and descriptions, case and spacing, within the selec
   assert.deepEqual(ids('ea', '양방향돌파'), ['ea'])
   assert.deepEqual(ids('indicator', '  ut   BOT  atr '), ['ut'])
   assert.deepEqual(ids('indicator', 'ＵＴ'), ['ut'])
-  assert.deepEqual(ids('ea', 'UT'), [])
+  assert.deepEqual(ids('ea', 'UT'), ['ut'])
+  assert.deepEqual(ids('indicator', '마틴게일'), ['ea'])
   assert.deepEqual(ids('indicator', '[.*]'), ['literal'])
   assert.deepEqual(ids('ea', 'secret-name'), [])
   assert.deepEqual(ids('indicator', 'no-match'), [])
@@ -83,4 +84,38 @@ test('English translations and original Korean are searchable before nine-item p
   assert.deepEqual(last.items.map(item => item.id), ['ea-9'])
   assert.equal(libraryPage(items, 'ea', 1, '예약주문', translate).filteredItems.length, 10)
   assert.equal(libraryPage(items, 'ea', 3, 'no match', translate).page, 1)
+})
+
+
+test('combined search paginates both types, while clearing restores the original category', () => {
+  const items = [
+    ...Array.from({ length: 6 }, (_, i) => ({ id: `ea-${i}`, type: 'ea', title: `신호 EA ${i}`, description: '매매 신호' })),
+    ...Array.from({ length: 6 }, (_, i) => ({ id: `indicator-${i}`, type: 'indicator', title: `신호 지표 ${i}`, description: '매매 신호' })),
+    { id: 'helper', type: 'helper', title: '신호 인증 도우미' },
+  ]
+  for (const originalType of ['ea', 'indicator']) {
+    const first = libraryPage(items, originalType, 1, '신호')
+    const second = libraryPage(items, originalType, 2, '신호')
+    assert.equal(first.filteredItems.length, 12)
+    assert.equal(first.pageCount, 2)
+    assert.equal(first.items.length, 9)
+    assert.equal(second.items.length, 3)
+    assert.deepEqual([...new Set(first.items.map(item => item.type))], ['ea', 'indicator'])
+    const cleared = libraryPage(items, originalType, 1, '')
+    assert.equal(cleared.items.length, 6)
+    assert.ok(cleared.items.every(item => item.type === originalType))
+    assert.deepEqual(libraryPage(items, originalType, 1, '   ').items, cleared.items)
+  }
+})
+
+test('English content search reaches the other kind and still matches original Korean', () => {
+  const items = [
+    { id: 'ea', type: 'ea', title: '돌파 EA', description: '예약주문 관리' },
+    { id: 'indicator', type: 'indicator', title: '매수매도 지표', description: '가격 신호' },
+  ]
+  const english = { '예약주문 관리': 'Pending order management', '매수매도 지표': 'Buy Sell Indicator', '가격 신호': 'Price signals' }
+  const translate = text => english[text] || text
+  assert.deepEqual(libraryPage(items, 'ea', 1, 'BUY SELL', translate).items.map(item => item.id), ['indicator'])
+  assert.deepEqual(libraryPage(items, 'indicator', 1, 'pending', translate).items.map(item => item.id), ['ea'])
+  assert.deepEqual(libraryPage(items, 'ea', 1, '가격', translate).items.map(item => item.id), ['indicator'])
 })

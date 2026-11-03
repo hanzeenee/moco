@@ -1,4 +1,5 @@
 export const english = {
+  "EA·인디케이터 전체 검색": "Search across EAs & indicators",
   "자료실 검색": "Search the library",
   "제목 또는 설명 검색": "Search titles or descriptions",
   "검색어 지우기": "Clear search",

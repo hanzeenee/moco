@@ -9,11 +9,12 @@
     </div>
     <section v-if="authorized && !loading && libraryItems.length" class="library-downloads" :aria-label="$t('다운로드 파일')">
       <div class="library-toolbar">
-      <div class="library-filters" role="group" :aria-label="$t('프로그램 종류')">
+      <div v-if="!hasSearch" class="library-filters" role="group" :aria-label="$t('프로그램 종류')">
         <button v-for="category in categories" :key="category.value" type="button" :aria-pressed="selectedType === category.value" @click="selectedType = category.value">
           {{ $t(category.label) }}<span class="filter-count">{{ category.count }}</span>
         </button>
       </div>
+      <span v-if="hasSearch" class="search-scope">{{ $t('EA·인디케이터 전체 검색') }}</span>
       <div class="library-search" role="search" :aria-label="$t('자료실 검색')">
         <span class="mdi mdi-magnify" aria-hidden="true"></span>
         <input v-model="searchQuery" type="search" :aria-label="$t('제목 또는 설명 검색')" :placeholder="$t('제목 또는 설명 검색')" autocomplete="off" />
@@ -51,7 +52,7 @@ import UtilityInstallGuide from './UtilityInstallGuide.vue'
 export default {
   name: 'UtilityLibrary',
   components: { UtilityInstallGuide },
-  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', currentPage: 1, searchQuery: '', error: '', loggingOut: false, logoutError: '' } },
+  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', currentPage: 1, searchReturnPage: 1, searchQuery: '', error: '', loggingOut: false, logoutError: '' } },
   computed: {
     libraryItems() { return this.items.filter(item => item.type !== 'helper') },
     pageState() { return libraryPage(this.libraryItems, this.selectedType, this.currentPage, this.searchQuery, text => this.$t(text)) },
@@ -62,14 +63,20 @@ export default {
     activePage() { return this.pageState.page },
     pageLinks() { return libraryPageLinks(this.activePage, this.pageCount) },
     categories() { return [
-      { value: 'ea', label: 'EA', count: libraryPage(this.libraryItems, 'ea', 1, this.searchQuery, text => this.$t(text)).filteredItems.length },
-      { value: 'indicator', label: '인디케이터', count: libraryPage(this.libraryItems, 'indicator', 1, this.searchQuery, text => this.$t(text)).filteredItems.length },
+      { value: 'ea', label: 'EA', count: this.libraryItems.filter(item => item.type === 'ea').length },
+      { value: 'indicator', label: '인디케이터', count: this.libraryItems.filter(item => item.type === 'indicator').length },
     ] },
     authBridge() { return this.items.find(item => item.id === 'auth-bridge') || null },
   },
   watch: {
     selectedType() { this.currentPage = 1 },
-    searchQuery() { this.currentPage = 1 },
+    searchQuery(value, previous) {
+      const active = value.trim().length > 0
+      const wasActive = previous.trim().length > 0
+      if (!active && !wasActive) return
+      if (active && !wasActive) this.searchReturnPage = this.currentPage
+      this.currentPage = active ? 1 : this.searchReturnPage
+    },
   },
   async mounted() {
     try { const data = await utilityRequest('library'); this.items = data.items || []; this.authorized = true }
@@ -107,6 +114,7 @@ export default {
 .library-downloads { margin-top: 26px; }
 .library-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
 .library-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.search-scope { color: #cbb65c; font-size: 12px; line-height: 1.7; }
 .library-search { display: flex; align-items: center; gap: 8px; width: 285px; max-width: 100%; min-height: 42px; padding: 0 12px; box-sizing: border-box; border: 1px solid #30353d; border-radius: 8px; background: #0b0d10; color: #8793a5; }
 .library-search:focus-within { border-color: #b49b31; }
 .library-search > .mdi { font-size: 18px; }

@@ -5,8 +5,8 @@ function searchText(value) { return String(value ?? '').normalize('NFKC').toLowe
 export function libraryPage(items, type = 'ea', requestedPage = 1, query = '', translate = value => value) {
   const terms = searchText(query).split(' ').filter(Boolean)
   const filteredItems = items.filter(item => {
-    if (item.type !== type || (type !== 'ea' && type !== 'indicator')) return false
-    if (!terms.length) return true
+    if ((type !== 'ea' && type !== 'indicator') || (item.type !== 'ea' && item.type !== 'indicator')) return false
+    if (!terms.length) return item.type === type
     const fields = [item.title, item.description].filter(Boolean)
     const text = searchText([...fields, ...fields.map(translate)].join(' '))
     const compact = text.replace(/\s/g, '')
