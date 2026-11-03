@@ -11,7 +11,7 @@ export const languageState = reactive({ locale: readPreference() })
 export const t = (message, params) => translate(message, languageState.locale, params)
 function updatePageLanguage() {
   document.documentElement.lang = languageState.locale
-  document.title = t('MT5 EA·인디케이터 개발 | MOCONIX')
+  document.title = t('MT5 EA | MOCONIX')
 }
 export function setLanguage(value) {
   languageState.locale = normalizeLocale(value)
