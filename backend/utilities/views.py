@@ -2,13 +2,14 @@ import json
 import re
 import time
 
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
 from .models import UtilityAccessAccount
+from .resources import available_resources, resource_path
 
 ACCOUNT_KEY = "utility_account_id"
 EXPIRY_KEY = "utility_access_expires_at"
@@ -76,8 +77,7 @@ def logout(request):
 def library_data(request):
     if registered_account(request) is None:
         return JsonResponse({"detail": "자료실 로그인이 필요합니다."}, status=401)
-    # No files yet. Future file-list and download endpoints must use the same guard.
-    return JsonResponse({"items": []})
+    return JsonResponse({"items": available_resources()})
 
 
 @never_cache
@@ -88,3 +88,16 @@ def library_page(request):
         language = "en" if request.COOKIES.get("moconix_language") == "en" else "ko"
         return render(request, "utilities/access_required.html", {"english": language == "en", "language": language}, status=403)
     return render(request, "home.html")
+
+
+@never_cache
+@require_GET
+def download(request, resource_id):
+    if registered_account(request) is None:
+        return JsonResponse({"detail": "자료실 로그인이 필요합니다."}, status=401)
+    path = resource_path(resource_id)
+    if path is None:
+        raise Http404()
+    response = FileResponse(path.open("rb"), as_attachment=True, filename=path.name, content_type="application/octet-stream")
+    response["X-Content-Type-Options"] = "nosniff"
+    return response

@@ -16,8 +16,8 @@ The reusable `MoconixLicense.mqh` contains licensing only. The customer's upload
 
 ## Owner administration / 관리자 운영
 
-- Open `/admin/utilities/utilityaccessaccount/` (existing Django administrator login). Set the customer's exact account number and **MT5 거래 서버명**, enable **이용 허용** and **EA 이용 허용**. A blank server allows the existing web library only, never EA startup.
-- Open `/admin/utilities/eaprogram/` to enable/disable program IDs. The supplied private EA uses `moconix-grid-ea-v1`. All EA-enabled accounts can use all active programs; this version does not implement per-product customer entitlements.
+- Open `/admin/utilities/utilityaccessaccount/` (existing Django administrator login). Set the customer's exact account number and **MT5 거래 서버명**, enable **이용 허용** and **MT5 프로그램 이용 허용**. A blank server allows the existing web library only, never EA startup.
+- Open `/admin/utilities/eaprogram/` to enable/disable program IDs. The supplied private EA uses `moconix-grid-ea-v1`. All MT5-enabled accounts can use all active programs of the matching type; this version does not implement per-product customer entitlements.
 - Confirm the customer belongs to your IB through your existing business process before registering. This service does not automatically access INFINOX's IB portal or verify account ownership/IB affiliation.
 - Account flags and metadata are private database data. Do not commit customer exports, real customer account numbers, passwords or private EA sources.
 
@@ -47,7 +47,7 @@ Dry-run validates without writing. Invalid/duplicate rows reject the whole batch
 3. Log in to the registered account on its registered server. Attach the EA to a chart and enable Algo Trading as required by the original strategy.
 4. Check the Experts log for `Startup authorization complete`. If rejected, check account/server registration, URL permission and connectivity, then attach again. A successful license does not establish strategy profitability or enable trading permissions by itself.
 
-This online-licensed build does **not** work in Strategy Tester, where MT5 does not support WebRequest. No tester bypass is included. For strategy testing, the owner retains the original private source separately. Ordinary MQL5 indicators cannot directly use WebRequest either; this implementation supports the uploaded EA, not direct network authentication inside indicators.
+This online-licensed build does **not** work in Strategy Tester, where MT5 does not support WebRequest. No tester bypass is included. For strategy testing, the owner retains the original private source separately. Ordinary MQL5 indicators cannot directly use WebRequest. The separate signed AuthBridge flow below supports indicator initialization without adding networking or DLLs to the indicator.
 
 ## Protocol 1
 
@@ -81,3 +81,43 @@ python manage.py migrate --noinput
 Tests cover exact response binding, native requests without sessions, missing/inactive/mismatched permissions, no library grant, malformed JSON, bounds, rate limits/proxy trust, infrastructure failure, admin fields and transactional CSV import. The private EA is compiled separately and its original strategy is checked by removing only the three licensing insertions and comparing with the uploaded original. Compilation and API tests do not replace a live MT5 runtime test. No broker orders are placed during these checks.
 
 Official platform references: [WebRequest](https://www.mql5.com/en/docs/network/webrequest), [account information](https://www.mql5.com/en/docs/constants/environment_state/accountinformation).
+
+## Indicator authorization via AuthBridge (protocol 2)
+
+`MOCONIX_AuthBridge.mq5` is a non-trading EA. Keep exactly one helper on a separate chart without another EA. The indicator includes `MoconixIndicatorLicense.mqh`, which includes `MoconixAuthProtocol.mqh`. The private RSIArrow formula/source and compiled EX5 files are owner artifacts and must not be committed here.
+
+1. Each indicator initialization reads the actual terminal account/server and creates a fresh 32-hex nonce, including an atomic terminal-local initialization sequence.
+2. The indicator writes a bounded, atomic request in its own terminal's `MQL5/Files/MoconixAuth/` sandbox. A custom chart event contains only the nonce; MT5 limits string event parameters to 63 characters.
+3. The helper checks the actual account/server, consumes the request once, and sends one HTTPS POST to `/api/licenses/indicator/`. Its timeout is 5 seconds, with no HTTP retries or periodic checks.
+4. The backend requires an active registered account with exact server match and MT5 permission, plus an active `indicator` program. It signs an initialization-bound grant using RSA-PSS/SHA256, 2048-bit RSA, exponent 65537 and a 32-byte salt.
+5. The indicator independently verifies the full message and signature using its embedded public key. Unsigned, altered, replayed, wrong-account, wrong-server and wrong-product responses are rejected. The helper cannot manufacture a grant. Mailboxes are removed after resolution/deinitialization; authorization is not cached across runs.
+6. A local startup timer waits up to 30 seconds for the helper/response, then stops after authorization and initial local chart-data preparation, or denial. Subsequent calculations use a memory-only account/server guard. An account change latches denial until reinitialization.
+
+Protocol 2 requests use the same five JSON fields as protocol 1, with `protocol: 2`. Success is text/plain ASCII, exactly:
+
+```text
+MOCONIX-INDICATOR-1|77112233|Example-MT5Live|example-indicator-v1|ABCDEF0123456789ABCDEF0123456789
+<512 uppercase hex characters: RSA-PSS signature of the first line>
+```
+
+There is one LF between the message and signature, with no trailing newline. All fields, including the nonce, are signed. Rejection grants no browser session. Protocol 1 remains unchanged for the existing EA.
+
+### Deployment and private files
+
+- Install `backend/requirements.txt`, including `cryptography>=46,<47`; run migrations.
+- `MOCONIX_INDICATOR_SIGNING_KEY` points to an RSA-2048 PEM private key outside the repository/static/media roots. Restrict its directory to the service owner (0700) and key to 0600. The corresponding public modulus is compiled into `MoconixAuthProtocol.mqh`. Rotating the key requires coordinated recompilation/distribution; never export the private key to clients or commit it.
+- `MOCONIX_UTILITY_DOWNLOAD_DIR` points to an owner-only private directory containing `MOCONIX_AuthBridge.ex5` and `MOCONIX_RSIArrow.ex5`. Do not serve that directory through nginx, Django static or media. Only fixed catalog IDs are accepted by the session-guarded download endpoint; no source/key files are cataloged. Inactive indicator programs hide and block their downloads.
+- Register `moconix-rsi-arrow-v1` as type `indicator`, active. Existing program rows default to type `ea`. Do not overwrite an administrator's disabled program or customer flags.
+- Website library access still uses its existing registered-account session. File download permission does not grant MT5 authorization; the EX5 verifies the terminal's actual account/server on initialization.
+
+### Customer indicator setup
+
+Copy `MOCONIX_RSIArrow.ex5` to `MQL5/Indicators` and `MOCONIX_AuthBridge.ex5` to `MQL5/Experts`. Keep file names unchanged. Allow `https://moconix.com` under Tools > Options > Expert Advisors > WebRequest. Sign in to the registered account/server, refresh Navigator, attach the helper to a separate chart, then attach the indicator to the desired chart. Keep the helper chart open. No DLLs, orders or Algo Trading trading permission are required by the helper. This online indicator build does not run in Strategy Tester.
+
+Customers receive the same two EX5 files regardless of account; only the server database changes when customers are added. Account/program revocation affects the next initialization, not an already-authorized running instance. The database is operator managed; there is no automatic broker/IB portal integration or proof of account ownership in the account-number website login.
+
+### Additional validation
+
+The backend suite verifies signed grants independently, wrong identity/type/permissions, unavailable signing infrastructure, protected downloads and session/logout behavior. Private native MT5 mathematical self-tests verify the exact MQL RSA-PSS verifier and client state machine (one request, timeout, account-change latch, denial). Those tests use fake account identities only in isolated test harnesses; production headers/binaries contain no tester bypass. Both customer EX5 builds compile with zero errors and warnings. Tests place no broker orders and do not replace a customer live-chart setup check.
+
+Official references: [custom chart events](https://www.mql5.com/en/docs/eventfunctions/eventchartcustom), [RSA-PSS](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/).

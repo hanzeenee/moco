@@ -26,12 +26,13 @@
           <div><h3>{{ $t(step.title) }}</h3>
             <p v-if="step.toolbar" class="toolbar-instruction">{{ toolbarInstruction[0] }}<img class="toolbar-inline-image" :src="$locale === 'en' ? algoTradingEn : systemTradingKo" :alt="$t('시스템트레이딩')" />{{ toolbarInstruction[1] }}</p>
             <p v-else>{{ $t(step.body) }}</p><code v-if="step.path">{{ step.path }}</code>
+            <div v-if="step.paths" class="install-paths"><div v-for="path in step.paths" :key="path.value"><span>{{ $t(path.label) }}</span><code>{{ path.value }}</code></div></div>
       <aside v-if="step.license" class="license-settings" aria-labelledby="license-settings-title">
-        <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t('온라인 인증이 필요한 EA') }}</h3>
-        <p>{{ $t('차트에 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.') }}</p>
+        <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t(activeType === 'indicator' ? '인증 도우미 WebRequest 설정' : '온라인 인증이 필요한 EA') }}</h3>
+        <p>{{ $t(activeType === 'indicator' ? '인증 도우미를 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.' : '차트에 적용하기 전에 도구 → 옵션 → 시스템트레이딩에서 WebRequest를 허용하고 아래 주소를 추가해 주세요.') }}</p>
         <div class="license-url"><code>{{ licenseUrl }}</code><button type="button" @click="copyLicenseUrl">{{ $t(copyState === 'copied' ? '복사 완료' : '주소 복사') }}</button></div>
         <p class="copy-feedback" role="status">{{ copyState === 'copied' ? $t('주소가 복사되었습니다.') : copyState === 'failed' ? $t('복사하지 못했습니다. 위 주소를 직접 복사해 주세요.') : '' }}</p>
-        <p class="license-note">{{ $t('등록된 계좌로 로그인한 상태에서 적용해 주세요. 인증에 실패하면 EA가 시작되지 않습니다.') }}</p>
+        <p class="license-note">{{ $t(activeType === 'indicator' ? '등록된 계좌로 로그인해 주세요. 인증이 완료되기 전에는 지표가 표시되지 않습니다.' : '등록된 계좌로 로그인한 상태에서 적용해 주세요. 인증에 실패하면 EA가 시작되지 않습니다.') }}</p>
       </aside>
           </div>
         </li>
@@ -43,6 +44,8 @@
           <li>{{ $t('파일 종류에 맞는 폴더에 저장했는지 확인하고, 탐색기를 새로고침하거나 MT5를 다시 실행해 주세요.') }}</li>
           <li v-if="activeType === 'ea'">{{ $t('EA는 개별 설정과 MT5 상단의 시스템트레이딩이 모두 허용되어야 거래할 수 있습니다.') }}</li>
           <li v-if="activeType === 'ea'">{{ $t('온라인 인증 EA는 인터넷 연결과 WebRequest 설정이 필요하며, 전략 테스터에서는 사용할 수 없습니다.') }}</li>
+          <li v-if="activeType === 'indicator'">{{ $t('인증 시간이 초과되면 AuthBridge가 실행 중인지와 WebRequest 주소를 확인한 뒤 지표를 다시 적용해 주세요.') }}</li>
+          <li v-if="activeType === 'indicator'">{{ $t('온라인 인증 지표는 전략 테스터에서 사용할 수 없습니다.') }}</li>
           <li>{{ $t('문제가 계속되면 MT5 하단 로그의 오류 내용과 적용 화면을 함께 문의해 주세요.') }}</li>
         </ul>
       </details>
@@ -58,7 +61,7 @@ export default {
   name: 'UtilityInstallGuide',
   data() {
     return {
-      activeType: 'ea',
+      activeType: 'indicator',
       systemTradingKo,
       algoTradingEn,
       copyState: '',
@@ -80,10 +83,12 @@ export default {
         { title: '차트에 적용', body: '원하는 종목의 차트를 열고 EA를 끌어다 놓으세요. 해당 EA에 안내된 시간봉과 입력값을 확인해 주세요.' },
         { title: '시스템트레이딩 허용', toolbar: true },
       ] : [
-        save,
+        { title: '두 파일을 각 폴더에 저장', body: '파일 → 데이터 폴더 열기에서 지표와 인증 도우미 EX5 파일을 각각 아래 폴더에 넣어주세요.', paths: [{ label: '인디케이터', value: 'MQL5 → Indicators' }, { label: '인증 도우미', value: 'MQL5 → Experts' }] },
+        { title: '온라인 인증 연결 설정', body: '인증 도우미가 계좌 등록 여부를 확인할 수 있도록 아래 주소를 허용해 주세요.', license: true },
+        { title: '인증 도우미 먼저 적용', body: '탐색기를 새로고침한 뒤, 다른 EA가 없는 별도 차트에 MOCONIX_AuthBridge를 적용하고 해당 차트를 열어두세요. 도우미는 주문 없이 계좌 인증만 처리합니다.' },
         { title: '탐색기에서 지표 확인', body: 'MT5 탐색기의 인디케이터에서 마우스 오른쪽 버튼 → 새로고침을 선택해 주세요.' },
-        { title: '차트에 적용', body: '원하는 차트에 인디케이터를 끌어다 놓고, 입력값·색상·알림 등 필요한 설정을 확인한 뒤 적용해 주세요.' },
-        { title: '표시 및 알림 확인', body: '차트에 표시되는 정보와 알림이 설정한 대로 동작하는지 확인해 주세요. 사용 가능한 기능은 지표마다 다릅니다.' },
+        { title: '지표를 원하는 차트에 적용', body: 'MOCONIX_RSIArrow를 원하는 차트에 끌어다 놓고 입력값을 확인해 주세요. 처음 적용할 때 등록된 계좌인지 확인합니다.' },
+        { title: '인증 완료 후 표시 확인', body: '인증이 완료되면 지표가 표시됩니다. 계좌가 등록되지 않았거나 인증에 실패하면 신호를 표시하지 않습니다.' },
       ]
     },
   },
@@ -123,6 +128,10 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
 .guide-steps h3 { margin: 2px 0 7px; color: #e7eaf0; font-size: 15px; font-weight: 600; }
 .guide-steps p { margin: 0; color: #a1acbc; font-size: 14px; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
 .guide-steps code { display: inline-block; margin-top: 10px; padding: 8px 13px; border: 1px solid #363e49; border-radius: 6px; background: #070809; color: #e3e8f0; font-size: 13px; }
+.install-paths { display: grid; gap: 11px; margin-top: 13px; }
+.install-paths > div { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.install-paths span { min-width: 90px; color: #b0bbc9; font-size: 12px; }
+.install-paths code { margin-top: 0; }
 .toolbar-inline-image { display: inline-block; width: auto; height: 28px; max-width: 100%; margin: 0 4px; vertical-align: middle; object-fit: contain; }
 .license-settings { margin-top: 13px; padding: 20px; border: 1px solid #625522; border-radius: 9px; background: #15140f; }
 .license-settings h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; color: #e8d885; font-size: 14px; font-weight: 600; }

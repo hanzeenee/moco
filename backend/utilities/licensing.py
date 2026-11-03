@@ -7,10 +7,11 @@ import time
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
+from .indicator_signing import sign_indicator_grant
 from .models import EAProgram, PROGRAM_PATTERN, SERVER_PATTERN, UtilityAccessAccount
 
 MAX_BODY_BYTES = 1024
@@ -25,8 +26,8 @@ def _response(data, status=200):
     return response
 
 
-def _denied(code="not_authorized", status=403):
-    return _response({"protocol": 1, "allowed": False, "error": code}, status)
+def _denied(code="not_authorized", status=403, protocol=1):
+    return _response({"protocol": protocol, "allowed": False, "error": code}, status)
 
 
 def _client_ip(request):
@@ -70,54 +71,79 @@ def valid_account(value):
             and int(value) <= MAX_ACCOUNT_NUMBER)
 
 
-@csrf_exempt  # Native MT5 requests do not use browser cookies or session authority.
-@never_cache
-def check_license(request):
+def _license_payload(request, protocol):
+    def deny(code="not_authorized", status=403):
+        return _denied(code, status, protocol)
     if request.method != "POST":
-        response = _denied("method_not_allowed", 405)
+        response = deny("method_not_allowed", 405)
         response["Allow"] = "POST"
-        return response
+        return None, response
     if request.META.get("HTTP_ORIGIN"):
-        return _denied()
+        return None, deny()
     try:
         if _rate_limited(request):
-            response = _denied("rate_limited", 429)
+            response = deny("rate_limited", 429)
             response["Retry-After"] = "60"
-            return response
+            return None, response
     except Exception:
         # Infrastructure failure cannot turn into a successful authorization.
-        return _denied("temporarily_unavailable", 503)
+        return None, deny("temporarily_unavailable", 503)
     if request.content_type != "application/json":
-        return _denied("invalid_request", 415)
+        return None, deny("invalid_request", 415)
     try:
         size = int(request.META.get("CONTENT_LENGTH") or 0)
     except ValueError:
-        return _denied("invalid_request", 400)
+        return None, deny("invalid_request", 400)
     if size > MAX_BODY_BYTES:
-        return _denied("invalid_request", 413)
+        return None, deny("invalid_request", 413)
     body = request.body
     if len(body) > MAX_BODY_BYTES:
-        return _denied("invalid_request", 413)
+        return None, deny("invalid_request", 413)
     try:
         payload = json.loads(body.decode("utf-8"), object_pairs_hook=_unique_object)
     except (ValueError, UnicodeDecodeError):
-        return _denied("invalid_request", 400)
+        return None, deny("invalid_request", 400)
     if not isinstance(payload, dict) or set(payload) != REQUEST_FIELDS:
-        return _denied("invalid_request", 400)
+        return None, deny("invalid_request", 400)
     number, server, product, nonce = (payload[key] for key in ("account_number", "server", "product", "nonce"))
-    if (type(payload["protocol"]) is not int or payload["protocol"] != 1
+    if (type(payload["protocol"]) is not int or payload["protocol"] != protocol
             or not valid_account(number)
             or not isinstance(server, str) or re.fullmatch(SERVER_PATTERN, server) is None
             or not isinstance(product, str) or re.fullmatch(PROGRAM_PATTERN, product) is None
             or not isinstance(nonce, str) or re.fullmatch(r"[a-fA-F0-9]{32}", nonce) is None):
-        return _denied("invalid_request", 400)
-    program_active = EAProgram.objects.filter(code=product, is_active=True).exists()
-    account_active = UtilityAccessAccount.objects.filter(
-        account_number=number, server_name=server, is_active=True, ea_enabled=True,
-    ).exists()
-    if not program_active or not account_active:
+        return None, deny("invalid_request", 400)
+    return payload, None
+
+
+def _authorized(payload, program_type):
+    return (EAProgram.objects.filter(code=payload["product"], program_type=program_type, is_active=True).exists()
+            and UtilityAccessAccount.objects.filter(account_number=payload["account_number"],
+                server_name=payload["server"], is_active=True, ea_enabled=True).exists())
+
+
+@csrf_exempt  # Native MT5 has no browser session authority.
+@never_cache
+def check_license(request):
+    payload, error = _license_payload(request, 1)
+    if error is not None:
+        return error
+    if not _authorized(payload, "ea"):
         return _denied()
-    return _response({
-        "protocol": 1, "allowed": True, "account_number": number,
-        "server": server, "product": product, "nonce": nonce,
-    })
+    return _response({"protocol": 1, "allowed": True, **{key: payload[key] for key in ("account_number", "server", "product", "nonce")}})
+
+
+@csrf_exempt  # Separate signed native endpoint; grants no website session.
+@never_cache
+def check_indicator_license(request):
+    payload, error = _license_payload(request, 2)
+    if error is not None:
+        return error
+    if not _authorized(payload, "indicator"):
+        return _denied(protocol=2)
+    try:
+        grant = sign_indicator_grant(payload)
+    except (OSError, ValueError, TypeError):
+        return _denied("temporarily_unavailable", 503, protocol=2)
+    response = HttpResponse(grant, content_type="text/plain; charset=us-ascii")
+    response["X-Content-Type-Options"] = "nosniff"
+    return response

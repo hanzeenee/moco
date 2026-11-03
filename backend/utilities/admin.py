@@ -10,20 +10,20 @@ class UtilityAccessAccountAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
     actions = ("enable_ea", "disable_ea")
 
-    @admin.action(description="선택 계좌의 EA 이용 허용")
+    @admin.action(description="선택 계좌의 MT5 프로그램 이용 허용")
     def enable_ea(self, request, queryset):
         count = queryset.update(ea_enabled=True)
-        self.message_user(request, f"{count}개 계좌의 EA 이용을 허용했습니다.")
+        self.message_user(request, f"{count}개 계좌의 MT5 프로그램 이용을 허용했습니다.")
 
-    @admin.action(description="선택 계좌의 EA 이용 중지 (다음 초기화부터)")
+    @admin.action(description="선택 계좌의 MT5 프로그램 이용 중지 (다음 초기화부터)")
     def disable_ea(self, request, queryset):
         count = queryset.update(ea_enabled=False)
-        self.message_user(request, f"{count}개 계좌를 중지했습니다. 실행 중인 EA에는 다음 초기화부터 반영됩니다.")
+        self.message_user(request, f"{count}개 계좌를 중지했습니다. 실행 중인 EA·지표에는 다음 초기화부터 반영됩니다.")
 
 
 @admin.register(EAProgram)
 class EAProgramAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "is_active", "created_at")
-    list_filter = ("is_active",)
+    list_display = ("code", "name", "program_type", "is_active", "created_at")
+    list_filter = ("is_active", "program_type")
     search_fields = ("code", "name")
     readonly_fields = ("created_at",)
