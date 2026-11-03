@@ -49,3 +49,38 @@ test('page navigation stays compact while retaining the first, current and last 
     assert.ok(links.length <= 7)
   }
 })
+
+
+test('search matches titles and descriptions, case and spacing, within the selected kind', () => {
+  const items = [
+    { id: 'ea', type: 'ea', title: '양방향 돌파 EA', description: '마틴게일과 바스켓 익절', filename: 'secret-name.ex5' },
+    { id: 'ut', type: 'indicator', title: 'UT Bot 시그널', description: 'ATR 기반 매수 신호' },
+    { id: 'literal', type: 'indicator', title: '[.*] 가격 알림', description: '가격 도달 시 표시' },
+    { id: 'helper', type: 'helper', title: 'UT Bot 도우미', description: 'ATR' },
+  ]
+  const ids = (kind, query) => libraryPage(items, kind, 1, query).items.map(item => item.id)
+  assert.deepEqual(ids('ea', '마틴게일'), ['ea'])
+  assert.deepEqual(ids('ea', '양방향돌파'), ['ea'])
+  assert.deepEqual(ids('indicator', '  ut   BOT  atr '), ['ut'])
+  assert.deepEqual(ids('indicator', 'ＵＴ'), ['ut'])
+  assert.deepEqual(ids('ea', 'UT'), [])
+  assert.deepEqual(ids('indicator', '[.*]'), ['literal'])
+  assert.deepEqual(ids('ea', 'secret-name'), [])
+  assert.deepEqual(ids('indicator', 'no-match'), [])
+  assert.deepEqual(ids('indicator', '   '), ['ut', 'literal'])
+})
+
+test('English translations and original Korean are searchable before nine-item pagination', () => {
+  const items = Array.from({ length: 20 }, (_, i) => ({
+    id: `ea-${i}`, type: 'ea', title: `프로그램 ${i}`, description: i < 10 ? '예약주문 관리' : '청산 관리',
+  }))
+  const translate = text => text === '예약주문 관리' ? 'Pending order management' : text
+  const first = libraryPage(items, 'ea', 1, 'PENDING', translate)
+  const last = libraryPage(items, 'ea', 2, 'PENDING', translate)
+  assert.equal(first.filteredItems.length, 10)
+  assert.equal(first.pageCount, 2)
+  assert.equal(first.items.length, 9)
+  assert.deepEqual(last.items.map(item => item.id), ['ea-9'])
+  assert.equal(libraryPage(items, 'ea', 1, '예약주문', translate).filteredItems.length, 10)
+  assert.equal(libraryPage(items, 'ea', 3, 'no match', translate).page, 1)
+})
