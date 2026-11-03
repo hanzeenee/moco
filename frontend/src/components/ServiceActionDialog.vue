@@ -6,6 +6,7 @@
         <InfinoxGuide v-if="modelValue === 'infinox'" />
         <UtilityAccountLogin v-if="modelValue === 'utility-login'" @authenticated="close" />
         <p v-for="paragraph in modelValue === 'infinox' ? [] : content.paragraphs" :key="paragraph">{{ $t(paragraph) }}</p>
+        <UtilityRegistrationHelp v-if="modelValue === 'free'" />
         <div v-if="modelValue === 'business'" class="business-contacts">
           <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.png" alt="" aria-hidden="true" /><span><strong>{{ $t('이메일') }}</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
           <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.png" alt="" aria-hidden="true" /><span><strong>{{ $t('텔레그램') }}</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
@@ -27,6 +28,7 @@ import { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn } from 'vueti
 import { businessContacts } from '../data/serviceLinks'
 import UtilityAccountLogin from './UtilityAccountLogin.vue'
 import InfinoxGuide from './InfinoxGuide.vue'
+import UtilityRegistrationHelp from './UtilityRegistrationHelp.vue'
 
 const notices = {
   'utility-login': { title: '인피녹스 계좌번호', paragraphs: [] },
@@ -54,7 +56,7 @@ const notices = {
 
 export default {
   name: 'ServiceActionDialog',
-  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn, InfinoxGuide, UtilityAccountLogin },
+  components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn, InfinoxGuide, UtilityAccountLogin, UtilityRegistrationHelp },
   props: { modelValue: { type: String, default: '' } },
   emits: ['update:modelValue'],
   computed: {

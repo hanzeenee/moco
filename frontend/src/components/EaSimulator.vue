@@ -9,10 +9,10 @@
       <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">{{ $t('가상 체험') }}</span></div>
 
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
-        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint">{{ $t('클릭하면 자동매매가 시작됩니다') }}</span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>
+        <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint" :class="{ 'hint-wrapped': hintWrapped.apply, 'hint-tight': hintNarrow.apply }"><span class="hint-original">{{ $t('클릭하면 자동매매가 시작됩니다') }}</span><span class="hint-mobile-lines hint-two-lines" aria-hidden="true"><span>{{ $t('클릭하면 자동매매가') }}</span><span>{{ $t('시작됩니다') }}</span></span><span class="hint-mobile-lines hint-three-lines" aria-hidden="true"><span>{{ $t('클릭하면') }}</span><span>{{ $t('자동매매가') }}</span><span>{{ $t('시작됩니다') }}</span></span></span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>
         <button ref="applyEaButton" class="apply-ea-btn" type="button" aria-describedby="ea-apply-hint" @click="applyEa">{{ $t('EA 적용하기') }}</button>
       </div>
-        <span v-if="showLotGuidance" id="lot-guidance" class="ea-apply-hint lot-guidance" role="status" aria-atomic="true">{{ $t('랏수에 따라 손익이 달라집니다') }}</span>
+        <span v-if="showLotGuidance" ref="lotHint" id="lot-guidance" class="ea-apply-hint lot-guidance" :class="{ 'hint-wrapped': hintWrapped.lot, 'hint-tight': hintNarrow.lot }" role="status" aria-atomic="true"><span class="hint-original">{{ $t('랏수에 따라 손익이 달라집니다') }}</span><span class="hint-mobile-lines hint-two-lines" aria-hidden="true"><span>{{ $t('랏수에 따라') }}</span><span>{{ $t('손익이 달라집니다') }}</span></span><span class="hint-mobile-lines hint-three-lines" aria-hidden="true"><span>{{ $t('랏수에 따라') }}</span><span>{{ $t('손익이') }}</span><span>{{ $t('달라집니다') }}</span></span></span>
       </div>
       <div class="quote-strip" role="group" :aria-label="$t('매도·거래량·매수 호가')">
         <span class="quote-label sell">SELL</span>
@@ -70,7 +70,7 @@ export default {
   name: 'EaSimulator',
   emits: ['exit'],
   data() {
-    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, lotAdjusted: false, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200, hintArrowPath: '', hintArrowSize: 11 }
+    return { state: createSimulation(), lot: DEFAULT_LOT, lotInput: DEFAULT_LOT, lotAdjusted: false, candleMinutes: CANDLE_MINUTES, chartWidth: 560, chartHeight: 200, hintArrowPath: '', hintArrowSize: 11, hintWrapped: { apply: false, lot: false }, hintNarrow: { apply: false, lot: false } }
   },
   computed: {
     showLotGuidance() { return this.state.eaApplied && this.state.tradeCount > 0 && !this.lotAdjusted && !this.state.bankrupt },
@@ -128,7 +128,7 @@ export default {
     buyPrice() { return (this.state.price + 0.1).toFixed(2).split('.') },
     openProfit() { return floatingProfit(this.state) }
   },
-  watch: { $locale() { this.$nextTick(this.fitChartHeight) } },
+  watch: { $locale() { this.$nextTick(this.fitChartHeight) }, showLotGuidance() { this.$nextTick(this.fitChartHeight) } },
   mounted() {
     this.resizeObserver = new ResizeObserver(() => {
       this.chartWidth = Math.max(128, Math.floor(this.$refs.chart.getBoundingClientRect().width))
@@ -151,6 +151,15 @@ export default {
     window.removeEventListener('resize', this.fitChartHeight)
   },
   methods: {
+    updateHintWrapping() {
+      for (const [kind, hint] of [['apply', this.$refs.eaHint], ['lot', this.$refs.lotHint]]) {
+        const source = hint?.querySelector('.hint-original')
+        const wrapped = Boolean(source && source.getBoundingClientRect().height > parseFloat(window.getComputedStyle(hint).lineHeight) * 1.5)
+        const narrow = Boolean(source && source.getBoundingClientRect().height > parseFloat(window.getComputedStyle(hint).lineHeight) * 2.5)
+        if (this.hintNarrow[kind] !== narrow) this.hintNarrow[kind] = narrow
+        if (this.hintWrapped[kind] !== wrapped) this.hintWrapped[kind] = wrapped
+      }
+    },
     fitChartHeight() {
       const simulator = this.$refs.simulator
       const chart = this.$refs.chart
@@ -165,6 +174,7 @@ export default {
         : window.innerHeight - panelBounds.top
       const available = availableHeight - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom)
       this.chartHeight = Math.max(100, Math.min(440, Math.floor(available - fixedHeight - 4)))
+      this.updateHintWrapping()
       this.updateHintArrow()
     },
     updateHintArrow() {
@@ -205,7 +215,7 @@ export default {
     },
     adjustLot(amount) { this.lotInput = normalizeLot(normalizeLot(this.lotInput) + amount); this.applyLot() },
     applyEa() { this.applyLot(); applyEa(this.state) },
-    reset() { this.state = createSimulation(); this.lotAdjusted = false; this.$nextTick(this.updateHintArrow) },
+    reset() { this.state = createSimulation(); this.lotAdjusted = false; this.$nextTick(this.fitChartHeight) },
     priceY(value) { return 14 + (this.priceRange.max - value) / (this.priceRange.max - this.priceRange.min) * (this.chartHeight - 54) },
     money(value) { return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) },
     signed(value) { return `${value >= 0 ? '+' : '−'}$${this.money(Math.abs(value))}` },
@@ -236,6 +246,7 @@ button:focus-visible, input:focus-visible, .trade-scroll:focus-visible { outline
 .ea-name { color: #9caebd; }
 .ea-activation { position: static; display: inline-flex; align-items: center; max-width: 100%; margin-left: auto; }
 .ea-apply-hint { position: absolute; z-index: 1; top: 0; left: 50%; transform: translate(-50%, -50%); width: max-content; max-width: calc(100% - 180px); box-sizing: border-box; padding: 6px 8px; border: 1px solid #ffd000; border-radius: 5px; background: #202831; color: #e4e8ee; font-size: 12px; line-height: 1.5; text-align: center; text-wrap: balance; pointer-events: none; }
+.hint-mobile-lines { display: none; }
 .ea-hint-connector { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 @keyframes ea-apply-glow { 0%, 100% { box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; } 50% { box-shadow: 0 0 10px #ffd000b0, 0 0 20px #ffd00050; } }
 .apply-ea-btn { flex: 0 0 auto; box-shadow: 0 0 6px #ffd00060, 0 0 12px #ffd00025; animation: ea-apply-glow 2.8s ease-in-out -1.4s infinite; border: 1px solid #ffd000; background: #ffd000; color: #151515; border-radius: 3px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
@@ -298,6 +309,12 @@ td .buy { color: #79c2ff; } td .sell { color: #ff858c; }
   .ea-apply-hint { top: 10px; padding: 6px 8px; font-size: 11px; }
 }
 @media (max-width: 600px) {
+  /* Retain the original text as the size reference; only the visible line breaks change. */
+  .hint-wrapped .hint-original { color: transparent; }
+  .hint-wrapped .hint-mobile-lines { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; white-space: nowrap; text-wrap: nowrap; line-height: inherit; }
+  .hint-wrapped .hint-three-lines { display: none; }
+  .hint-tight .hint-two-lines { display: none; }
+  .hint-tight .hint-three-lines { display: flex; }
   .panel-tab { grid-template-columns: minmax(0, 1fr); }
   .trade-counts { grid-column: 1; gap: 8px; }
   .sim-heading { gap: 5px; margin-bottom: 12px; }
