@@ -3,11 +3,11 @@
     <div class="topbar-inner">
       <div class="header-column">
         <button class="brand" type="button" :aria-label="$t('MOCONIX 홈')" @click="goHome">
-          <img class="brand-logo" src="@/assets/brand/moconix-wordmark.png" alt="MOCONIX" />
+          <img class="brand-logo" src="@/assets/brand/moconix-wordmark.webp" alt="MOCONIX" />
         </button>
       </div>
       <div class="header-column header-column-end">
-        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" src="../assets/brand/youtube-wordmark.png" alt="YouTube" /></a>
+        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" src="../assets/brand/youtube-wordmark.webp" alt="YouTube" /></a>
         <LanguagePicker />
       </div>
     </div>

@@ -6,7 +6,7 @@
     </header>
 
     <div class="terminal">
-      <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">{{ $t('가상 체험') }}</span></div>
+      <div class="terminal-title"><span class="terminal-icon"><img src="../assets/brand/moconix-mark-transparent.webp" alt="" /></span><strong>MOCONIX Terminal</strong><span class="demo-badge">{{ $t('가상 체험') }}</span></div>
 
       <div ref="chartHeading" class="chart-heading"><strong>XAUUSD <span>· M{{ candleMinutes }}</span></strong><span v-if="state.eaApplied" class="ea-name">MOCONIX EA ☺</span><div v-else class="ea-activation">
         <span ref="eaHint" id="ea-apply-hint" class="ea-apply-hint" :class="{ 'hint-wrapped': hintWrapped.apply, 'hint-tight': hintNarrow.apply }"><span class="hint-original">{{ $t('클릭하면 자동매매가 시작됩니다') }}</span><span class="hint-mobile-lines hint-two-lines" aria-hidden="true"><span>{{ $t('클릭하면 자동매매가') }}</span><span>{{ $t('시작됩니다') }}</span></span><span class="hint-mobile-lines hint-three-lines" aria-hidden="true"><span>{{ $t('클릭하면') }}</span><span>{{ $t('자동매매가') }}</span><span>{{ $t('시작됩니다') }}</span></span></span><svg class="ea-hint-connector" aria-hidden="true"><path :d="hintArrowPath" fill="#ffd000" /></svg>

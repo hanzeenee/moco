@@ -4,7 +4,7 @@
       <EaSimulator v-if="gameOpen" @exit="gameOpen = false" />
       <div v-else class="main-content">
         <div class="intro-brand">
-          <span class="intro-mark" aria-hidden="true"><img src="../assets/brand/moconix-mark-transparent.png" alt="" /></span>
+          <span class="intro-mark" aria-hidden="true"><img src="../assets/brand/moconix-mark-transparent.webp" alt="" /></span>
           <p class="intro-eyebrow"><strong>MOCONIX</strong> | {{ $t('MT5 · TradingView 맞춤 개발') }}</p>
         </div>
 
@@ -14,7 +14,7 @@
         </h1>
 
         <p class="intro-services">{{ $t('신규 개발 · 기존 프로그램 수정 및 개선') }}</p>
-        <button class="game-start-btn" type="button" :aria-label="$t('EA 체험하기')" @click="gameOpen = true"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /><span v-if="$locale === 'en'" class="game-start-english">Try the EA <span class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></span></span><img v-else class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.png" alt="" aria-hidden="true" /></button>
+        <button class="game-start-btn" type="button" :aria-label="$t('EA 체험하기')" @click="gameOpen = true"><img class="game-start-art game-start-frame" src="../assets/brand/ea-experience-button.webp" alt="" aria-hidden="true" /><span v-if="$locale === 'en'" class="game-start-english">Try the EA <span class="mdi mdi-cursor-default-click-outline" aria-hidden="true"></span></span><img v-else class="game-start-art game-start-content" src="../assets/brand/ea-experience-button.webp" alt="" aria-hidden="true" /></button>
       </div>
     </div>
 

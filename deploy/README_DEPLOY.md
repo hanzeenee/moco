@@ -343,3 +343,16 @@ Additional regression check after the build:
 cd backend
 python manage.py test dashboard.test_home_prerender dashboard.test_seo --noinput
 ```
+
+
+## Public asset transfer optimization
+
+The Nginx static location negotiates gzip for CSS, JavaScript and SVG files,
+with `Vary: Accept-Encoding`. This compression is scoped to `/static/` and does
+not change API/MT5 license responses, authenticated HTML, downloads, or cookies.
+WebP and WOFF2 remain in their already-compressed formats.
+
+The existing PNG brand artwork is retained as source material. Referenced WebP
+delivery variants use full-resolution lossless encoding, with matching alpha
+and all visible RGB pixels. No layout sizes, crops, masks or text styles changed.
+Regenerate both locale home templates with the normal build after asset changes.

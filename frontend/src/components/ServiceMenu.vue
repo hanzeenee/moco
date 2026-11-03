@@ -24,11 +24,11 @@
 import ServiceActionDialog from './ServiceActionDialog.vue'
 import { utilityRequest } from '../lib/utilityAccess'
 import { businessContacts, serviceUrl } from '../data/serviceLinks'
-import kakaotalkLogo from '../assets/brand/kakaotalk-mark.png'
-import kmongLogo from '../assets/brand/kmong-mark.png'
-import infinoxLogo from '../assets/brand/infinox-mark.png'
-import utilityLogo from '../assets/brand/utility-indicator.png'
-import telegramLogo from '../assets/brand/telegram-color-mark.png'
+import kakaotalkLogo from '../assets/brand/kakaotalk-mark.webp'
+import kmongLogo from '../assets/brand/kmong-mark.webp'
+import infinoxLogo from '../assets/brand/infinox-mark.webp'
+import utilityLogo from '../assets/brand/utility-indicator.webp'
+import telegramLogo from '../assets/brand/telegram-color-mark.webp'
 
 export default {
   name: 'ServiceMenu',
