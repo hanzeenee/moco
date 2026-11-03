@@ -281,3 +281,38 @@ Also set `DJANGO_CSRF_TRUSTED_ORIGINS` to the HTTPS origin, for example:
 ```env
 DJANGO_CSRF_TRUSTED_ORIGINS=https://example.com
 ```
+
+
+## Production SEO endpoints and canonical host
+
+The existing `moco.conf` is the HTTP bootstrap configuration. Once the existing
+Let's Encrypt certificate for both hostnames is installed, the versioned
+`deploy/moco-https.conf` describes the production HTTPS configuration.
+Back up `/etc/nginx/conf.d/moco.conf` before installing it, run `sudo nginx -t`,
+and reload Nginx only after validation succeeds. Restore the backup if validation
+fails. The certificate and private key remain on the server and are not in Git.
+
+- Canonical public homepage: `https://moconix.com/`.
+- HTTP and HTTPS www requests redirect permanently to the canonical HTTPS host
+  with status 308, preserving the path, query string, and HTTP method.
+- The homepage supplies `Link: <https://moconix.com/>; rel="canonical"`.
+  This header applies to the homepage only, including campaign query strings.
+- `/robots.txt` returns text/plain and references `/sitemap.xml`.
+- `/sitemap.xml` returns XML and lists only the public homepage. Do not add
+  administrator pages, API endpoints, the protected library, or old lecture pages.
+- Known Vue routes keep their existing behavior; unknown URLs now return 404.
+- Library pages keep their authorization checks and send `X-Robots-Tag: noindex`.
+
+Run the routing and existing authorization regression checks before deployment:
+
+```bash
+cd backend
+python manage.py test dashboard.test_seo utilities.tests utilities.test_licensing utilities.test_indicator_licensing utilities.test_release_catalog --noinput
+```
+
+For search registration, use the owner's Google Search Console and Naver Search
+Advisor accounts. Verify `https://moconix.com/`, then submit
+`https://moconix.com/sitemap.xml` in each service. Registration is a separate
+account-side step; publishing robots.txt or a sitemap does not itself register
+the website. Keep any genuine verification file or meta tag permanently after
+verification. Never invent a verification token or submit under another account.

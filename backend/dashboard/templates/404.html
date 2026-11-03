@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="{% if english %}en{% else %}ko{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{% if english %}Page not found{% else %}페이지를 찾을 수 없습니다{% endif %} | MOCONIX</title>
+  <style>
+    body{margin:0;background:#000;color:#eee;font-family:Arial,"Malgun Gothic",sans-serif;display:grid;place-items:center;min-height:100dvh}
+    main{max-width:440px;padding:32px;text-align:center}h1{font-size:25px;line-height:1.5}p{color:#a5adba;line-height:1.8}
+    .code{color:#ffd000;font-size:14px;font-weight:bold;letter-spacing:2px}
+    a{display:inline-block;margin-top:16px;padding:12px 20px;background:#ffd000;color:#111;border-radius:7px;text-decoration:none;font-weight:bold}
+  </style>
+</head>
+<body><main>
+  <div class="code">404</div>
+  <h1>{% if english %}Page not found{% else %}페이지를 찾을 수 없습니다{% endif %}</h1>
+  <p>{% if english %}The address may be incorrect or the page may no longer be available.{% else %}주소가 올바르지 않거나 더 이상 제공되지 않는 페이지입니다.{% endif %}</p>
+  <a href="/">{% if english %}Back to home{% else %}홈으로 돌아가기{% endif %}</a>
+</main></body>
+</html>

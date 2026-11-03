@@ -12,7 +12,10 @@ from .serializers import CommentSerializer
 
 @ensure_csrf_cookie
 def dashboard_home(request):
-    return render(request, "home.html")
+    response = render(request, "home.html")
+    if request.path == "/":
+        response["Link"] = '<https://moconix.com/>; rel="canonical"'
+    return response
 
 
 def dashboard_data(request):
