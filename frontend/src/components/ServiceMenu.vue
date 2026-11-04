@@ -47,7 +47,7 @@ export default {
       baseServices: [
         { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo.src, logoSrcset: kakaotalkLogo.srcset, external: true },
         { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo.src, logoSrcset: kmongLogo.srcset, external: true },
-        { key: 'free', title: '무료 EA·인디케이터', description: '가입 확인 고객 전용', logo: utilityLogo.src, logoSrcset: utilityLogo.srcset, external: false },
+        { key: 'free', title: '무료 EA·인디케이터', description: '등록 계좌 고객 전용', logo: utilityLogo.src, logoSrcset: utilityLogo.srcset, external: false },
         { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 이용 안내', logo: infinoxLogo.src, logoSrcset: infinoxLogo.srcset, external: false },
         { key: 'business', title: '비즈니스 제안', description: '공동 개발 · 콘텐츠 협업 등', icon: 'mdi-handshake-outline', external: false },
       ],

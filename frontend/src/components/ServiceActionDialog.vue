@@ -32,7 +32,7 @@ import InfinoxGuide from './InfinoxGuide.vue'
 import UtilityRegistrationHelp from './UtilityRegistrationHelp.vue'
 
 const notices = {
-  'utility-login': { title: '인피녹스 계좌번호', paragraphs: [] },
+  'utility-login': { title: '자료실 로그인', paragraphs: [] },
   development: {
     title: '개발 의뢰',
     paragraphs: ['MT5 EA, 인디케이터, TradingView 지표 제작을 상담할 수 있어요.', '카카오톡 상담 연결을 준비 중입니다.'],
