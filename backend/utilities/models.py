@@ -26,6 +26,13 @@ class UtilityAccessAccount(models.Model):
         return "등록 계좌 · " + self.account_number[-4:]
 
 
+class UtilityBrowserSession(models.Model):
+    # Only a digest is stored; the random bearer token remains in the browser cookie.
+    token_hash = models.CharField(max_length=64, primary_key=True)
+    account = models.ForeignKey(UtilityAccessAccount, on_delete=models.CASCADE, related_name="browser_sessions")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class EAProgram(models.Model):
     code = models.CharField("프로그램 ID", max_length=64, unique=True, validators=[RegexValidator(PROGRAM_PATTERN)])
     name = models.CharField("프로그램 이름", max_length=120)
