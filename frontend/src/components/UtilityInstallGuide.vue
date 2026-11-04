@@ -64,10 +64,14 @@ import algoTradingEn from '../assets/guides/mt5-algo-trading-en.svg'
 
 export default {
   name: 'UtilityInstallGuide',
-  props: { authBridge: { type: Object, default: null } },
+  props: {
+    authBridge: { type: Object, default: null },
+    selectedType: { type: String, default: 'ea', validator: value => ['ea', 'indicator'].includes(value) },
+  },
+  emits: ['update:selectedType'],
   data() {
     return {
-      activeType: 'ea',
+      activeType: this.selectedType,
       systemTradingKo,
       algoTradingEn,
       copyState: '',
@@ -77,6 +81,9 @@ export default {
         { id: 'indicator', name: '인디케이터', description: '차트 정보 · 알림', icon: 'mdi-chart-line' },
       ],
     }
+  },
+  watch: {
+    selectedType(type) { this.activeType = type; this.copyState = '' },
   },
   computed: {
     toolbarInstruction() { return this.$t('EA 설정에서 시스템트레이딩을 허용하고, MT5 상단의 {button} 버튼도 활성화해 주세요.').split('{button}') },
@@ -99,7 +106,7 @@ export default {
     },
   },
   methods: {
-    selectType(type) { this.activeType = type; this.copyState = '' },
+    selectType(type) { this.activeType = type; this.copyState = ''; this.$emit('update:selectedType', type) },
     async copyLicenseUrl() {
       try { await navigator.clipboard.writeText(this.licenseUrl); this.copyState = 'copied' }
       catch { this.copyState = 'failed' }

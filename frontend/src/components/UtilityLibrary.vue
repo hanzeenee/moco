@@ -1,6 +1,6 @@
 <template>
   <section class="utility-library" aria-labelledby="utility-library-title">
-    <div class="library-heading"><div><p class="library-eyebrow">{{ $t('MOCONIX · 등록 고객 전용') }}</p><h1 id="utility-library-title">{{ $t('EA·인디케이터 자료실') }}</h1></div><button v-if="authorized" type="button" :disabled="loggingOut" @click="logout">{{ $t('로그아웃') }}</button></div>
+    <div class="library-heading"><div><p class="library-eyebrow">{{ $t('MOCONIX · 등록 고객 전용') }}</p><h1 id="utility-library-title">{{ $t('EX5 자료실') }}</h1></div></div>
     <p v-if="authorized && !loading && libraryItems.length" class="library-intro">{{ $t('등록된 계좌로 로그인한 MT5에서만 실행됩니다.') }}</p>
     <div v-if="loading || !authorized || libraryItems.length === 0" class="library-empty" :class="{ 'library-waiting': authorized && !loading }" role="status">
       <template v-if="loading"><p>{{ $t('자료실 접속을 확인하고 있습니다.') }}</p></template>
@@ -10,7 +10,7 @@
     <section v-if="authorized && !loading && libraryItems.length" class="library-downloads" :aria-label="$t('다운로드 파일')">
       <div class="library-toolbar">
       <div v-if="!hasSearch" class="library-filters" role="group" :aria-label="$t('프로그램 종류')">
-        <button v-for="category in categories" :key="category.value" type="button" :aria-pressed="selectedType === category.value" @click="selectedType = category.value">
+        <button v-for="category in categories" :key="category.value" type="button" :aria-pressed="selectedType === category.value" @click="selectCategory(category.value)">
           {{ $t(category.label) }}<span class="filter-count">{{ category.count }}</span>
         </button>
       </div>
@@ -39,20 +39,19 @@
       </nav>
       <p v-if="!filteredItems.length" class="category-empty" role="status">{{ $t(hasSearch ? '검색 결과가 없습니다. 다른 검색어를 입력해 주세요.' : '이 종류의 자료를 준비하고 있습니다.') }}</p>
     </section>
-    <UtilityInstallGuide class="library-guide" v-if="authorized && !loading" :auth-bridge="authBridge" />
-    <p v-if="logoutError" class="logout-error" role="alert">{{ $t(logoutError) }}</p>
+    <UtilityInstallGuide class="library-guide" v-if="authorized && !loading" v-model:selectedType="guideType" :auth-bridge="authBridge" />
   </section>
 </template>
 
 <script>
-import { csrfToken, utilityRequest } from '../lib/utilityAccess'
+import { utilityRequest } from '../lib/utilityAccess'
 import { libraryPage, libraryPageLinks } from '../lib/utilityLibrary.mjs'
 import UtilityInstallGuide from './UtilityInstallGuide.vue'
 
 export default {
   name: 'UtilityLibrary',
   components: { UtilityInstallGuide },
-  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', currentPage: 1, searchReturnPage: 1, searchQuery: '', error: '', loggingOut: false, logoutError: '' } },
+  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', guideType: 'ea', currentPage: 1, searchReturnPage: 1, searchQuery: '', error: '' } },
   computed: {
     libraryItems() { return this.items.filter(item => item.type !== 'helper') },
     pageState() { return libraryPage(this.libraryItems, this.selectedType, this.currentPage, this.searchQuery, text => this.$t(text)) },
@@ -84,13 +83,11 @@ export default {
     finally { this.loading = false }
   },
   methods: {
-    changePage(page) { this.currentPage = page },
-    async logout() {
-      this.loggingOut = true
-      this.logoutError = ''
-      try { await utilityRequest('logout', { method: 'POST', headers: { 'X-CSRFToken': csrfToken() } }); this.authorized = false; await this.$router.replace('/') }
-      catch (error) { this.logoutError = error.message; this.loggingOut = false }
+    selectCategory(type) {
+      this.selectedType = type
+      this.guideType = type
     },
+    changePage(page) { this.currentPage = page },
   },
 }
 </script>
@@ -100,8 +97,7 @@ export default {
 .library-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .library-eyebrow { margin: 0 0 9px; color: #b6a65f; font-size: 12px; letter-spacing: .04em; }
 .library-heading h1 { margin: 0; font-size: clamp(24px, 3vw, 32px); }
-.library-heading button { padding: 8px 13px; border: 1px solid #3b424d; border-radius: 6px; color: #b5bdca; font: inherit; font-size: 13px; cursor: pointer; }
-.library-heading button:focus-visible, .library-empty a:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
+.library-empty a:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
 .library-empty { display: grid; place-items: center; align-content: center; min-height: 300px; margin-top: 30px; padding: 35px 20px; border: 1px solid #2b3038; border-radius: 14px; background: #0b0d10; text-align: center; }
 .library-empty > .mdi { margin-bottom: 14px; color: #bda638; font-size: 36px; }
 .library-empty h2 { margin: 0 0 10px; font-size: 20px; font-weight: 500; }
@@ -152,6 +148,5 @@ export default {
 .library-pagination button:focus-visible { outline: 2px solid #ffd000; outline-offset: 3px; }
 @media (max-width: 900px) { .download-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .library-search { width: 100%; } .utility-library .library-guide { margin-top: 28px; padding-top: 24px; } .download-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; } .resource-card { padding: 18px; } .library-pagination { gap: 3px; } .library-pagination button, .page-ellipsis { width: 28px; height: 34px; } }
-.logout-error { margin-top: 15px; color: #ff959a; font-size: 13px; }
 @media (max-width: 600px) { .utility-library { padding-top: 32px; } .library-empty { min-height: 280px; } }
 </style>

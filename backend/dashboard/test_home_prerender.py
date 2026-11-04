@@ -45,7 +45,8 @@ class HomePrerenderTests(SimpleTestCase):
         response, _ = self.page()
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<html lang="ko"')
-        for text in ("원하는 매매 전략과 기능을 그대로 구현하는,", "MT5 EA·인디케이터 및 TradingView 지표 개발 서비스", "개발 의뢰", "개발 실적·후기", "무료 EA·인디케이터", "인피녹스 가입 안내", "비즈니스 제안", "EA 체험하기"):
+        self.assertContains(response, '<title>MOCONIX | MT5 EA·인디케이터 &amp; TradingView 지표 개발</title>')
+        for text in ("원하는 매매 전략과 기능을 구현합니다", "MT5 EA·인디케이터", "TradingView 지표 맞춤 개발", "개발 의뢰", "개발 실적·후기", "무료 EA·인디케이터", "인피녹스 가입 안내", "비즈니스 제안", "EA 체험하기"):
             self.assertContains(response, text)
         self.assertContains(response, "https://open.kakao.com/o/sIPFiqUi")
         self.assertContains(response, '<h1 ', count=1)
@@ -58,7 +59,8 @@ class HomePrerenderTests(SimpleTestCase):
     def test_english_cookie_selects_english_content_and_telegram_in_initial_html(self):
         response, parsed = self.page("en")
         self.assertContains(response, '<html lang="en"')
-        for text in ("Your trading strategies and features, built to your specifications", "Custom MT5 EAs, indicators &amp; TradingView indicators", "Development inquiry", "Get in touch on Telegram", "Free EAs &amp; Indicators"):
+        self.assertContains(response, '<title>MOCONIX | Custom MT5 EAs &amp; Indicators · TradingView Indicator Development</title>')
+        for text in ("We implement your trading strategies and features", "MT5 EAs &amp; Indicators", "Custom TradingView Indicators", "Development inquiry", "Get in touch on Telegram", "Free EAs &amp; Indicators"):
             self.assertContains(response, text)
         self.assertContains(response, "https://t.me/moconix")
         self.assertNotContains(response, "https://open.kakao.com/o/sIPFiqUi")

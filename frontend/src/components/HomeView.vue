@@ -9,8 +9,8 @@
         </div>
 
         <h1 class="intro-title">
-          <span class="intro-lead">{{ $t('원하는 매매 전략과 기능을 그대로 구현하는,') }}</span>
-          <span class="intro-main">{{ $t('MT5 EA·인디케이터 및 TradingView 지표 개발 서비스') }}</span>
+          <span class="intro-lead">{{ $t('원하는 매매 전략과 기능을 구현합니다') }}</span>
+          <span class="intro-main">{{ $t('MT5 EA·인디케이터') }}<br />{{ $t('TradingView 지표 맞춤 개발') }}</span>
         </h1>
 
         <p class="intro-services">{{ $t('신규 개발 · 기존 프로그램 수정 및 개선') }}</p>
