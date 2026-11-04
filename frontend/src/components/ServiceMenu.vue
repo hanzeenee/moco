@@ -11,7 +11,7 @@
         @focus="prepareAction(item)"
         @click="activate(item)"
       >
-        <span v-if="item.logo" class="service-logo-frame" aria-hidden="true"><img class="service-logo" :class="{ 'service-logo--mt5': item.key === 'free' }" :src="item.logo" alt="" /></span>
+        <span v-if="item.logo" class="service-logo-frame" aria-hidden="true"><img class="service-logo" :class="{ 'service-logo--mt5': item.key === 'free' }" :src="item.logo" :srcset="item.logoSrcset" alt="" /></span>
         <span v-else class="service-symbol mdi" :class="item.icon" aria-hidden="true"></span>
         <span class="service-copy"><span class="service-title">{{ $t(item.title) }}</span><span class="service-description">{{ $t(item.description) }}</span></span>
         <span class="service-arrow mdi" :class="item.external ? 'mdi-arrow-top-right' : 'mdi-arrow-right'" aria-hidden="true"></span>
@@ -26,11 +26,7 @@
 import { markRaw } from 'vue'
 import { utilityRequest } from '../lib/utilityAccess'
 import { businessContacts, serviceUrl } from '../data/serviceLinks'
-import kakaotalkLogo from '../assets/brand/kakaotalk-mark.webp'
-import kmongLogo from '../assets/brand/kmong-mark.webp'
-import infinoxLogo from '../assets/brand/infinox-mark.webp'
-import utilityLogo from '../assets/brand/utility-indicator.webp'
-import telegramLogo from '../assets/brand/telegram-color-mark.webp'
+import { kakaotalk as kakaotalkLogo, kmong as kmongLogo, infinox as infinoxLogo, utility as utilityLogo, telegram as telegramLogo } from '../assets/brand/responsive'
 let dialogLoad
 function loadDialog() {
   if (!dialogLoad) {
@@ -49,10 +45,10 @@ export default {
       noticeRequest: 0,
       checkingLibrary: false,
       baseServices: [
-        { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo, external: true },
-        { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo, external: true },
-        { key: 'free', title: '무료 EA·인디케이터', description: '가입 확인 고객 전용', logo: utilityLogo, external: false },
-        { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 이용 안내', logo: infinoxLogo, external: false },
+        { key: 'development', title: '개발 의뢰', description: '카카오톡으로 상담하기', logo: kakaotalkLogo.src, logoSrcset: kakaotalkLogo.srcset, external: true },
+        { key: 'reviews', title: '개발 실적·후기', description: '판매 내역과 고객 후기', logo: kmongLogo.src, logoSrcset: kmongLogo.srcset, external: true },
+        { key: 'free', title: '무료 EA·인디케이터', description: '가입 확인 고객 전용', logo: utilityLogo.src, logoSrcset: utilityLogo.srcset, external: false },
+        { key: 'infinox', title: '인피녹스 가입 안내', description: '가입 방법과 이용 안내', logo: infinoxLogo.src, logoSrcset: infinoxLogo.srcset, external: false },
         { key: 'business', title: '비즈니스 제안', description: '공동 개발 · 콘텐츠 협업 등', icon: 'mdi-handshake-outline', external: false },
       ],
     }
@@ -60,7 +56,7 @@ export default {
   computed: {
     services() {
       return this.baseServices.map(item => item.key === 'development' && this.$locale === 'en'
-        ? { ...item, description: '텔레그램으로 상담하기', logo: telegramLogo, href: businessContacts.telegram }
+        ? { ...item, description: '텔레그램으로 상담하기', logo: telegramLogo.src, logoSrcset: telegramLogo.srcset, href: businessContacts.telegram }
         : item)
     },
   },

@@ -26,3 +26,35 @@ PNG; all matched exactly. Some fully transparent pixels may have different hidde
 RGB values after WebP encoding, which does not change their displayed color.
 CSS framing, masks, scale factors, and layout are unchanged. Keep the original PNGs
 for future source work; do not replace them with the delivery variants.
+
+## Responsive delivery sizes
+
+`responsive/` contains additional, smaller WebP candidates for high-density
+`srcset` selection. Full-resolution PNG/WebP originals, all favicon files, the EA
+button artwork and Gmail artwork remain byte-for-byte unchanged. Each image's
+entire original canvas is resized with Lanczos3; there is no crop, trim, redraw,
+sharpening or recoloring. The selected dimensions deliberately provide generous
+resolution for the current CSS display sizes (including the utility icon's
+existing scale transform). INFINOX uses the more generous 128/256/384/512px
+candidates to preserve its small white-circle and gold detail. Original full-resolution WebP files remain the `src`
+fallback and highest-density `srcset` candidates.
+
+Unlike the full-resolution variants above, responsive images are intentionally
+resampled. WebP encoding is lossless relative to the resized pixels: decoded
+alpha and visible RGB are verified exactly against the raw resized buffer.
+The header wordmark uses its original 1983/793 CSS aspect ratio because integer
+resizing rounds its candidate heights. No existing framing or mask is changed.
+
+Regenerate only when source artwork or requested display sizes change:
+
+```sh
+# Optional local tool; not a production build/runtime dependency.
+# Tested/pinned Sharp 0.33.2 (libvips 8.15.1, libwebp 1.3.2).
+# MOCONIX_SHARP_MODULE may point to an existing Sharp installation.
+node scripts/generate-responsive-brand.cjs --report-dir /absolute/artifact/path
+```
+
+The generator preserves and verifies SHA-256 hashes for every existing brand
+image and favicon. It writes only the responsive directory and, when requested,
+a verification report at the supplied artifact path. Committed responsive
+assets require no Sharp installation or regeneration during deployment builds.

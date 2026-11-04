@@ -4,7 +4,7 @@
       <component :is="simulatorComponent" v-if="gameOpen" @exit="gameOpen = false" />
       <div v-else class="main-content">
         <div class="intro-brand">
-          <span class="intro-mark" aria-hidden="true"><img src="../assets/brand/moconix-mark-transparent.webp" alt="" /></span>
+          <span class="intro-mark" aria-hidden="true"><img v-bind="brandMark" alt="" /></span>
           <p class="intro-eyebrow"><strong>MOCONIX</strong> | {{ $t('MT5 · TradingView 맞춤 개발') }}</p>
         </div>
 
@@ -25,6 +25,7 @@
 <script>
 import { markRaw } from 'vue'
 import ServiceMenu from './ServiceMenu.vue'
+import { mark as brandMark } from '../assets/brand/responsive'
 
 // Cache only successful loads so a failed connection remains retryable.
 let simulatorLoad
@@ -39,6 +40,7 @@ function loadSimulator() {
 export default {
   name: 'HomeView',
   components: { ServiceMenu },
+  setup() { return { brandMark } },
   data() { return { gameOpen: false, openingGame: false, simulatorComponent: null } },
   methods: {
     prepareGame() { loadSimulator().catch(() => {}) },

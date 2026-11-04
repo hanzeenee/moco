@@ -9,7 +9,7 @@
         <UtilityRegistrationHelp v-if="modelValue === 'free'" />
         <div v-if="modelValue === 'business'" class="business-contacts">
           <a class="contact-link" :href="contacts.email"><img class="gmail-icon" src="../assets/brand/gmail-mark.webp" alt="" aria-hidden="true" /><span><strong>{{ $t('이메일') }}</strong><span>moconix95@gmail.com</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
-          <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" src="../assets/brand/telegram-color-mark.webp" alt="" aria-hidden="true" /><span><strong>{{ $t('텔레그램') }}</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
+          <a class="contact-link" :href="contacts.telegram" target="_blank" rel="noopener noreferrer"><img class="telegram-icon" v-bind="telegramLogo" alt="" aria-hidden="true" /><span><strong>{{ $t('텔레그램') }}</strong><span>@moconix</span></span><span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></a>
         </div>
       </v-card-text>
       <v-card-actions class="service-dialog-actions" :class="{ 'free-dialog-actions': modelValue === 'free' }">
@@ -26,6 +26,7 @@
 <script>
 import { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn } from 'vuetify/components'
 import { businessContacts } from '../data/serviceLinks'
+import { telegram as telegramLogo } from '../assets/brand/responsive'
 import UtilityAccountLogin from './UtilityAccountLogin.vue'
 import InfinoxGuide from './InfinoxGuide.vue'
 import UtilityRegistrationHelp from './UtilityRegistrationHelp.vue'
@@ -56,6 +57,7 @@ const notices = {
 
 export default {
   name: 'ServiceActionDialog',
+  setup() { return { telegramLogo } },
   components: { VDialog, VCard, VCardTitle, VCardText, VCardActions, VBtn, InfinoxGuide, UtilityAccountLogin, UtilityRegistrationHelp },
   props: { modelValue: { type: String, default: '' } },
   emits: ['update:modelValue'],

@@ -3,11 +3,11 @@
     <div class="topbar-inner">
       <div class="header-column">
         <button class="brand" type="button" :aria-label="$t('MOCONIX 홈')" @click="goHome">
-          <img class="brand-logo" src="@/assets/brand/moconix-wordmark.webp" alt="MOCONIX" />
+          <img class="brand-logo" v-bind="wordmark" alt="MOCONIX" />
         </button>
       </div>
       <div class="header-column header-column-end">
-        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" src="../assets/brand/youtube-wordmark.webp" alt="YouTube" /></a>
+        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" v-bind="youtube" alt="YouTube" /></a>
         <LanguagePicker />
       </div>
     </div>
@@ -16,9 +16,11 @@
 
 <script>
 import LanguagePicker from './LanguagePicker.vue'
+import { wordmark, youtube } from '../assets/brand/responsive'
 export default {
   name: 'TopBar',
   components: { LanguagePicker },
+  setup() { return { wordmark, youtube } },
   emits: ['go-home'],
   methods: {
     goHome() {
@@ -36,7 +38,7 @@ export default {
 .header-column-end { justify-content: flex-end; gap: 20px; }
 .brand { position: relative; display: block; width: 184px; max-width: 100%; min-width: 0; flex: 0 1 184px; height: 38px; padding: 0; border: 0; background: transparent; cursor: pointer; overflow: hidden; }
 /* Frame the supplied wordmark without changing its proportions. */
-.brand-logo { position: absolute; top: 50%; left: -9%; display: block; width: 118%; max-width: none; height: auto; transform: translateY(-50%); }
+.brand-logo { position: absolute; top: 50%; left: -9%; display: block; width: 118%; max-width: none; height: auto; aspect-ratio: 1983 / 793; transform: translateY(-50%); }
 .brand:focus-visible { outline: 2px solid #ffd000; outline-offset: 6px; border-radius: 3px; }
 .youtube-link { position: relative; display: block; flex: 0 0 116px; width: 116px; height: 28px; overflow: hidden; border-radius: 3px; transition: opacity .16s; }
 /* Crop only the supplied image margins; retain the logo proportions. */
