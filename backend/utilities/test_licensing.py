@@ -37,7 +37,8 @@ class LicenseTests(TestCase):
         self.assertEqual(response["X-Content-Type-Options"], "nosniff")
         self.assertFalse(response.cookies)
         self.assertNotIn(ACCOUNT_KEY, native.session)
-        self.assertEqual(native.get("/utilities").status_code, 403)
+        self.assertEqual(native.get("/utilities").status_code, 200)
+        self.assertEqual(native.get(reverse("utility-library-data")).status_code, 401)
 
     def test_unknown_account_and_program_share_generic_denial(self):
         denials = []
@@ -56,6 +57,7 @@ class LicenseTests(TestCase):
             self.assertEqual(response.json()["server"], server)
         response = self.client.post(reverse("utility-login"), json.dumps({"account_number": self.account.account_number}), content_type="application/json")
         self.assertEqual(response.status_code, 200)
+        self.client.defaults["HTTP_X_MOCONIX_LIBRARY_TOKEN"] = response.json()["tab_token"]
         self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 200)
 
     def test_account_and_program_flags_are_enforced_independently(self):
@@ -77,7 +79,8 @@ class LicenseTests(TestCase):
         self.assertEqual(self.post().status_code, 403)
         response = self.client.post(reverse("utility-login"), json.dumps({"account_number": self.account.account_number}), content_type="application/json")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.client.get("/utilities").status_code, 200)
+        self.client.defaults["HTTP_X_MOCONIX_LIBRARY_TOKEN"] = response.json()["tab_token"]
+        self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 200)
 
     def test_malformed_or_ambiguous_payload_never_authorizes(self):
         for key, values in {"protocol": [True, 2, "1"], "account_number": [77112233, "0", "077112233", "9223372036854775808", "1\n"],

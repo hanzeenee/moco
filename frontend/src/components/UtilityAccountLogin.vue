@@ -33,6 +33,7 @@ export default {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
           body: JSON.stringify({ account_number: account }),
         })
+        // utilityRequest saves the successful grant in this tab before navigation.
         await this.$router.push('/utilities')
         this.accountNumber = ''
         this.$emit('authenticated')

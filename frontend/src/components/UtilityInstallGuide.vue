@@ -30,7 +30,8 @@
             <aside v-if="activeType === 'indicator' && index === 0 && authBridge" class="auth-bridge-download" :aria-label="$t('인디케이터 인증 EA')">
               <h4><span class="mdi mdi-shield-check-outline" aria-hidden="true"></span>{{ $t(authBridge.title) }}</h4>
               <p>{{ $t(authBridge.description) }}</p>
-              <div><code>{{ authBridge.filename }}</code><a :href="authBridge.download_url" download><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a></div>
+              <div><code>{{ authBridge.filename }}</code><a :href="authBridge.download_url" download :aria-busy="downloading" :aria-disabled="downloading" @click.prevent="downloadBridge"><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a></div>
+              <p v-if="downloadError" class="auth-download-error" role="alert">{{ $t(downloadError) }}</p>
             </aside>
       <aside v-if="step.license" class="license-settings" aria-labelledby="license-settings-title">
         <h3 id="license-settings-title"><span class="mdi mdi-link-variant" aria-hidden="true"></span>{{ $t(activeType === 'indicator' ? '인증 EA WebRequest 설정' : '온라인 인증이 필요한 EA') }}</h3>
@@ -59,6 +60,7 @@
 </template>
 
 <script>
+import { downloadUtilityFile } from '../lib/utilityAccess'
 import systemTradingKo from '../assets/guides/mt5-system-trading-ko.svg'
 import algoTradingEn from '../assets/guides/mt5-algo-trading-en.svg'
 
@@ -68,13 +70,15 @@ export default {
     authBridge: { type: Object, default: null },
     selectedType: { type: String, default: 'ea', validator: value => ['ea', 'indicator'].includes(value) },
   },
-  emits: ['update:selectedType'],
+  emits: ['update:selectedType', 'authorization-failed'],
   data() {
     return {
       activeType: this.selectedType,
       systemTradingKo,
       algoTradingEn,
       copyState: '',
+      downloading: false,
+      downloadError: '',
       licenseUrl: 'https://moconix.com',
       programTypes: [
         { id: 'ea', name: 'EA', description: '자동매매 프로그램', icon: 'mdi-robot' },
@@ -106,6 +110,16 @@ export default {
     },
   },
   methods: {
+    async downloadBridge() {
+      if (this.downloading || !this.authBridge) return
+      this.downloading = true
+      this.downloadError = ''
+      try { await downloadUtilityFile(this.authBridge.download_url, this.authBridge.filename) }
+      catch (error) {
+        if (error.status === 401) this.$emit('authorization-failed', error)
+        else this.downloadError = error.message || '다운로드하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+      } finally { this.downloading = false }
+    },
     selectType(type) { this.activeType = type; this.copyState = ''; this.$emit('update:selectedType', type) },
     async copyLicenseUrl() {
       try { await navigator.clipboard.writeText(this.licenseUrl); this.copyState = 'copied' }
@@ -151,6 +165,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #ffd000; outlin
 .auth-bridge-download > div { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
 .auth-bridge-download code { min-width: 0; max-width: 100%; margin-top: 0; box-sizing: border-box; overflow-wrap: anywhere; }
 .auth-bridge-download a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 12px; border: 1px solid #71601e; border-radius: 6px; color: #f1d365; font-size: 12px; font-weight: 600; text-decoration: none; }
+.auth-bridge-download .auth-download-error { margin-top: 12px; color: #ff959a; font-size: 13px; }
 .auth-bridge-download a:hover { border-color: #d3b72d; background: #30290d; }
 .auth-bridge-download a:focus-visible { outline: 2px solid #ffd000; outline-offset: 4px; }
 .toolbar-inline-image { display: inline-block; width: auto; height: 28px; max-width: 100%; margin: 0 4px; vertical-align: middle; object-fit: contain; }

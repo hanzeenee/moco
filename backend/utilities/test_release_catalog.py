@@ -23,7 +23,8 @@ class PublishedReleaseTests(TestCase):
             item = RESOURCES[slug]
             self.programs[slug] = EAProgram.objects.create(code=item['program'], name=item['title'], program_type=item['type'])
             (Path(self.directory.name) / item['filename']).write_bytes(('private-ex5-' + slug).encode())
-        self.client.post(reverse('utility-login'), json.dumps({'account_number': self.account.account_number}), content_type='application/json')
+        response = self.client.post(reverse('utility-login'), json.dumps({'account_number': self.account.account_number}), content_type='application/json')
+        self.client.defaults['HTTP_X_MOCONIX_LIBRARY_TOKEN'] = response.json()['tab_token']
 
     def items(self):
         return self.client.get(reverse('utility-library-data')).json()['items']

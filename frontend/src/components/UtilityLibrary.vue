@@ -26,7 +26,7 @@
         <article v-for="item in pagedItems" :key="item.id" class="resource-card">
           <div class="resource-meta"><div class="resource-type"><span :class="['mdi', item.type === 'ea' ? 'mdi-robot' : 'mdi-chart-line']" aria-hidden="true"></span>{{ $t(item.type === 'ea' ? 'EA' : '인디케이터') }}</div></div>
           <h2>{{ $t(item.title) }}</h2><p class="resource-description">{{ $t(item.description) }}</p>
-          <a :href="item.download_url" download><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a>
+          <a :href="item.download_url" download :aria-busy="downloadingId === item.id" :aria-disabled="downloadingId === item.id" @click.prevent="download(item)"><span class="mdi mdi-download" aria-hidden="true"></span>{{ $t('EX5 다운로드') }}</a>
         </article>
       </div>
       <nav v-if="pageCount > 1" class="library-pagination" :aria-label="$t('자료실 페이지')">
@@ -39,19 +39,20 @@
       </nav>
       <p v-if="!filteredItems.length" class="category-empty" role="status">{{ $t(hasSearch ? '검색 결과가 없습니다. 다른 검색어를 입력해 주세요.' : '이 종류의 자료를 준비하고 있습니다.') }}</p>
     </section>
-    <UtilityInstallGuide class="library-guide" v-if="authorized && !loading" v-model:selectedType="guideType" :auth-bridge="authBridge" />
+    <p v-if="downloadError" class="library-download-error" role="alert">{{ $t(downloadError) }}</p>
+    <UtilityInstallGuide class="library-guide" v-if="authorized && !loading" v-model:selectedType="guideType" :auth-bridge="authBridge" @authorization-failed="denyAccess" />
   </section>
 </template>
 
 <script>
-import { utilityRequest } from '../lib/utilityAccess'
+import { utilityRequest, downloadUtilityFile } from '../lib/utilityAccess'
 import { libraryPage, libraryPageLinks } from '../lib/utilityLibrary.mjs'
 import UtilityInstallGuide from './UtilityInstallGuide.vue'
 
 export default {
   name: 'UtilityLibrary',
   components: { UtilityInstallGuide },
-  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', guideType: 'ea', currentPage: 1, searchReturnPage: 1, searchQuery: '', error: '' } },
+  data() { return { loading: true, authorized: false, items: [], selectedType: 'ea', guideType: 'ea', currentPage: 1, searchReturnPage: 1, searchQuery: '', error: '', downloadingId: '', downloadError: '', requestGeneration: 0 } },
   computed: {
     libraryItems() { return this.items.filter(item => item.type !== 'helper') },
     pageState() { return libraryPage(this.libraryItems, this.selectedType, this.currentPage, this.searchQuery, text => this.$t(text)) },
@@ -77,12 +78,50 @@ export default {
       this.currentPage = active ? 1 : this.searchReturnPage
     },
   },
-  async mounted() {
-    try { const data = await utilityRequest('library'); this.items = data.items || []; this.authorized = true }
-    catch (error) { this.error = error.status === 401 ? '홈 화면에서 등록된 계좌번호로 다시 로그인해 주세요.' : error.message }
-    finally { this.loading = false }
+  mounted() {
+    this.loadLibrary()
+    window.addEventListener('pageshow', this.restorePage)
+  },
+  beforeUnmount() {
+    this.requestGeneration += 1
+    window.removeEventListener('pageshow', this.restorePage)
   },
   methods: {
+    async loadLibrary() {
+      const generation = ++this.requestGeneration
+      this.loading = true
+      this.authorized = false
+      this.items = []
+      this.error = ''
+      try {
+        const data = await utilityRequest('library')
+        if (generation !== this.requestGeneration) return
+        this.items = data.items || []
+        this.authorized = true
+      } catch (error) {
+        if (generation !== this.requestGeneration) return
+        this.error = error.status === 401 ? '홈 화면에서 등록된 계좌번호로 다시 로그인해 주세요.' : error.message
+      } finally { if (generation === this.requestGeneration) this.loading = false }
+    },
+    restorePage(event) { if (event.persisted) this.loadLibrary() },
+    denyAccess(error) {
+      this.requestGeneration += 1
+      this.authorized = false
+      this.items = []
+      this.loading = false
+      this.downloadError = ''
+      this.error = error?.message || '홈 화면에서 등록된 계좌번호로 다시 로그인해 주세요.'
+    },
+    async download(item) {
+      if (this.downloadingId) return
+      this.downloadingId = item.id
+      this.downloadError = ''
+      try { await downloadUtilityFile(item.download_url, item.filename) }
+      catch (error) {
+        if (error.status === 401) this.denyAccess(error)
+        else this.downloadError = error.message || '다운로드하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+      } finally { this.downloadingId = '' }
+    },
     selectCategory(type) {
       this.selectedType = type
       this.guideType = type
@@ -106,6 +145,7 @@ export default {
 .library-empty.library-waiting { min-height: 160px; padding: 25px 20px; }
 .library-waiting > .mdi { margin-bottom: 10px; font-size: 28px; }
 .library-waiting h2 { font-size: 18px; }
+.library-download-error { margin: 18px 0 0; color: #ff959a; font-size: 13px; line-height: 1.7; }
 .library-intro { margin: 14px 0 0; color: #949eae; font-size: 13px; line-height: 1.7; }
 .library-downloads { margin-top: 26px; }
 .library-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }

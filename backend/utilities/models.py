@@ -27,7 +27,7 @@ class UtilityAccessAccount(models.Model):
 
 
 class UtilityBrowserSession(models.Model):
-    # Only a digest is stored; the random bearer token remains in the browser cookie.
+    # Only a digest is stored; the bearer token stays in the current tab's sessionStorage.
     token_hash = models.CharField(max_length=64, primary_key=True)
     account = models.ForeignKey(UtilityAccessAccount, on_delete=models.CASCADE, related_name="browser_sessions")
     created_at = models.DateTimeField(auto_now_add=True)

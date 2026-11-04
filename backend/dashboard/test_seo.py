@@ -1,5 +1,4 @@
 from xml.etree import ElementTree
-from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 from django.urls import resolve
@@ -103,8 +102,10 @@ class PublicSeoTests(SimpleTestCase):
         for url in ("/utilities", "/utilities/"):
             self.assertEqual(resolve(url).func, utility_views.library_page)
             response = self.client.get(url)
-            self.assertEqual(response.status_code, 403)
-            self.assertContains(response, 'name="robots" content="noindex,nofollow"', status_code=403)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["X-Robots-Tag"], "noindex")
+            self.assertContains(response, 'id="app"')
+            self.assertNotContains(response, 'download_url')
         self.assertEqual(resolve("/api/licenses/check/").func, check_license)
         self.assertEqual(resolve("/api/licenses/indicator/").func, check_indicator_license)
         self.assertEqual(self.client.get("/api/utilities/library/").status_code, 401)
@@ -115,13 +116,14 @@ class PublicSeoTests(SimpleTestCase):
         for url in ("/lecture", "/event/", "/classroom", "/robots.txt", "/sitemap.xml", "/utilities"):
             self.assertNotIn("Link", self.client.get(url))
 
-    def test_library_is_noindex_before_and_after_authorization(self):
+    def test_library_bootstrap_is_noindex_without_exposing_protected_data(self):
         for url in ("/utilities", "/utilities/"):
             response = self.client.get(url)
-            self.assertEqual(response.status_code, 403)
-            self.assertEqual(response["X-Robots-Tag"], "noindex")
-            with patch("utilities.views.registered_account", return_value=object()):
-                response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response["X-Robots-Tag"], "noindex")
+            self.assertIn("no-store", response["Cache-Control"])
+            self.assertContains(response, 'id="app"')
+            self.assertNotContains(response, 'download_url')
+            self.assertNotContains(response, 'account_number')
+            self.assertNotContains(response, 'resource-card')
             self.assertNotIn("Link", response)

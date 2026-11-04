@@ -16,7 +16,8 @@ from .resources import available_resources, resource_path
 # Legacy utility keys are removed on login/logout, never accepted for access.
 ACCOUNT_KEY = "utility_account_id"
 EXPIRY_KEY = "utility_access_expires_at"
-COOKIE_NAME = "moconix_library_session"
+COOKIE_NAME = "moconix_library_session"  # Legacy browser-wide cookie: cleanup only.
+TOKEN_HEADER = "X-Moconix-Library-Token"
 
 
 def token_digest(value):
@@ -26,17 +27,16 @@ def token_digest(value):
 
 
 def clear_access(request):
-    digest = token_digest(request.COOKIES.get(COOKIE_NAME))
+    digest = token_digest(request.headers.get(TOKEN_HEADER))
     if digest is not None:
         UtilityBrowserSession.objects.filter(token_hash=digest).delete()
     # Keep the independent Django administrator login and its expiry intact.
     request.session.pop(ACCOUNT_KEY, None)
     request.session.pop(EXPIRY_KEY, None)
-    request._utility_clear_cookie = True
 
 
 def access_response(request, response):
-    if getattr(request, "_utility_clear_cookie", False):
+    if COOKIE_NAME in request.COOKIES:
         response.delete_cookie(COOKIE_NAME, path="/", samesite="Lax")
         response.cookies[COOKIE_NAME]["secure"] = settings.SESSION_COOKIE_SECURE
         response.cookies[COOKIE_NAME]["httponly"] = True
@@ -44,19 +44,15 @@ def access_response(request, response):
 
 
 def registered_account(request):
-    token = request.COOKIES.get(COOKIE_NAME)
-    digest = token_digest(token)
+    # Tab grants are accepted only through this header, never cookies or URLs.
+    digest = token_digest(request.headers.get(TOKEN_HEADER))
     if digest is None:
-        if token is not None:
-            request._utility_clear_cookie = True
         return None
     grant = UtilityBrowserSession.objects.select_related("account").filter(token_hash=digest).first()
     if grant is None:
-        request._utility_clear_cookie = True
         return None
     if not grant.account.is_active:
         grant.delete()
-        request._utility_clear_cookie = True
         return None
     return grant.account
 
@@ -88,14 +84,8 @@ def login(request):
         return access_response(request, JsonResponse({"detail": "등록되지 않았거나 이용이 중지된 계좌번호입니다."}, status=403))
     token = secrets.token_urlsafe(32)
     UtilityBrowserSession.objects.create(token_hash=token_digest(token), account=account)
-    response = JsonResponse({"authenticated": True})
-    # No expiry attributes: the browser owns this cookie's session lifetime.
-    response.set_cookie(
-        COOKIE_NAME, token, path="/", secure=settings.SESSION_COOKIE_SECURE,
-        httponly=True, samesite="Lax",
-    )
-    request._utility_clear_cookie = False
-    return response
+    # The frontend keeps this token only in the current tab's sessionStorage.
+    return access_response(request, JsonResponse({"authenticated": True, "tab_token": token}))
 
 
 @never_cache
@@ -117,11 +107,9 @@ def library_data(request):
 @ensure_csrf_cookie
 @require_GET
 def library_page(request):
-    if registered_account(request) is None:
-        language = "en" if request.COOKIES.get("moconix_language") == "en" else "ko"
-        response = render(request, "utilities/access_required.html", {"english": language == "en", "language": language}, status=403)
-    else:
-        response = render(request, "home.html")
+    # Document navigation cannot send a tab header. Serve only the empty Vue shell;
+    # the library API and every private EX5 download still require the tab grant.
+    response = render(request, "home.html")
     response["X-Robots-Tag"] = "noindex"
     return access_response(request, response)
 
@@ -136,4 +124,4 @@ def download(request, resource_id):
         raise Http404()
     response = FileResponse(path.open("rb"), as_attachment=True, filename=path.name, content_type="application/octet-stream")
     response["X-Content-Type-Options"] = "nosniff"
-    return response
+    return access_response(request, response)

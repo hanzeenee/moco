@@ -1,4 +1,7 @@
 export const english = {
+  "로그인 정보를 확인하지 못했습니다. 다시 로그인해 주세요.": "Your login could not be verified. Please log in again.",
+  "다운로드하지 못했습니다. 잠시 후 다시 시도해 주세요.": "The download failed. Please try again shortly.",
+  "이 탭의 저장소를 사용할 수 없습니다. 브라우저 설정을 확인한 뒤 다시 로그인해 주세요.": "Storage is unavailable in this tab. Check your browser settings and log in again.",
   "MT5 EA·인디케이터와 TradingView 지표를 맞춤 개발합니다. 매매 전략과 필요한 기능을 구현하고, 기존 프로그램의 수정 및 개선도 지원합니다.": "Custom MT5 EA, indicator and TradingView indicator development. We implement your trading strategies and required features, and support updates and improvements to existing programs.",
   "클릭하면": "Click to",
   "자동매매가": "start",

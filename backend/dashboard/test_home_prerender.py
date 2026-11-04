@@ -1,6 +1,5 @@
 import json
 from html.parser import HTMLParser
-from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
@@ -105,11 +104,10 @@ class HomePrerenderTests(SimpleTestCase):
                 self.assertEqual(parsed.structured, [])
                 self.assertNotContains(response, "intro-title")
         response, parsed = self.page("en", "/utilities")
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(parsed.structured, [])
-        with patch("utilities.views.registered_account", return_value=object()):
-            response, parsed = self.page("en", "/utilities")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["X-Robots-Tag"], "noindex")
         self.assertEqual(parsed.structured, [])
+        self.assertContains(response, 'id="app"')
         self.assertNotContains(response, "intro-title")
+        self.assertNotContains(response, "resource-card")
+        self.assertNotContains(response, "download_url")

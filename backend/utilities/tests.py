@@ -17,6 +17,9 @@ from .models import UtilityAccessAccount, UtilityBrowserSession
 from .views import ACCOUNT_KEY, COOKIE_NAME, EXPIRY_KEY
 
 
+TOKEN_HEADER_KEY = "HTTP_X_MOCONIX_LIBRARY_TOKEN"
+
+
 @override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["testserver"], MOCONIX_UTILITY_DOWNLOAD_DIR="")
 class UtilityAccessTests(TestCase):
     def setUp(self):
@@ -24,11 +27,16 @@ class UtilityAccessTests(TestCase):
 
     def login(self, number="77112233", client=None):
         client = self.client if client is None else client
-        return client.post(reverse("utility-login"), json.dumps({"account_number": number}), content_type="application/json")
+        response = client.post(reverse("utility-login"), json.dumps({"account_number": number}), content_type="application/json")
+        if response.status_code == 200:
+            client.defaults[TOKEN_HEADER_KEY] = response.json()["tab_token"]
+        else:
+            client.defaults.pop(TOKEN_HEADER_KEY, None)
+        return response
 
     def token(self, client=None):
         client = self.client if client is None else client
-        return client.cookies[COOKIE_NAME].value
+        return client.defaults[TOKEN_HEADER_KEY]
 
     @staticmethod
     def digest(token):
@@ -36,31 +44,31 @@ class UtilityAccessTests(TestCase):
 
     @staticmethod
     def replay_client(token):
-        client = Client()
-        client.cookies[COOKIE_NAME] = token
-        return client
+        return Client(**{TOKEN_HEADER_KEY: token})
 
-    def assert_cookie_cleared(self, response):
-        self.assertIn(COOKIE_NAME, response.cookies)
-        self.assertEqual(response.cookies[COOKIE_NAME].value, "")
-        self.assertEqual(response.cookies[COOKIE_NAME]["max-age"], 0)
-
-    def test_anonymous_direct_page_and_data_are_blocked(self):
-        self.assertEqual(self.client.get("/utilities").status_code, 403)
-        self.assertEqual(self.client.get("/utilities/").status_code, 403)
+    def test_document_is_empty_noindex_bootstrap_but_anonymous_data_and_download_are_blocked(self):
+        for url in ("/utilities", "/utilities/"):
+            with patch("utilities.views.registered_account", side_effect=AssertionError("bootstrap must not read private access")), patch("utilities.views.available_resources", side_effect=AssertionError("bootstrap must not read the catalog")):
+                response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertTemplateUsed(response, "home.html")
+            self.assertEqual(response["X-Robots-Tag"], "noindex")
+            self.assertIn("no-store", response["Cache-Control"])
+            self.assertContains(response, '<div id="app"></div>')
+            for private_value in (self.account.account_number, "download_url", "data-prerendered", "UT Bot"):
+                self.assertNotContains(response, private_value)
         response = self.client.get(reverse("utility-library-data"))
         self.assertEqual(response.status_code, 401)
         self.assertIn("no-store", response["Cache-Control"])
         self.assertEqual(self.client.get(reverse("utility-download", args=["missing"])).status_code, 401)
         self.assertFalse(self.client.get(reverse("utility-session")).json()["authenticated"])
 
-    def test_registered_relogin_rotates_only_its_browser_grant_and_allows_empty_library(self):
+    def test_registered_relogin_rotates_only_presented_tab_grant(self):
         session = self.client.session
         session["unrelated"] = "preserve"
         session.save()
         old_key = session.session_key
-        first = self.login()
-        self.assertEqual(first.status_code, 200)
+        self.assertEqual(self.login().status_code, 200)
         first_token = self.token()
         other = Client()
         self.assertEqual(self.login(client=other).status_code, 200)
@@ -75,7 +83,6 @@ class UtilityAccessTests(TestCase):
         self.assertEqual(self.replay_client(first_token).get(reverse("utility-library-data")).status_code, 401)
         self.assertTrue(other.get(reverse("utility-session")).json()["authenticated"])
         self.assertTrue(UtilityBrowserSession.objects.filter(pk=self.digest(other_token)).exists())
-        self.assertEqual(self.client.get("/utilities").status_code, 200)
         self.assertEqual(self.client.get(reverse("utility-library-data")).json(), {"items": []})
         self.assertNotIn(self.account.account_number, response.content.decode())
 
@@ -88,9 +95,8 @@ class UtilityAccessTests(TestCase):
         self.account.save()
         self.assertEqual(self.login().status_code, 403)
 
-    def test_disabling_account_revokes_presented_grant_on_every_protected_surface(self):
-        targets = [("/utilities", 403), (reverse("utility-library-data"), 401),
-                   (reverse("utility-download", args=["missing"]), 401), (reverse("utility-session"), 200)]
+    def test_disabling_account_revokes_presented_grant_on_protected_apis(self):
+        targets = [(reverse("utility-library-data"), 401), (reverse("utility-download", args=["missing"]), 401), (reverse("utility-session"), 200)]
         for url, expected_status in targets:
             with self.subTest(url=url):
                 self.account.is_active = True
@@ -103,26 +109,30 @@ class UtilityAccessTests(TestCase):
                 self.assertEqual(response.status_code, expected_status)
                 if url == reverse("utility-session"):
                     self.assertFalse(response.json()["authenticated"])
-                self.assert_cookie_cleared(response)
+                self.assertNotIn(COOKIE_NAME, response.cookies)
                 self.assertFalse(UtilityBrowserSession.objects.filter(pk=self.digest(token)).exists())
                 self.account.is_active = True
                 self.account.save()
                 self.assertEqual(self.replay_client(token).get(reverse("utility-library-data")).status_code, 401)
-                self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 401)
         self.assertEqual(self.login().status_code, 200)
 
-    def test_login_and_logout_require_csrf(self):
+    def test_login_and_logout_require_csrf_without_revoking_on_csrf_failure(self):
         client = Client(enforce_csrf_checks=True)
         payload = json.dumps({"account_number": self.account.account_number})
         self.assertEqual(client.post(reverse("utility-login"), payload, content_type="application/json").status_code, 403)
         client.get(reverse("utility-session"))
-        token = client.cookies["csrftoken"].value
-        self.assertEqual(client.post(reverse("utility-login"), payload, content_type="application/json", HTTP_X_CSRFTOKEN=token).status_code, 200)
-        grant_token = self.token(client)
+        csrf = client.cookies["csrftoken"].value
+        response = client.post(reverse("utility-login"), payload, content_type="application/json", HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(response.status_code, 200)
+        grant_token = response.json()["tab_token"]
+        client.defaults[TOKEN_HEADER_KEY] = grant_token
         self.assertEqual(client.post(reverse("utility-logout")).status_code, 403)
         self.assertTrue(UtilityBrowserSession.objects.filter(pk=self.digest(grant_token)).exists())
+        self.assertTrue(client.get(reverse("utility-session")).json()["authenticated"])
+        self.assertEqual(client.post(reverse("utility-logout"), HTTP_X_CSRFTOKEN=csrf).status_code, 200)
+        self.assertFalse(UtilityBrowserSession.objects.filter(pk=self.digest(grant_token)).exists())
 
-    def test_logout_revokes_copied_cookie_but_preserves_other_browser_and_django_session(self):
+    def test_logout_revokes_presented_token_but_preserves_other_tab_and_django_session(self):
         self.login()
         token = self.token()
         other = Client()
@@ -134,38 +144,36 @@ class UtilityAccessTests(TestCase):
         response = self.client.post(reverse("utility-logout"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"authenticated": False})
-        self.assert_cookie_cleared(response)
+        self.assertNotIn(COOKIE_NAME, response.cookies)
         self.assertEqual(self.client.session.session_key, old_key)
         self.assertEqual(self.client.session["unrelated"], "preserve")
         self.assertNotIn(ACCOUNT_KEY, self.client.session)
         self.assertFalse(UtilityBrowserSession.objects.filter(pk=self.digest(token)).exists())
         self.assertEqual(self.replay_client(token).get(reverse("utility-library-data")).status_code, 401)
-        self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 401)
         self.assertTrue(other.get(reverse("utility-session")).json()["authenticated"])
 
-    def test_invalid_relogin_revokes_only_current_browser_grant(self):
+    def test_invalid_relogin_revokes_only_presented_tab_grant(self):
         self.login()
         token = self.token()
         other = Client()
         self.login(client=other)
         response = self.login("00000000")
         self.assertEqual(response.status_code, 403)
-        self.assert_cookie_cleared(response)
+        self.assertNotIn("tab_token", response.json())
         self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 401)
         self.assertEqual(self.replay_client(token).get(reverse("utility-library-data")).status_code, 401)
         self.assertTrue(other.get(reverse("utility-session")).json()["authenticated"])
 
-    def test_bad_login_formats_also_revoke_current_grant(self):
+    def test_bad_login_formats_also_revoke_presented_grant(self):
         requests = [("{}", "text/plain", 415), ("{", "application/json", 400),
-                    (json.dumps({"account_number": "bad"}), "application/json", 400),
-                    (" " * 257, "application/json", 400)]
+                    (json.dumps({"account_number": "bad"}), "application/json", 400), (" " * 257, "application/json", 400)]
         for body, content_type, status in requests:
             with self.subTest(content_type=content_type, body=body[:30]):
                 self.assertEqual(self.login().status_code, 200)
                 token = self.token()
                 response = self.client.post(reverse("utility-login"), body, content_type=content_type)
                 self.assertEqual(response.status_code, status)
-                self.assert_cookie_cleared(response)
+                self.assertNotIn("tab_token", response.json())
                 self.assertFalse(UtilityBrowserSession.objects.filter(pk=self.digest(token)).exists())
 
     def test_registration_command_is_idempotent_and_admin_stays_protected(self):
@@ -186,19 +194,18 @@ class UtilityAccessTests(TestCase):
         self.assertTrue(self.account.ea_enabled)
         self.assertEqual(self.login().status_code, 200)
 
-    def test_language_preference_translates_denial_without_granting_access(self):
-        self.client.cookies["moconix_language"] = "en"
-        response = self.client.get("/utilities")
-        self.assertEqual(response.status_code, 403)
-        self.assertContains(response, "Library login required", status_code=403)
-        self.assertContains(response, 'lang="en"', status_code=403)
-        self.assertFalse(self.client.get(reverse("utility-session")).json()["authenticated"])
-        self.client.cookies["moconix_language"] = "unsupported"
-        response = self.client.get("/utilities")
-        self.assertContains(response, "자료실 로그인이 필요합니다", status_code=403)
+    def test_language_cookie_never_grants_access_to_private_apis(self):
+        for language in ("en", "ko", "unsupported"):
+            self.client.cookies["moconix_language"] = language
+            response = self.client.get("/utilities")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["X-Robots-Tag"], "noindex")
+            self.assertContains(response, '<div id="app"></div>')
+            self.assertFalse(self.client.get(reverse("utility-session")).json()["authenticated"])
+            self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 401)
 
     @override_settings(SESSION_COOKIE_AGE=30)
-    def test_home_language_changes_and_long_elapsed_time_do_not_expire_browser_grant(self):
+    def test_home_language_changes_and_long_elapsed_time_do_not_expire_tab_grant(self):
         self.login()
         token = self.token()
         self.client.get("/")
@@ -207,44 +214,63 @@ class UtilityAccessTests(TestCase):
             future = timezone.now() + elapsed
             with self.subTest(elapsed=elapsed), patch("time.time", return_value=future.timestamp()), patch("django.utils.timezone.now", return_value=future):
                 self.assertTrue(self.client.get(reverse("utility-session")).json()["authenticated"])
-                self.assertEqual(self.client.get("/utilities").status_code, 200)
                 self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 200)
         self.assertEqual(self.token(), token)
         self.assertNotIn(EXPIRY_KEY, self.client.session)
 
-    def test_cookie_is_browser_session_only_host_only_httponly_lax_and_grant_is_hashed(self):
+    def test_login_returns_only_tab_token_and_stores_only_its_hash_without_auth_cookie(self):
         for secure in (False, True):
             with self.subTest(secure=secure), self.settings(SESSION_COOKIE_SECURE=secure):
                 response = self.login()
-                cookie = response.cookies[COOKIE_NAME]
-                self.assertRegex(cookie.value, r"^[A-Za-z0-9_-]{43}$")
-                self.assertEqual(cookie["path"], "/")
-                self.assertEqual(cookie["domain"], "")
-                self.assertTrue(cookie["httponly"])
-                self.assertEqual(bool(cookie["secure"]), secure)
-                self.assertEqual(cookie["samesite"], "Lax")
-                self.assertEqual(cookie["max-age"], "")
-                self.assertEqual(cookie["expires"], "")
-                grant = UtilityBrowserSession.objects.get(pk=self.digest(cookie.value))
+                self.assertEqual(set(response.json()), {"authenticated", "tab_token"})
+                token = response.json()["tab_token"]
+                self.assertRegex(token, r"^[A-Za-z0-9_-]{43}$")
+                self.assertNotIn(COOKIE_NAME, response.cookies)
+                grant = UtilityBrowserSession.objects.get(pk=self.digest(token))
                 self.assertEqual(grant.account_id, self.account.pk)
-                self.assertNotEqual(grant.pk, cookie.value)
-                self.assertNotIn(cookie.value, response.content.decode())
+                self.assertNotEqual(grant.pk, token)
+                self.assertNotIn("expires_at", {field.name for field in UtilityBrowserSession._meta.fields})
 
-    def test_missing_forged_and_malformed_cookies_never_authorize(self):
+    def test_missing_forged_and_malformed_headers_never_authorize(self):
         for token in (None, "", "short", "A" * 43, "A" * 44, "+" * 43):
-            for url, expected in [("/utilities", 403), (reverse("utility-library-data"), 401),
-                                  (reverse("utility-download", args=["missing"]), 401), (reverse("utility-session"), 200)]:
+            client = Client() if token is None else self.replay_client(token)
+            for url, expected in [(reverse("utility-library-data"), 401), (reverse("utility-download", args=["missing"]), 401), (reverse("utility-session"), 200)]:
                 with self.subTest(token=token, url=url):
-                    client = Client() if token is None else self.replay_client(token)
                     response = client.get(url)
                     self.assertEqual(response.status_code, expected)
+                    self.assertNotIn(COOKIE_NAME, response.cookies)
                     if url == reverse("utility-session"):
                         self.assertFalse(response.json()["authenticated"])
-                    if token is not None:
-                        self.assert_cookie_cleared(response)
         self.assertEqual(UtilityBrowserSession.objects.count(), 0)
 
-    def test_deleting_or_expiring_django_sessions_does_not_revoke_browser_grant(self):
+    def test_token_in_cookie_query_body_or_authorization_is_never_a_header_grant(self):
+        self.login()
+        token = self.token()
+        for client in (Client(), Client(HTTP_AUTHORIZATION="Bearer " + token)):
+            client.cookies[COOKIE_NAME] = token
+            response = client.get(reverse("utility-session"), {"tab_token": token})
+            self.assertFalse(response.json()["authenticated"])
+            self.assertEqual(response.cookies[COOKIE_NAME].value, "")
+            self.assertEqual(response.cookies[COOKIE_NAME]["max-age"], 0)
+            self.assertEqual(client.get(reverse("utility-library-data"), {"tab_token": token}).status_code, 401)
+            self.assertEqual(client.get(reverse("utility-download", args=["missing"]), {"tab_token": token}).status_code, 401)
+            response = client.generic("GET", reverse("utility-library-data"), json.dumps({"tab_token": token}), content_type="application/json")
+            self.assertEqual(response.status_code, 401)
+        self.assertTrue(self.client.get(reverse("utility-session")).json()["authenticated"])
+
+    def test_legacy_cookie_and_unrelated_header_cannot_revoke_another_tab_grant(self):
+        self.login()
+        token = self.token()
+        for header in (None, "short", "A" * 43):
+            for action in ("logout", "invalid-login", "valid-login"):
+                with self.subTest(header=header, action=action):
+                    fresh = Client() if header is None else self.replay_client(header)
+                    fresh.cookies[COOKIE_NAME] = token
+                    response = fresh.post(reverse("utility-logout")) if action == "logout" else self.login("00000000" if action == "invalid-login" else self.account.account_number, client=fresh)
+                    self.assertEqual(response.status_code, 403 if action == "invalid-login" else 200)
+                    self.assertTrue(self.client.get(reverse("utility-session")).json()["authenticated"])
+
+    def test_deleting_or_expiring_django_sessions_does_not_revoke_tab_grant(self):
         for action in ("delete", "expire"):
             with self.subTest(action=action):
                 client = Client()
@@ -258,9 +284,8 @@ class UtilityAccessTests(TestCase):
                     Session.objects.filter(session_key=session.session_key).update(expire_date=timezone.now() - timedelta(seconds=1))
                 self.assertTrue(client.get(reverse("utility-session")).json()["authenticated"])
                 self.assertEqual(client.get(reverse("utility-library-data")).status_code, 200)
-                self.assertEqual(client.get("/utilities").status_code, 200)
 
-    def test_fresh_browser_with_only_persistent_django_cookie_cannot_restore_library_access(self):
+    def test_fresh_tab_with_same_browser_cookies_cannot_restore_library_access(self):
         user = get_user_model().objects.create_superuser(username="browser-admin", email="browser@example.invalid", password="test-browser-password")
         self.client.force_login(user)
         session = self.client.session
@@ -268,10 +293,11 @@ class UtilityAccessTests(TestCase):
         session.save()
         self.login()
         fresh = Client()
-        fresh.cookies[settings.SESSION_COOKIE_NAME] = self.client.cookies[settings.SESSION_COOKIE_NAME].value
-        self.assertNotIn(COOKIE_NAME, fresh.cookies)
+        fresh.cookies.update(self.client.cookies)
+        fresh.cookies[COOKIE_NAME] = self.token()
         self.assertEqual(fresh.get("/admin/").status_code, 200)
-        self.assertEqual(fresh.get("/utilities").status_code, 403)
+        self.assertEqual(fresh.get("/utilities").status_code, 200)
+        self.assertFalse(fresh.get(reverse("utility-session")).json()["authenticated"])
         self.assertEqual(fresh.get(reverse("utility-library-data")).status_code, 401)
         self.assertEqual(fresh.get(reverse("utility-download", args=["missing"])).status_code, 401)
         self.assertTrue(self.client.get(reverse("utility-session")).json()["authenticated"])
@@ -281,9 +307,8 @@ class UtilityAccessTests(TestCase):
         session[ACCOUNT_KEY] = self.account.pk
         session[EXPIRY_KEY] = time.time() + 365 * 24 * 60 * 60
         session.save()
-        self.assertNotIn(COOKIE_NAME, self.client.cookies)
         self.assertFalse(self.client.get(reverse("utility-session")).json()["authenticated"])
-        self.assertEqual(self.client.get("/utilities").status_code, 403)
+        self.assertEqual(self.client.get("/utilities").status_code, 200)
         self.assertEqual(self.client.get(reverse("utility-library-data")).status_code, 401)
         self.assertEqual(self.client.get(reverse("utility-download", args=["missing"])).status_code, 401)
         self.assertEqual(UtilityBrowserSession.objects.count(), 0)

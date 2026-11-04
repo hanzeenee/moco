@@ -59,7 +59,8 @@ class SignedIndicatorTests(TestCase):
         self.assertIn("no-store", response["Cache-Control"])
         self.assertFalse(response.cookies)
         self.assertNotIn(ACCOUNT_KEY, native.session)
-        self.assertEqual(native.get("/utilities").status_code, 403)
+        self.assertEqual(native.get("/utilities").status_code, 200)
+        self.assertEqual(native.get(reverse("utility-library-data")).status_code, 401)
 
     def test_wrong_identity_flags_and_program_kind_never_receive_signature(self):
         for field, value in [("account_number", "77112234"), ("product", "unknown-indicator")]:
@@ -122,7 +123,9 @@ class PrivateDownloadTests(TestCase):
         self.url = reverse("utility-download", args=["auth-bridge"])
 
     def login(self):
-        return self.client.post(reverse("utility-login"), json.dumps({"account_number": self.account.account_number}), content_type="application/json")
+        response = self.client.post(reverse("utility-login"), json.dumps({"account_number": self.account.account_number}), content_type="application/json")
+        self.client.defaults["HTTP_X_MOCONIX_LIBRARY_TOKEN"] = response.json()["tab_token"]
+        return response
 
     def test_anonymous_download_is_blocked_and_registered_download_is_attachment(self):
         self.assertEqual(self.client.get(self.url).status_code, 401)
