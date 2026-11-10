@@ -7,7 +7,7 @@
         </button>
       </div>
       <div class="header-column header-column-end">
-        <a class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" v-bind="youtube" alt="YouTube" /></a>
+        <a class="youtube-link" href="https://www.youtube.com/@moconix" target="_blank" rel="noopener noreferrer" :aria-label="$t('YouTube 새 탭으로 열기')"><img class="youtube-logo" v-bind="youtube" alt="YouTube" /></a>
         <LanguagePicker />
       </div>
     </div>
