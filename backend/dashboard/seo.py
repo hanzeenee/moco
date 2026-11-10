@@ -9,7 +9,6 @@ def robots_txt(request):
         "User-agent: *\n"
         "Disallow: /admin/\n"
         "Disallow: /api/\n"
-        "Disallow: /utilities\n"
         "\n"
         "Sitemap: https://moconix.com/sitemap.xml\n",
         content_type="text/plain; charset=utf-8",

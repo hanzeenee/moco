@@ -1,4 +1,5 @@
 from xml.etree import ElementTree
+from urllib.robotparser import RobotFileParser
 
 from django.test import SimpleTestCase, override_settings
 from django.urls import resolve
@@ -15,10 +16,20 @@ class PublicSeoTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response["Content-Type"].startswith("text/plain"))
         text = response.content.decode()
-        for line in ("User-agent: *", "Disallow: /admin/", "Disallow: /api/", "Disallow: /utilities", "Sitemap: https://moconix.com/sitemap.xml"):
+        for line in ("User-agent: *", "Disallow: /admin/", "Disallow: /api/", "Sitemap: https://moconix.com/sitemap.xml"):
             self.assertIn(line, text)
         self.assertNotIn("Disallow: /static", text)
         self.assertNotIn("<!doctype", text.lower())
+
+        robots = RobotFileParser()
+        robots.parse(text.splitlines())
+        for agent in ("Googlebot", "Yeti", "*"):
+            for path in ("/utilities", "/utilities/", "/utilities?utm_source=youtube"):
+                with self.subTest(agent=agent, path=path):
+                    self.assertTrue(robots.can_fetch(agent, "https://moconix.com" + path))
+            for path in ("/admin/", "/api/utilities/library/", "/api/utilities/download/breakout-martingale/"):
+                with self.subTest(agent=agent, path=path):
+                    self.assertFalse(robots.can_fetch(agent, "https://moconix.com" + path))
 
     def test_sitemap_only_lists_the_public_canonical_homepage(self):
         response = self.client.get("/sitemap.xml")
@@ -117,13 +128,16 @@ class PublicSeoTests(SimpleTestCase):
             self.assertNotIn("Link", self.client.get(url))
 
     def test_library_bootstrap_is_noindex_without_exposing_protected_data(self):
-        for url in ("/utilities", "/utilities/"):
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response["X-Robots-Tag"], "noindex")
-            self.assertIn("no-store", response["Cache-Control"])
-            self.assertContains(response, 'id="app"')
-            self.assertNotContains(response, 'download_url')
-            self.assertNotContains(response, 'account_number')
-            self.assertNotContains(response, 'resource-card')
-            self.assertNotIn("Link", response)
+        for locale in ("ko", "en"):
+            self.client.cookies["moconix_language"] = locale
+            for url in ("/utilities", "/utilities/"):
+                with self.subTest(locale=locale, url=url):
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response["X-Robots-Tag"], "noindex")
+                    self.assertIn("no-store", response["Cache-Control"])
+                    self.assertContains(response, 'id="app"')
+                    self.assertNotContains(response, 'download_url')
+                    self.assertNotContains(response, 'account_number')
+                    self.assertNotContains(response, 'resource-card')
+                    self.assertNotIn("Link", response)
