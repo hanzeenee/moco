@@ -126,3 +126,13 @@ Official references: [custom chart events](https://www.mql5.com/en/docs/eventfun
 ### Adding library releases
 
 Add fixed EX5-only metadata to `backend/utilities/resources.py`: stable resource ID, kind, product ID, title, description and filename. Add matching English translations. Compile privately with the current licensing headers, keep the original strategy outside Git, and put only the verified EX5 in the configured private download directory. Create an active EAProgram row with the exact compiled product ID and kind. The library has EA/Indicator categories, defaults to EA, and automatically paginates each category at nine items per page (3 columns on desktop). Product variants are named in their titles rather than separate displayed version fields. Counts and page totals update automatically. Never copy MQ5/MQH, owner archives or signing keys into static/media or the public source repository. Source and EX5 releases stay outside Git. Shared AuthBridge stays inside the indicator installation guide and is not a product card.
+
+
+### EX5 filenames / 파일명 규칙
+
+New EA downloads use `MOCO_EA_<Name>.ex5`; new indicator downloads use `MOCO_indi_<Name>.ex5` (case-sensitive prefixes). Publish EX5 only. Existing releases and the shared `MOCONIX_AuthBridge.ex5` retain their current names.
+
+- SMA Cross EA: `MOCO_EA_SMA_Cross.ex5`, product `moconix-sma-cross-ea`.
+- SMA Cross Arrow Indicator: `MOCO_indi_SMA_Cross.ex5`, product `moconix-sma-cross-arrow`.
+
+These filenames are distribution names for the already validated compiled files; renaming does not change their account authorization or strategy. The EA is standalone. The indicator uses the existing authorization EA. Never publish MQ5/MQH files, customer account data, signing keys, or owner QA files.

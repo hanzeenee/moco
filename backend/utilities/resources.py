@@ -19,6 +19,16 @@ RESOURCES = {
         "description": "ATR 기반 매수·매도 신호를 차트에 표시합니다.",
         "note": "인증 EA 필요 · 현재 봉의 신호는 시세에 따라 바뀔 수 있습니다.",
     },
+    "sma-cross-ea": {
+        "title": "SMA 크로스 EA", "type": "ea", "filename": "MOCO_EA_SMA_Cross.ex5",
+        "program": "moconix-sma-cross-ea",
+        "description": "SMA 교차 확정 후 매매하며, 반대 신호에서 청산·반전합니다.",
+    },
+    "sma-cross-indicator": {
+        "title": "SMA 크로스 화살표 인디케이터", "type": "indicator", "filename": "MOCO_indi_SMA_Cross.ex5",
+        "program": "moconix-sma-cross-arrow",
+        "description": "SMA 교차가 확정된 봉에 매수·매도 화살표를 표시합니다.",
+    },
     "auth-bridge": {
         "title": "인디케이터 인증 EA", "type": "helper", "filename": "MOCONIX_AuthBridge.ex5",
         "description": "인디케이터 실행을 위한 계좌 인증용 EA입니다. 주문 기능은 없습니다.",
