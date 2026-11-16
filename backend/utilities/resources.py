@@ -13,7 +13,7 @@ RESOURCES = {
         "description": "SMA 교차 확정 후 매매하며, 반대 신호에서 청산·반전합니다.",
     },
     "sma-cross-indicator": {
-        "title": "SMA 크로스 화살표 인디케이터", "type": "indicator", "filename": "MOCO_indi_SMA_Cross.ex5",
+        "title": "SMA 크로스 화살표 인디케이터", "type": "indicator", "filename": "MOCO_indi_SMA_Cross_Arrow.ex5",
         "program": "moconix-sma-cross-arrow",
         "description": "SMA 교차가 확정된 봉에 매수·매도 화살표를 표시합니다.",
     },

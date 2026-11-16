@@ -133,6 +133,6 @@ Add fixed EX5-only metadata to `backend/utilities/resources.py`: stable resource
 New EA downloads use `MOCO_EA_<Name>.ex5`; new indicator downloads use `MOCO_indi_<Name>.ex5` (case-sensitive prefixes). Publish EX5 only. Existing releases and the shared `MOCONIX_AuthBridge.ex5` retain their current names.
 
 - SMA Cross EA: `MOCO_EA_SMA_Cross.ex5`, product `moconix-sma-cross-ea`.
-- SMA Cross Arrow Indicator: `MOCO_indi_SMA_Cross.ex5`, product `moconix-sma-cross-arrow`.
+- SMA Cross Arrow Indicator: `MOCO_indi_SMA_Cross_Arrow.ex5`, product `moconix-sma-cross-arrow`.
 
 These filenames are distribution names for the already validated compiled files; renaming does not change their account authorization or strategy. The EA is standalone. The indicator uses the existing authorization EA. Never publish MQ5/MQH files, customer account data, signing keys, or owner QA files.
